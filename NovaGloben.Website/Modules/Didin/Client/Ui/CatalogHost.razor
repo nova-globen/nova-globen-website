@@ -29,13 +29,19 @@
                     <BinLogo /><span class="bin-brand-name">Didin</span>
                 </button>
                 <nav class="bin-nav" aria-label="Views">
-                    @foreach (var (view, label, icon) in Views)
+                    @foreach (var (view, label, icon) in Views.Where(v => !Options.Guest || GuestViews.Contains(v.View)))
                     {
                         <button type="button" class="bin-nav-item @(_view == view && State.SelectedTitleId == null ? "active" : "")"
                                 aria-current="@(_view == view && State.SelectedTitleId == null ? "page" : null)" data-view="@view"
                                 @onclick="() => Go(view)">
                             <BinIcon Name="@icon" /><span>@label</span>
                         </button>
+                    }
+                    @if (Options.Guest)
+                    {
+                        <a class="bin-nav-item" id="bin-sign-in" href="@Options.PageUrl("/login")">
+                            <BinIcon Name="user" /><span>Sign in</span>
+                        </a>
                     }
                     @if (State.User.IsAdmin)
                     {
@@ -105,12 +111,15 @@
                                         <FluentButton Appearance="ButtonAppearance.Primary" Size="ButtonSize.Large" Id="bin-hero-play" OnClick="() => WatchNow(hero)">
                                             <BinIcon Name="play" Filled="true" /> Watch now
                                         </FluentButton>
-                                        <button type="button" class="bin-heart bin-heart-lg @(State.OnWatchlist(hero.Id) ? "on" : "")"
-                                                aria-pressed="@(State.OnWatchlist(hero.Id) ? "true" : "false")"
-                                                aria-label="@(State.OnWatchlist(hero.Id) ? "Remove from My list" : "Add to My list")"
-                                                @onclick="() => ToggleList(hero.Id)">
-                                            <BinIcon Name="heart" Filled="@State.OnWatchlist(hero.Id)" />
-                                        </button>
+                                        @if (!Options.Guest)
+                                        {
+                                            <button type="button" class="bin-heart bin-heart-lg @(State.OnWatchlist(hero.Id) ? "on" : "")"
+                                                    aria-pressed="@(State.OnWatchlist(hero.Id) ? "true" : "false")"
+                                                    aria-label="@(State.OnWatchlist(hero.Id) ? "Remove from My list" : "Add to My list")"
+                                                    @onclick="() => ToggleList(hero.Id)">
+                                                <BinIcon Name="heart" Filled="@State.OnWatchlist(hero.Id)" />
+                                            </button>
+                                        }
                                         <button type="button" class="bin-hero-more" @onclick="() => State.Select(hero.Id)">More info</button>
                                     </div>
                                 </div>
@@ -164,13 +173,18 @@
                                 }
                             </div>
                         }
-                        <h2 class="bin-row-title">Top rated</h2>
-                        <div class="bin-row" id="bin-toprated">
-                            @foreach (var card in TopRated().Take(18))
-                            {
-                                <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
-                            }
-                        </div>
+                        var topRated = TopRated().Take(18).ToList();
+                        @if (topRated.Count > 0)
+                        {
+                            @* a catalogue with no ratings (the public sample) has no row to show *@
+                            <h2 class="bin-row-title">Top rated</h2>
+                            <div class="bin-row" id="bin-toprated">
+                                @foreach (var card in topRated)
+                                {
+                                    <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                                }
+                            </div>
+                        }
                         <h2 class="bin-row-title">Recently added</h2>
                         <div class="bin-row" id="bin-recent">
                             @foreach (var card in RecentlyAdded().Take(18))
@@ -242,6 +256,48 @@
                         }
                     }
 
+                    @if (State.Catalog.Credits.Count > 0)
+                    {
+                        @* whose licensed work is listed, and under which licences; each title page carries its own credit line *@
+                        <footer class="bin-credits">
+                            @foreach (var credit in State.Catalog.Credits)
+                            {
+                                <p>
+                                    <span>Titles &copy; </span>
+                                    @if (!string.IsNullOrEmpty(credit.LicensorUrl))
+                                    {
+                                        <a href="@credit.LicensorUrl" rel="noopener" target="_blank">@credit.Licensor</a>
+                                    }
+                                    else
+                                    {
+                                        <span>@credit.Licensor</span>
+                                    }
+                                    @if (credit.Licenses.Count > 0)
+                                    {
+                                        <span>, licensed under </span>
+                                        @for (var i = 0; i < credit.Licenses.Count; i++)
+                                        {
+                                            var license = credit.Licenses[i];
+                                            if (i > 0)
+                                            {
+                                                <span>@(i == credit.Licenses.Count - 1 ? " and " : ", ")</span>
+                                            }
+                                            if (!string.IsNullOrEmpty(license.Url))
+                                            {
+                                                <a href="@license.Url" rel="license noopener" target="_blank">@license.Name</a>
+                                            }
+                                            else
+                                            {
+                                                <span>@license.Name</span>
+                                            }
+                                        }
+                                    }
+                                    <span>. Each title's page gives its credit line.</span>
+                                </p>
+                            }
+                        </footer>
+                    }
+
                     @* Filters slide in from the side (all sizes), over the results, and end with a way back to them. *@
                     <div class="bin-drawer @(_filtersOpen ? "bin-filters-open" : "")">
                         @if (_filtersOpen)
@@ -311,6 +367,9 @@
         ("home", "Home", "home"), ("assistant", "Ask Didin", "sparkle"), ("mylist", "My list", "heart"), ("top", "Top rated", "trending"), ("new", "Recently added", "new"),
         ("watched", "Watched", "check"),
     };
+
+    /// <summary>What a visitor who is not signed in can open: browsing only, nothing that is an account's own.</summary>
+    private static readonly HashSet<string> GuestViews = new() { "home", "top", "new" };
 
     private static readonly (string Kind, string Label)[] Kinds = { ("", "All"), ("movie", "Movies"), ("series", "Series") };
 
@@ -635,6 +694,7 @@
     /// <summary>The user's list and part-watched files; best-effort - browsing works without it.</summary>
     private async Task RefreshUserStateAsync()
     {
+        if (Options.Guest) return;   // a visitor has no list or progress to load
         try { State.SetUserState(await CatalogClient.GetUserStateAsync()); }
         catch { /* no state endpoint or no user - keep browsing */ }
     }

@@ -114,7 +114,7 @@
       "path": "products/vacha/download",
       "name": "Ladda ned Vacha",
       "title": "Ladda ned Vacha | Nova Globen AB",
-      "description": "Ladda ned Vacha 1.1.1 för Windows från Microsoft Store: gratis, under GNU GPL.",
+      "description": "Ladda ned Vacha 1.1.2 för Windows, från GitHub eller Microsoft Store: gratis, under GNU GPL.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]

@@ -209,6 +209,7 @@
 
     private async Task SaveLanguageAsync(string lang)
     {
+        if (Options.Guest) return;   // kept for this visit only
         try { await CatalogClient.SetSubtitleLanguageAsync(lang); }
         catch { /* remembered for this session; the next choice saves again */ }
     }
@@ -234,7 +235,7 @@
 
     // ---- cast to TV: the TV plays the file and the player becomes its remote; progress, subtitles and the
     // next part follow it. Closing the player stops the TV; stopping from the TV (or Chrome's menu) plays on here.
-    private bool CanCast => !KnownUnplayable && (Cast.Status.Available || CastingHere);
+    private bool CanCast => !Options.Guest && !KnownUnplayable && (Cast.Status.Available || CastingHere);
     private bool CastingHere => Cast.Status.Connected && Cast.Status.FileToken == File.Token;
     private bool _wasCasting;            // this file was on the TV: when the session ends, play on here from there
     private bool _castEndHandled;
@@ -407,7 +408,7 @@
                     "(() => { var v = document.getElementById('bin-video'); return v && isFinite(v.duration) ? [v.currentTime, v.duration] : [0, 0]; })()");
             // Saved once the duration is known, position 0 included: rewinding to the start and closing must clear
             // the resume point, not leave the last periodic save behind.
-            if (pos.Length == 2 && pos[1] > 0)
+            if (pos.Length == 2 && pos[1] > 0 && !Options.Guest)
             {
                 await CatalogClient.SaveProgressAsync(File.Token, pos[0], pos[1]);
             }

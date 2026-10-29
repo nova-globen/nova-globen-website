@@ -6,5 +6,9 @@
 <CatalogHost />
 
 @code {
-    protected override void OnInitialized() => Options.SiteBase = DidinAssets.SiteBase(PageState.Alias);
+    protected override void OnInitialized()
+    {
+        Options.SiteBase = DidinAssets.SiteBase(PageState.Alias);
+        Options.Guest = PageState.User == null;
+    }
 }

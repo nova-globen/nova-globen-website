@@ -211,15 +211,19 @@ namespace Didin.Server.Startup
 
             var allPages = (await pages.GetPagesAsync(site.SiteId)).ToList();
 
+            // Home is for signed-in users, or for everyone on a host whose catalogue is public (the sample); either way
+            // only the catalogue's browsing is open, as Didin:PublicCatalog's policy says.
+            var isPublic = Services.DidinBrowsing.IsPublic(provider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>());
+            var homePermissions = isPublic ? Everyone() : SignedInOnly();
             var home = allPages.FirstOrDefault(item => item.Path == "");
             if (home != null)
             {
-                await EnsureOnlyModuleAsync(provider, site, home, MediaModule, "Media", SignedInOnly(), hide: _ => true);
-                if (!SamePermissions(home.PermissionList, SignedInOnly()))
+                await EnsureOnlyModuleAsync(provider, site, home, MediaModule, "Media", homePermissions, hide: _ => true);
+                if (!SamePermissions(home.PermissionList, homePermissions))
                 {
-                    home.PermissionList = SignedInOnly();
+                    home.PermissionList = homePermissions;
                     await pages.UpdatePageAsync(home);
-                    logger.LogInformation("Didin: Home is for signed-in users only.");
+                    logger.LogInformation(isPublic ? "Didin: Home is open to everyone (Didin:PublicCatalog)." : "Didin: Home is for signed-in users only.");
                 }
             }
 
@@ -230,6 +234,9 @@ namespace Didin.Server.Startup
             }
 
             await EnsureAdministratorsAsync(provider, site);
+
+            // a catalogue the host brings with it (Didin:SeedCatalog), into an empty catalogue only
+            await provider.GetRequiredService<Services.CatalogSeed>().SeedIfEmptyAsync(new Services.DidinSite(site.SiteId, "/" + Services.DidinSite.Folder));
 
             foreach (var page in allPages.Where(item => RemovedPaths.Contains(item.Path) && !item.IsDeleted))
             {

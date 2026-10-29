@@ -14,7 +14,7 @@ namespace Didin.Server.Controllers
     /// </summary>
     [ApiController]
     [Route("api/art")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class ArtController(DidinStore store, DidinFiles files) : DidinController
     {
         [HttpGet("{id:int}")]

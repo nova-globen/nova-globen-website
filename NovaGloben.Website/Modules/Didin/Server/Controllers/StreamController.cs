@@ -10,11 +10,12 @@ namespace Didin.Server.Controllers
 {
     /// <summary>
     /// Media streaming with HTTP Range support (seeking), from the host's <see cref="MediaSource"/>: a local folder or
-    /// the WebDAV store, proxied. The token is the file's document id: only files in the catalogue stream.
+    /// the WebDAV store, proxied; or, for a public store, a redirect to the file's own address there, which the browser
+    /// streams from directly. The token is the file's document id: only files in the catalogue stream.
     /// </summary>
     [ApiController]
     [Route("api/stream")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class StreamController(CatalogQuery query, MediaFiles media, CastTickets tickets) : DidinController
     {
         // GET {site}/api/stream/{token}             - for the player
@@ -38,7 +39,7 @@ namespace Didin.Server.Controllers
 
         private async Task ServeAsync(string token, bool download)
         {
-            if (!media.Source.IsLocal && !media.Source.IsWebDav) { Response.StatusCode = 503; return; }
+            if (!media.Source.IsLocal && !media.Source.IsWebDav && !media.Source.IsPublic) { Response.StatusCode = 503; return; }
 
             var file = await query.GetFileAsync(Site, FileToken.Decode(token), HttpContext.RequestAborted);
             if (file == null) { Response.StatusCode = 404; return; }
@@ -55,7 +56,13 @@ namespace Didin.Server.Controllers
                     FileName = new string(name.Select(c => c < 128 && c != '"' ? c : '_').ToArray()),
                 }.ToString();
             }
-            if (media.Source.IsLocal)
+            if (media.Source.IsPublic)
+            {
+                var url = media.Source.PublicUrl(path);
+                if (url == null) { Response.StatusCode = 400; return; }
+                Response.Redirect(url);
+            }
+            else if (media.Source.IsLocal)
             {
                 await StreamLocal(path);
             }

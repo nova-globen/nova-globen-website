@@ -1,10 +1,10 @@
 {
-  "version": "1.1.1",
-  "url": "https://apps.microsoft.com/detail/9NSCM5WH4WF1",
+  "version": "1.1.2",
+  "url": "https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe",
   "platforms": {
     "win32-x64": {
-      "version": "1.1.1",
-      "url": "https://apps.microsoft.com/detail/9NSCM5WH4WF1"
+      "version": "1.1.2",
+      "url": "https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe"
     }
   }
 }

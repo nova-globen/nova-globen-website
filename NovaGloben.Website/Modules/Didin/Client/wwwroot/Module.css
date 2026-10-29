@@ -708,3 +708,13 @@ main .bin-login-app:hover { text-decoration: underline; }
     /* seven views do not fit the phone's tab bar: Top rated and Recently added stay as rows on Home */
     .didin .bin-nav-item[data-view="top"], .didin .bin-nav-item[data-view="new"] { display: none; }
 }
+
+/* The catalogue's credits line and a title's credit and licence: small and quiet, links underlined. */
+.didin .bin-credits { margin: 2.5rem 0 1rem; color: rgba(255, 255, 255, .72); font-size: .85rem; line-height: 1.6; }
+.didin .bin-credits p { margin: .25rem 0; }
+.didin .bin-credits a, .didin .bin-licence a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Wide art (a film still, key art with its title): shown whole in the portrait frame, on the frame's dark ground. */
+.didin .bin-poster.bin-poster-wide { object-fit: contain; }
+/* On the title page, wide art keeps its own shape instead of a letterboxed portrait frame. */
+.didin .bin-details > div:first-child .bin-poster.bin-poster-wide { aspect-ratio: auto; height: auto; object-fit: contain; }

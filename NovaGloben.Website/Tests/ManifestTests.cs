@@ -13,10 +13,10 @@ namespace NovaGloben.Website.Tests;
 public class ManifestTests
 {
     /// <summary>
-    /// What the update prompt's Download button opens, in the user's browser: the Store listing of the GPL build until
-    /// Vacha's first GitHub Release. Always https.
+    /// What the update prompt's Download button opens, in the user's browser: the installer of the latest GitHub Release,
+    /// which the browser downloads. Always https.
     /// </summary>
-    private const string Installer = "https://apps.microsoft.com/detail/9NSCM5WH4WF1";
+    private const string Installer = "https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe";
 
     [Fact]
     public void The_manifest_has_the_shape_the_app_reads()

@@ -33,6 +33,14 @@ namespace Didin.Server.Documents
         public int? Metascore { get; set; }
         public int? RottenTomatoes { get; set; }   // Tomatometer, percent
         public string Awards { get; set; }
+        // A title shared under a licence that asks for attribution (the public sample's open films): who made it, the
+        // credit line its licensor asks for, the licence and its deed, and the page the licence is stated on.
+        public string Licensor { get; set; }
+        public string LicensorUrl { get; set; }
+        public string Attribution { get; set; }
+        public string License { get; set; }
+        public string LicenseUrl { get; set; }
+        public string SourceUrl { get; set; }
         public string BoxOffice { get; set; }
         public string Budget { get; set; }
         public List<string> ProductionCompanies { get; set; } = new();
@@ -213,6 +221,8 @@ namespace Didin.Server.Documents
         public long Length { get; set; }
         public string Hash { get; set; }         // sha256 prefix of the bytes: the cache key in /api/art URLs
         public DateTime FetchedUtc { get; set; }
+        public int? Width { get; set; }          // read from the image's header at import; null for posters from before
+        public int? Height { get; set; }
     }
 
 }

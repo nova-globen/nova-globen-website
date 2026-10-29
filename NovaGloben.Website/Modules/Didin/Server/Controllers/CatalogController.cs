@@ -8,7 +8,7 @@ namespace Didin.Server.Controllers
 {
     [ApiController]
     [Route("api/catalog")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class CatalogController(CatalogQuery query) : DidinController
     {
         /// <summary>The whole slim catalogue (cached client-side by Version).</summary>
@@ -26,7 +26,7 @@ namespace Didin.Server.Controllers
     /// <summary>A person's titles: GET {site}/api/people?name=Ada%20Example.</summary>
     [ApiController]
     [Route("api/people")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class PeopleController(CatalogQuery query) : DidinController
     {
         [HttpGet]
@@ -39,7 +39,7 @@ namespace Didin.Server.Controllers
 
     [ApiController]
     [Route("api/titles")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class TitlesController(CatalogQuery query) : DidinController
     {
         [HttpGet("{id:int}")]

@@ -13,6 +13,7 @@ namespace Didin.Shared.Models
         public int? Year { get; set; }
         public int? EndYear { get; set; }
         public string PosterUrl { get; set; }
+        public bool PosterWide { get; set; }       // wide art (a still, key art): shown whole, not cropped to the card
         public List<string> Genres { get; set; } = new();
         public int? RuntimeMinutes { get; set; }
         public string ContentRating { get; set; }
@@ -48,6 +49,21 @@ namespace Didin.Shared.Models
         public int TitleCount { get; set; }
         public List<CatalogCard> Cards { get; set; } = new();
         public CatalogFacets Facets { get; set; } = new();
+        public List<CatalogCredit> Credits { get; set; } = new();   // whose licensed work the catalogue lists
+    }
+
+    /// <summary>A licensor of titles the catalogue lists, and the licences they are under: the catalogue's credits line.</summary>
+    public class CatalogCredit
+    {
+        public string Licensor { get; set; }
+        public string LicensorUrl { get; set; }
+        public List<CatalogLicense> Licenses { get; set; } = new();
+    }
+
+    public class CatalogLicense
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
     }
 
     /// <summary>One person's titles in the catalog: what the title page's names open.</summary>
@@ -255,6 +271,7 @@ namespace Didin.Shared.Models
         public string Title { get; set; }
         public int? Year { get; set; }
         public string PosterUrl { get; set; }
+        public bool PosterWide { get; set; }
         public string Collection { get; set; }
         public double? CollectionOrder { get; set; }
         public string Reason { get; set; }   // "More like this": why it was picked
@@ -286,7 +303,14 @@ namespace Didin.Shared.Models
         public string BoxOffice { get; set; }
         public string Budget { get; set; }
         public string Network { get; set; }
+        public string Licensor { get; set; }
+        public string LicensorUrl { get; set; }
+        public string Attribution { get; set; }   // the credit line the licensor asks for
+        public string License { get; set; }       // "CC BY 3.0"
+        public string LicenseUrl { get; set; }    // the licence deed
+        public string SourceUrl { get; set; }     // the page the licence is stated on
         public string PosterUrl { get; set; }
+        public bool PosterWide { get; set; }
         public string WikipediaUrl { get; set; }
         public string ImdbUrl { get; set; }
         public List<PersonCredit> People { get; set; } = new();

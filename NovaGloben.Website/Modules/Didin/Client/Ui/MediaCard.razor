@@ -9,17 +9,20 @@
     <div class="bin-card-media">
         @if (!string.IsNullOrEmpty(Card.PosterUrl))
         {
-            <img class="bin-poster" src="@Options.AssetUrl(Card.PosterUrl)" alt="" loading="lazy" />
+            <img class="bin-poster @(Card.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(Card.PosterUrl)" alt="" loading="lazy" />
         }
         else
         {
             <div class="bin-poster-fallback" aria-hidden="true">@Initials</div>
         }
-        <button type="button" class="bin-heart @(OnList ? "on" : "")" aria-pressed="@(OnList ? "true" : "false")"
-                aria-label="@(OnList ? $"Remove {Card.Title} from My list" : $"Add {Card.Title} to My list")"
-                @onclick="ToggleList" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true">
-            <BinIcon Name="heart" Filled="@OnList" />
-        </button>
+        @if (!Options.Guest)
+        {
+            <button type="button" class="bin-heart @(OnList ? "on" : "")" aria-pressed="@(OnList ? "true" : "false")"
+                    aria-label="@(OnList ? $"Remove {Card.Title} from My list" : $"Add {Card.Title} to My list")"
+                    @onclick="ToggleList" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true">
+                <BinIcon Name="heart" Filled="@OnList" />
+            </button>
+        }
         @if (State.IsSeen(Card.Id))
         {
             <span class="bin-card-chip bin-card-seen"><BinIcon Name="check" /> Seen</span>

@@ -116,7 +116,7 @@
       "path": "products/vacha/download",
       "name": "Download Vacha",
       "title": "Download Vacha | Nova Globen AB",
-      "description": "Download Vacha 1.1.1 for Windows from the Microsoft Store: free, under the GNU GPL.",
+      "description": "Download Vacha 1.1.2 for Windows, from GitHub or the Microsoft Store: free, under the GNU GPL.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]

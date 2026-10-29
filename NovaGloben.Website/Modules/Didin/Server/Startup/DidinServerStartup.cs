@@ -28,12 +28,18 @@ namespace Didin.Server.Startup
             services.AddScoped<Didin.Server.Services.CatalogQuery>();
             services.AddSingleton<Didin.Server.Services.DidinFiles>();
             services.AddScoped<Didin.Server.Services.CatalogImport>();
+            services.AddScoped<Didin.Server.Services.CatalogSeed>();
 
             // The media: the host's own folder or WebDAV store (no default for either), read only; cast devices get a
             // sealed ticket instead of the user's sign-in.
             services.AddSingleton<Didin.Server.Services.MediaSource>();
             services.AddScoped<Didin.Server.Services.MediaFiles>();
             services.AddSingleton<Didin.Server.Services.CastTickets>();
+
+            // Who may browse and play: a signed-in account, or anyone on a host with a public catalogue (Didin:PublicCatalog).
+            services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Didin.Server.Services.DidinBrowsing.Handler>();
+            services.AddAuthorization(options => options.AddPolicy(Didin.Server.Services.DidinBrowsing.Policy,
+                policy => policy.AddRequirements(new Didin.Server.Services.DidinBrowsing.Requirement())));
 
             // Signing a browser in from a phone: pending requests, in memory, per site.
             services.AddSingleton<Didin.Server.Services.DeviceLinks>();

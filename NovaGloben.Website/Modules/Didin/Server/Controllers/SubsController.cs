@@ -16,7 +16,7 @@ namespace Didin.Server.Controllers
     /// </summary>
     [ApiController]
     [Route("api/subs")]
-    [Authorize]
+    [Authorize(Policy = DidinBrowsing.Policy)]
     public sealed class SubsController(CatalogQuery query, MediaFiles media, DidinStore store, DidinFiles files, CastTickets tickets) : DidinController
     {
         private const long MaxBytes = 4 * 1024 * 1024;

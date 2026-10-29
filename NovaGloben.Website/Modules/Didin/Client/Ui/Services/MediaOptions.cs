@@ -9,6 +9,12 @@ namespace Didin.Module.Media.Services
         /// <summary>The site's folder with its leading slash ("/didin"), or "" for a site at the host's root.</summary>
         public string SiteBase { get; set; } = "";
 
+        /// <summary>
+        /// True for a visitor who is not signed in (a public catalogue lets them browse and play): nothing that is an
+        /// account's own - lists, ratings, progress, the assistant, casting - is shown or called.
+        /// </summary>
+        public bool Guest { get; set; }
+
         /// <summary>Kept empty: the site's own pages call its API on the same origin.</summary>
         public string ApiBase { get; set; } = "";
 

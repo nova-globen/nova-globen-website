@@ -21,7 +21,7 @@ else
         <div>
             @if (!string.IsNullOrEmpty(_details.PosterUrl))
             {
-                <img class="bin-poster" src="@Options.AssetUrl(_details.PosterUrl)" alt="@_details.Title" />
+                <img class="bin-poster @(_details.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(_details.PosterUrl)" alt="@_details.Title" />
             }
             else
             {
@@ -112,15 +112,18 @@ else
                         <PlaybackNote File="f" />
                     }
                 }
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleWatchlist" Id="bin-watchlist"
-                              Class="@(State.OnWatchlist(TitleId) ? "bin-list-btn on" : "bin-list-btn")">
-                    <BinIcon Name="heart" Filled="@State.OnWatchlist(TitleId)" /> @(State.OnWatchlist(TitleId) ? "In my list" : "My list")
-                </FluentButton>
-                @* seen: out of every list but search and Watched *@
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleSeen" Id="bin-seen"
-                              Class="@(State.IsSeen(TitleId) ? "bin-list-btn bin-seen-btn on" : "bin-list-btn bin-seen-btn")">
-                    <BinIcon Name="check" /> @(State.IsSeen(TitleId) ? "Seen" : "Mark as seen")
-                </FluentButton>
+                @if (!Options.Guest)
+                {
+                    <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleWatchlist" Id="bin-watchlist"
+                                  Class="@(State.OnWatchlist(TitleId) ? "bin-list-btn on" : "bin-list-btn")">
+                        <BinIcon Name="heart" Filled="@State.OnWatchlist(TitleId)" /> @(State.OnWatchlist(TitleId) ? "In my list" : "My list")
+                    </FluentButton>
+                    @* seen: out of every list but search and Watched *@
+                    <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleSeen" Id="bin-seen"
+                                  Class="@(State.IsSeen(TitleId) ? "bin-list-btn bin-seen-btn on" : "bin-list-btn bin-seen-btn")">
+                        <BinIcon Name="check" /> @(State.IsSeen(TitleId) ? "Seen" : "Mark as seen")
+                    </FluentButton>
+                }
                 @if (!string.IsNullOrEmpty(_details.TrailerUrl))
                 {
                     @* YouTube, in a new tab: the trailer is not ours to stream. *@
@@ -246,7 +249,9 @@ else
                 }
             }
 
-            @* the user's own rating + everyone's reviews *@
+            @* the user's own rating + everyone's reviews; a visitor who is not signed in has neither *@
+            @if (!Options.Guest)
+            {
             <h3 class="bin-section-title">Your rating</h3>
             <div class="bin-rate" id="bin-rate">
                 @for (var n = 1; n <= 5; n++)
@@ -263,6 +268,7 @@ else
                     }
                 </div>
             </div>
+            }
             @if (_ratings?.Reviews.Count > 0)
             {
                 <div class="bin-reviews">
@@ -280,6 +286,36 @@ else
                 <p class="bin-plot">@_details.Awards</p>
             }
 
+            @if (!string.IsNullOrEmpty(_details.Attribution) || !string.IsNullOrEmpty(_details.License))
+            {
+                @* the credit the licence asks for: the licensor's own line, the licence linked to its deed, where it is stated *@
+                <h3 class="bin-section-title">Credits and licence</h3>
+                <p class="bin-plot bin-licence">
+                    @if (!string.IsNullOrEmpty(_details.Attribution))
+                    {
+                        <span dir="auto">@_details.Attribution.</span>
+                    }
+                    @if (!string.IsNullOrEmpty(_details.License))
+                    {
+                        <span> Licensed under </span>
+                        @if (!string.IsNullOrEmpty(_details.LicenseUrl))
+                        {
+                            <a href="@_details.LicenseUrl" rel="license noopener" target="_blank">@_details.License</a>
+                        }
+                        else
+                        {
+                            <span>@_details.License</span>
+                        }
+                        @* the text and the space after it in one node: a node of only a space is dropped *@
+                        <span>.@(" ")</span>
+                    }
+                    @if (!string.IsNullOrEmpty(_details.SourceUrl))
+                    {
+                        <a href="@_details.SourceUrl" rel="noopener" target="_blank">Where the licence is stated</a>
+                    }
+                </p>
+            }
+
             @if (_details.Related.Count > 0)
             {
                 <h3 class="bin-section-title">More from @_details.Related.First().Collection</h3>
@@ -290,7 +326,7 @@ else
                              @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
                             @if (!string.IsNullOrEmpty(r.PosterUrl))
                             {
-                                <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                <img class="bin-poster @(r.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
                             }
                             else
                             {
@@ -314,7 +350,7 @@ else
                              @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
                             @if (!string.IsNullOrEmpty(r.PosterUrl))
                             {
-                                <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                <img class="bin-poster @(r.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
                             }
                             else
                             {
@@ -404,6 +440,7 @@ else
 
     private async Task LoadRatingsAsync()
     {
+        if (Options.Guest) return;   // ratings are an account's own
         try { _ratings = await CatalogClient.GetRatingsAsync(TitleId); }
         catch { _ratings = null; }   // ratings are extra - the page works without them
         _stars = _ratings?.Mine?.Stars ?? 0;

@@ -32,6 +32,7 @@ namespace Didin.Server.Services
         internal Dictionary<int, EpisodeDoc> EpisodesById { get; init; }
         internal List<CollectionDoc> Collections { get; init; }
         internal Dictionary<int, string> Posters { get; init; }
+        internal HashSet<int> WidePosters { get; init; } = new();
         internal CatalogDocument Catalog { get; init; }
         internal Dictionary<string, Dictionary<int, PersonTitle>> People { get; init; }
         internal List<Profile> Profiles { get; init; }
@@ -99,6 +100,26 @@ namespace Didin.Server.Services
         private static bool Listed(FileDoc f) => f.Status is not ("missing" or "ignored");
 
         /// <summary>
+        /// The catalogue's credits: every licensor of a listed title that names one, with the licences their titles are
+        /// under, in order. Built from the titles, so the line names exactly what the site shows and nothing else.
+        /// </summary>
+        internal static List<CatalogCredit> Credits(IEnumerable<TitleDoc> listed) =>
+            listed.Where(t => !string.IsNullOrWhiteSpace(t.Licensor))
+                .GroupBy(t => t.Licensor.Trim(), StringComparer.OrdinalIgnoreCase)
+                .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(g => new CatalogCredit
+                {
+                    Licensor = g.Key,
+                    LicensorUrl = g.Select(t => t.LicensorUrl).FirstOrDefault(u => !string.IsNullOrWhiteSpace(u)),
+                    Licenses = g.Where(t => !string.IsNullOrWhiteSpace(t.License))
+                        .GroupBy(t => t.License.Trim(), StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(l => l.Key, StringComparer.OrdinalIgnoreCase)
+                        .Select(l => new CatalogLicense { Name = l.Key, Url = l.Select(t => t.LicenseUrl).FirstOrDefault(u => !string.IsNullOrWhiteSpace(u)) })
+                        .ToList(),
+                })
+                .ToList();
+
+        /// <summary>
         /// Which of a series' own episodes a file of it plays. Its <c>EpisodeId</c>, when that is one of the series'
         /// episodes. The old catalogue also holds files whose <c>EpisodeId</c> still names the same-numbered episode of
         /// another series (a series matched once to the wrong show and then corrected): the file's own title is the
@@ -152,8 +173,10 @@ namespace Didin.Server.Services
 
         private async Task<CatalogSnapshot> BuildAsync(DidinSite site, CatalogVersionDoc version, CancellationToken ct)
         {
-            var posters = (await _store.AllAsync<PosterDoc>(site.SiteId, DidinKind.Poster, ct))
-                .GroupBy(p => p.TitleId).ToDictionary(g => g.Key, g => g.Last().Hash);
+            var posterDocs = (await _store.AllAsync<PosterDoc>(site.SiteId, DidinKind.Poster, ct))
+                .GroupBy(p => p.TitleId).ToDictionary(g => g.Key, g => g.Last());
+            var posters = posterDocs.ToDictionary(kv => kv.Key, kv => kv.Value.Hash);
+            var widePosters = posterDocs.Where(kv => ImageSize.IsWide(kv.Value.Width, kv.Value.Height)).Select(kv => kv.Key).ToHashSet();
             var titles = (await _store.AllAsync<TitleDoc>(site.SiteId, DidinKind.Title, ct))
                 .GroupBy(t => NumberOf(t.Id)).ToDictionary(g => g.Key, g => g.Last());
             var files = (await _store.AllAsync<FileDoc>(site.SiteId, DidinKind.File, ct))
@@ -190,6 +213,7 @@ namespace Didin.Server.Services
                     Year = t.Year,
                     EndYear = t.EndYear,
                     PosterUrl = ArtUrl(site, tid, posters),
+                    PosterWide = widePosters.Contains(tid),
                     Genres = t.Genres,
                     RuntimeMinutes = t.RuntimeMinutes,
                     ContentRating = t.ContentRating,
@@ -217,6 +241,9 @@ namespace Didin.Server.Services
                 MinRuntime = doc.Cards.Where(c => c.RuntimeMinutes != null).Select(c => c.RuntimeMinutes).Min(),
                 MaxRuntime = doc.Cards.Where(c => c.RuntimeMinutes != null).Select(c => c.RuntimeMinutes).Max(),
             };
+
+            var listedIds = doc.Cards.Select(c => c.Id).ToHashSet();
+            doc.Credits = Credits(titles.Where(kv => listedIds.Contains(kv.Key)).Select(kv => kv.Value));
 
             // who is in what: built with the catalogue, so it always answers for the titles the site lists
             var listed = doc.Cards.Select(c => c.Id).ToHashSet();
@@ -254,6 +281,7 @@ namespace Didin.Server.Services
                 EpisodesById = episodes.GroupBy(e => NumberOf(e.Id)).ToDictionary(g => g.Key, g => g.Last()),
                 Collections = collections,
                 Posters = posters,
+                WidePosters = widePosters,
                 Catalog = doc,
                 People = people,
                 Profiles = profiles,
@@ -293,6 +321,12 @@ namespace Didin.Server.Services
                 Metascore = t.Metascore,
                 TrailerUrl = t.TrailerUrl,
                 Awards = t.Awards,
+                Licensor = t.Licensor,
+                LicensorUrl = t.LicensorUrl,
+                Attribution = t.Attribution,
+                License = t.License,
+                LicenseUrl = t.LicenseUrl,
+                SourceUrl = t.SourceUrl,
                 BoxOffice = t.BoxOffice,
                 Budget = t.Budget,
                 Network = t.Network,
@@ -345,9 +379,11 @@ namespace Didin.Server.Services
                 .ToList();
             details.Recommended = Recommend(snapshot, id).Where(r => listed.Contains(r.Id)).ToList();
             details.PosterUrl = ArtUrl(site, id, snapshot.Posters);
+            details.PosterWide = snapshot.WidePosters.Contains(id);
             foreach (var r in details.Recommended)
             {
                 r.PosterUrl = ArtUrl(site, r.Id, snapshot.Posters);
+                r.PosterWide = snapshot.WidePosters.Contains(r.Id);
             }
             foreach (var (name, m) in related)
             {
@@ -358,6 +394,7 @@ namespace Didin.Server.Services
                     Title = rt.Title,
                     Year = rt.Year,
                     PosterUrl = ArtUrl(site, m.TitleId, snapshot.Posters),
+                    PosterWide = snapshot.WidePosters.Contains(m.TitleId),
                     Collection = name,
                     CollectionOrder = m.Order,
                 });

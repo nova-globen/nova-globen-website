@@ -63,6 +63,7 @@ namespace Didin.Server.Services
             if (titleId <= 0) throw new ArgumentOutOfRangeException(nameof(titleId));
             ArgumentNullException.ThrowIfNull(image);
             var hash = files.Save(image, PostersFolder);
+            var size = ImageSize.Read(image);
             await store.StoreAsync(site.SiteId, DidinKind.Poster, titleId, 0, new PosterDoc
             {
                 Id = $"posters/{titleId}",
@@ -71,6 +72,8 @@ namespace Didin.Server.Services
                 Length = image.LongLength,
                 Hash = hash,
                 FetchedUtc = clock.GetUtcNow().UtcDateTime,
+                Width = size?.Width,
+                Height = size?.Height,
             }, ct);
             var current = await store.LoadAsync<CatalogVersionDoc>(site.SiteId, DidinKind.CatalogVersion, 0, ct: ct);
             await BumpAsync(site, "posters", current?.TitleCount ?? 0, current?.FileCount ?? 0, ct);
