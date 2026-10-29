@@ -29,6 +29,7 @@ namespace Didin.Server.Services
         internal Dictionary<int, FileDoc> Files { get; init; }
         internal ILookup<int, FileDoc> ListedFilesByTitle { get; init; }
         internal ILookup<int, EpisodeDoc> EpisodesByTitle { get; init; }
+        internal Dictionary<int, EpisodeDoc> EpisodesById { get; init; }
         internal List<CollectionDoc> Collections { get; init; }
         internal Dictionary<int, string> Posters { get; init; }
         internal CatalogDocument Catalog { get; init; }
@@ -96,6 +97,26 @@ namespace Didin.Server.Services
         /// returns; one an administrator set aside is "ignored". Neither is listed.
         /// </summary>
         private static bool Listed(FileDoc f) => f.Status is not ("missing" or "ignored");
+
+        /// <summary>
+        /// Which of a series' own episodes a file of it plays. Its <c>EpisodeId</c>, when that is one of the series'
+        /// episodes. The old catalogue also holds files whose <c>EpisodeId</c> still names the same-numbered episode of
+        /// another series (a series matched once to the wrong show and then corrected): the file's own title is the
+        /// authority, so such a file plays the series' own episode with that season and number. Null when neither
+        /// finds one: the file is then not offered on an episode.
+        /// </summary>
+        internal static Func<FileDoc, int?> EpisodeResolver(CatalogSnapshot snapshot, List<EpisodeDoc> ownEpisodes)
+        {
+            var own = ownEpisodes.Select(e => NumberOf(e.Id)).ToHashSet();
+            var bySlot = ownEpisodes.GroupBy(e => (e.Season, e.Episode)).ToDictionary(g => g.Key, g => NumberOf(g.First().Id));
+            return file =>
+            {
+                if (file.EpisodeId is not int number) return null;
+                if (own.Contains(number)) return number;
+                return snapshot.EpisodesById.TryGetValue(number, out var named)
+                    && bySlot.TryGetValue((named.Season, named.Episode), out var mine) ? mine : null;
+            };
+        }
 
         public async Task<CatalogDocument> GetCatalogAsync(DidinSite site, CancellationToken ct = default) =>
             (await SnapshotAsync(site, ct)).Catalog;
@@ -230,6 +251,7 @@ namespace Didin.Server.Services
                 Files = files,
                 ListedFilesByTitle = filesByTitle,
                 EpisodesByTitle = epsByTitle,
+                EpisodesById = episodes.GroupBy(e => NumberOf(e.Id)).ToDictionary(g => g.Key, g => g.Last()),
                 Collections = collections,
                 Posters = posters,
                 Catalog = doc,
@@ -281,7 +303,9 @@ namespace Didin.Server.Services
 
             if (t.Kind == "series")
             {
-                var epsByFile = files.Where(f => f.EpisodeId != null).ToLookup(f => f.EpisodeId!.Value);
+                var episodeOf = EpisodeResolver(snapshot, episodes);
+                var epsByFile = files.Select(f => (File: f, Episode: episodeOf(f))).Where(x => x.Episode != null)
+                    .ToLookup(x => x.Episode!.Value, x => x.File);
                 foreach (var group in episodes.GroupBy(e => e.Season).OrderBy(g => g.Key))
                 {
                     var season = new SeasonInfo { Season = group.Key };

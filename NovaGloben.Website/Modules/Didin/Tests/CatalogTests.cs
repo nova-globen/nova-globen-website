@@ -204,4 +204,99 @@ public sealed class CatalogTests : IDisposable
         using var stream = _files.Open("posters", hash);
         stream.Should().NotBeNull();
     }
+
+    /// <summary>
+    /// A library read while an import runs sees whatever rows are written so far: titles before their files, files
+    /// before their titles' collections, a poster for a title it lists or not. Every one of those reads answers - an
+    /// empty or partial catalogue, never an error.
+    /// </summary>
+    [Fact]
+    public async Task A_read_during_an_import_answers_at_every_step()
+    {
+        var sample = Sample();
+        var writes = new List<Func<Task>>();
+        foreach (var t in sample.Titles) writes.Add(() => _store.StoreAsync(Site.SiteId, DidinKind.Title, CatalogQuery.NumberOf(t.Id), 0, t));
+        foreach (var e in sample.Episodes) writes.Add(() => _store.StoreAsync(Site.SiteId, DidinKind.Episode, CatalogQuery.NumberOf(e.Id), 0, e));
+        foreach (var f in sample.Files) writes.Add(() => _store.StoreAsync(Site.SiteId, DidinKind.File, CatalogQuery.NumberOf(f.Id), 0, f));
+        foreach (var c in sample.Collections) writes.Add(() => _store.StoreAsync(Site.SiteId, DidinKind.Collection, CatalogQuery.NumberOf(c.Id), 0, c));
+        // the files first, as a reader racing a re-import of the files would see them
+        writes.Reverse();
+
+        var counts = new List<int>();
+        foreach (var write in writes)
+        {
+            await write();
+            // a new cache each time: no version moves until the import ends, and the reader must build afresh
+            var catalog = await new CatalogQuery(_store, new CatalogCache(), new ConfigurationBuilder().Build()).GetCatalogAsync(Site);
+            counts.Add(catalog.Cards.Count);
+        }
+        await _import.ImportPosterAsync(Site, 99, [1, 2, 3], "image/png");
+        var after = await Query().GetCatalogAsync(Site);
+
+        counts.Should().HaveCount(writes.Count);
+        after.Cards.Select(c => c.Id).Should().BeEquivalentTo([1, 2, 3]);
+    }
+
+    /// <summary>
+    /// The old catalogue's documents arrive as they were stored, and a list a title never had may come as null
+    /// rather than empty. The grid, its filters and the people index read past it.
+    /// </summary>
+    [Fact]
+    public async Task A_document_with_null_lists_is_read_like_an_empty_one()
+    {
+        await _store.StoreAsync(Site.SiteId, DidinKind.Title, 50, 0, new TitleDoc
+        {
+            Id = "titles/50", Kind = "movie", Title = "Bare Title",
+            Genres = null!, Languages = null!, Countries = null!, Keywords = null!, People = null!, Collections = null!,
+        });
+        await _store.StoreAsync(Site.SiteId, DidinKind.File, 500, 0, new FileDoc { Id = "files/500", TitleId = 50, FilePath = "bare.mp4", Status = "ok", Subtitles = null! });
+        await _store.StoreAsync(Site.SiteId, DidinKind.Collection, 5, 0, new CollectionDoc { Id = "collections/5", Name = "Empty", Members = null! });
+
+        var catalog = await Query().GetCatalogAsync(Site);
+
+        catalog.Cards.Should().ContainSingle(c => c.Id == 50);
+    }
+
+    /// <summary>
+    /// A file whose EpisodeId still names another series' episode (the old catalogue holds such links) plays its own
+    /// series' episode with the same season and number; one whose link finds nothing is not offered, and no other
+    /// series gains it.
+    /// </summary>
+    [Fact]
+    public async Task A_file_linked_to_another_series_episode_plays_its_own_series_episode()
+    {
+        await _import.ImportAsync(Site, new CatalogImportRequest
+        {
+            Version = "relinked",
+            Titles =
+            [
+                new TitleDoc { Id = "titles/60", Kind = "series", Title = "Second Match", Year = 2001 },
+                new TitleDoc { Id = "titles/61", Kind = "series", Title = "First Match", Year = 1981 },
+            ],
+            Episodes =
+            [
+                new EpisodeDoc { Id = "episodes/600", TitleId = 60, Season = 1, Episode = 1, Name = "One" },
+                new EpisodeDoc { Id = "episodes/601", TitleId = 60, Season = 1, Episode = 2, Name = "Two" },
+                new EpisodeDoc { Id = "episodes/610", TitleId = 61, Season = 1, Episode = 1, Name = "Uno" },
+                new EpisodeDoc { Id = "episodes/611", TitleId = 61, Season = 1, Episode = 2, Name = "Dos" },
+                new EpisodeDoc { Id = "episodes/612", TitleId = 61, Season = 2, Episode = 9, Name = "Nine" },
+            ],
+            Files =
+            [
+                // series 60's files, still linked to series 61's episodes
+                new FileDoc { Id = "files/6000", TitleId = 60, EpisodeId = 610, FilePath = "s/one.mp4", Status = "indexed", Playback = "native" },
+                new FileDoc { Id = "files/6001", TitleId = 60, EpisodeId = 611, FilePath = "s/two.mp4", Status = "indexed", Playback = "native" },
+                // a link to an episode the series does not have
+                new FileDoc { Id = "files/6002", TitleId = 60, EpisodeId = 612, FilePath = "s/nine.mp4", Status = "indexed", Playback = "native" },
+                new FileDoc { Id = "files/6100", TitleId = 61, EpisodeId = 610, FilePath = "f/uno.mp4", Status = "indexed", Playback = "native" },
+            ],
+        });
+        var query = Query();
+
+        var second = await query.GetDetailsAsync(Site, 60);
+        var first = await query.GetDetailsAsync(Site, 61);
+
+        second.Seasons.SelectMany(s => s.Episodes).Select(e => (e.Number, e.Files.Count)).Should().Equal((1, 1), (2, 1));
+        first.Seasons.SelectMany(s => s.Episodes).Sum(e => e.Files.Count).Should().Be(1);
+    }
 }

@@ -82,4 +82,27 @@ public sealed class DidinStoreTests
     public void A_document_needs_a_site() =>
         FluentActions.Invoking(() => DidinDocument.Create(Guid.NewGuid(), TenantId.From(Guid.NewGuid()), 0, DidinKind.Title, 1, 0, "{}", DateTime.UtcNow))
             .Should().Throw<ArgumentOutOfRangeException>();
+
+    [Fact]
+    public async Task Two_rows_for_one_document_read_as_its_newest_once()
+    {
+        // two imports at once each found no row and added one
+        var tenant = _tenants.CurrentTenantId!;
+        await _rows.AddAsync(DidinDocument.Create(Guid.NewGuid(), tenant, 1, DidinKind.Episode, 7, 0, "{\"id\":\"episodes/7\",\"name\":\"Old\"}", new DateTime(2026, 10, 29, 10, 0, 0, DateTimeKind.Utc)));
+        await _rows.AddAsync(DidinDocument.Create(Guid.NewGuid(), tenant, 1, DidinKind.Episode, 7, 0, "{\"id\":\"episodes/7\",\"name\":\"New\"}", new DateTime(2026, 10, 29, 10, 0, 1, DateTimeKind.Utc)));
+
+        (await _store.AllAsync<EpisodeDoc>(1, DidinKind.Episode)).Should().ContainSingle().Which.Name.Should().Be("New");
+        (await _store.AllWithNumberAsync<EpisodeDoc>(1, DidinKind.Episode, 7)).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task A_list_stored_as_null_reads_as_empty()
+    {
+        await _store.StoreAsync(1, DidinKind.Title, 3, 0, new TitleDoc { Id = "titles/3", Title = "Bare", Genres = null!, People = null! });
+
+        var title = (await _store.LoadAsync<TitleDoc>(1, DidinKind.Title, 3))!;
+
+        title.Genres.Should().NotBeNull().And.BeEmpty();
+        title.People.Should().NotBeNull().And.BeEmpty();
+    }
 }

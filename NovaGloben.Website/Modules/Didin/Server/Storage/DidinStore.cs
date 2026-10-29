@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Stomme.SharedKernel.Domain;
@@ -17,8 +18,28 @@ namespace Didin.Server.Storage
     /// </summary>
     public sealed class DidinStore(IRepository<DidinDocument, Guid> documents, ITenantContext tenants, TimeProvider clock)
     {
-        /// <summary>How documents are written and read: the catalogue's own property names, read back case-insensitively.</summary>
-        public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+        /// <summary>
+        /// How documents are written and read: the catalogue's own property names, read back case-insensitively. A list
+        /// stored as null (the old catalogue's documents come as they were) reads as the empty list its type starts with,
+        /// so no reader has to guard every list.
+        /// </summary>
+        public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
+        {
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullListStaysEmpty } },
+        };
+
+        private static void NullListStaysEmpty(JsonTypeInfo type)
+        {
+            if (type.Kind != JsonTypeInfoKind.Object) return;
+            foreach (var property in type.Properties)
+            {
+                if (property.Set is { } set && property.PropertyType.IsGenericType
+                    && property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    property.Set = (target, value) => { if (value is not null) set(target, value); };
+                }
+            }
+        }
 
         /// <summary>The document of a kind with these numbers, or null.</summary>
         public async Task<T?> LoadAsync<T>(int siteId, DidinKind kind, int number, int owner = 0, CancellationToken ct = default)
@@ -28,12 +49,12 @@ namespace Didin.Server.Storage
             return row is null ? null : Read<T>(row);
         }
 
-        /// <summary>Every document of a kind on the site.</summary>
+        /// <summary>Every document of a kind on the site, one per identity.</summary>
         public async Task<List<T>> AllAsync<T>(int siteId, DidinKind kind, CancellationToken ct = default)
             where T : class
         {
             var rows = await documents.FindAsync(d => d.SiteId == siteId && d.Kind == kind, ct);
-            return rows.Select(Read<T>).ToList();
+            return Newest(rows).Select(Read<T>).ToList();
         }
 
         /// <summary>Every document of a kind with this number (all of a title's ratings, all of a file's subtitle tracks).</summary>
@@ -41,8 +62,15 @@ namespace Didin.Server.Storage
             where T : class
         {
             var rows = await documents.FindAsync(d => d.SiteId == siteId && d.Kind == kind && d.Number == number, ct);
-            return rows.Select(Read<T>).ToList();
+            return Newest(rows).Select(Read<T>).ToList();
         }
+
+        /// <summary>
+        /// One row per identity (number and owner), the newest. A write finds its row before it adds one, so two imports
+        /// run at once can each add the same document; a list then reads it once, as <see cref="FindAsync"/> does.
+        /// </summary>
+        private static IEnumerable<DidinDocument> Newest(IEnumerable<DidinDocument> rows) =>
+            rows.GroupBy(d => (d.Number, d.Owner)).Select(g => g.OrderByDescending(d => d.UpdatedUtc).First());
 
         /// <summary>Writes the document, replacing the one with the same kind and numbers.</summary>
         public async Task StoreAsync<T>(int siteId, DidinKind kind, int number, int owner, T document, CancellationToken ct = default)

@@ -237,7 +237,9 @@ namespace NovaGloben.Website.Sites
         /// The site's SMTP settings - Stomme's own SMTPHost, SMTPPort, SMTPSSL, SMTPSender, SMTPUsername, SMTPPassword -
         /// from configuration (<c>Website:Smtp:*</c>; the password also from the file <c>Website:Smtp:PasswordFile</c>
         /// names), so each environment's mail relay is set where the environment is, and a secret is never in the
-        /// repository. Nothing configured, nothing written: the contact form then refuses to send, and says so.
+        /// repository; and Stomme's notification job is switched on, so the site's own account mail leaves too
+        /// (<see cref="NotificationJobSwitch"/>). Nothing configured, nothing written: the contact form then refuses to
+        /// send, and says so.
         /// </summary>
         private async Task ReconcileSmtpAsync(Site site)
         {
@@ -259,6 +261,10 @@ namespace NovaGloben.Website.Sites
             await SetSettingAsync(EntityNames.Site, site.SiteId, "SMTPSender", configuration["Website:Smtp:Sender"] ?? "");
             await SetSettingAsync(EntityNames.Site, site.SiteId, "SMTPUsername", configuration["Website:Smtp:Username"] ?? "");
             await SetSettingAsync(EntityNames.Site, site.SiteId, "SMTPPassword", password ?? "", isPrivate: true);
+
+            using var scope = scopes.CreateScope();
+            await NotificationJobSwitch.EnsureOnAsync(scope.ServiceProvider.GetRequiredService<IJobRepository>(),
+                new NotificationJob(scopes), logger);
         }
 
         /// <summary>The site's one language is its culture, the default.</summary>
