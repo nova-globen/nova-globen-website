@@ -1,0 +1,150 @@
+@namespace Didin.Module.Media
+@inject Services.ICatalogClient CatalogClient
+
+@* "Sign in a TV or computer from this phone". The device shows a QR code that opens the site with ?link=...; here the
+   signed-in user sees which device asks and approves it, which signs that device in as them. Typed codes work too. *@
+<div class="bin-link" role="dialog" aria-modal="true" aria-labelledby="bin-link-title" id="bin-link">
+    <div class="bin-link-backdrop" @onclick="Close"></div>
+    <div class="bin-link-card">
+        <button type="button" class="bin-icon-btn bin-link-close" aria-label="Close" @onclick="Close"><BinIcon Name="close" /></button>
+        <div class="bin-link-mark"><BinLogo /></div>
+
+        @if (_step == Step.Enter)
+        {
+            <h2 id="bin-link-title">Sign in a TV or computer</h2>
+            <p class="bin-link-text">Enter the code shown on the screen you want to sign in.</p>
+            <input id="bin-link-code" class="bin-link-input" @bind="_typed" @bind:event="oninput" @onkeydown="TypedKey"
+                   placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                   aria-label="Code from the TV" />
+            @if (_message != null)
+            {
+                <p class="bin-link-error" role="alert">@_message</p>
+            }
+            <div class="bin-link-actions">
+                <FluentButton Appearance="ButtonAppearance.Primary" OnClick="LookUpAsync" Loading="_busy" Id="bin-link-next">Continue</FluentButton>
+            </div>
+        }
+        else if (_step == Step.Loading)
+        {
+            <h2 id="bin-link-title">Sign in a TV or computer</h2>
+            <p class="bin-link-text">Looking up the code...</p>
+        }
+        else if (_step == Step.Ask)
+        {
+            <h2 id="bin-link-title">Sign in this device?</h2>
+            <div class="bin-link-device">
+                <strong id="bin-link-device">@_info.Device</strong>
+                <span>Code @_info.Code &middot; asked @Ago(_info.AgeSeconds)</span>
+            </div>
+            @if (_info.SameNetwork)
+            {
+                <p class="bin-link-note">It is on the same network as this phone.</p>
+            }
+            else
+            {
+                <p class="bin-link-note bin-link-warn">It is not on the same network as this phone. Approve only if you can see the screen that shows this code.</p>
+            }
+            <p class="bin-link-text">It will be signed in as you and stay signed in until someone signs out on it.</p>
+            <div class="bin-link-actions">
+                <FluentButton Appearance="ButtonAppearance.Primary" OnClick="() => DecideAsync(true)" Loading="_busy" Id="bin-link-approve">Approve</FluentButton>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="() => DecideAsync(false)" Disabled="_busy" Id="bin-link-deny">Deny</FluentButton>
+            </div>
+        }
+        else if (_step == Step.Done)
+        {
+            <h2 id="bin-link-title">@(_approved ? "Approved" : "Denied")</h2>
+            <p class="bin-link-text" role="status" id="bin-link-result">
+                @(_approved ? "The device is signing in now. You can put your phone away." : "The device was not signed in.")
+            </p>
+            <div class="bin-link-actions">
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="Close">Close</FluentButton>
+            </div>
+        }
+        else
+        {
+            <h2 id="bin-link-title">This code no longer works</h2>
+            <p class="bin-link-text" role="alert" id="bin-link-result">
+                It has expired or was already used. A code works for 10 minutes: show a new one on the TV and scan it again.
+            </p>
+            <div class="bin-link-actions">
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="EnterAgain">Enter a code</FluentButton>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="Close">Close</FluentButton>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Code { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private enum Step { Enter, Loading, Ask, Done, Gone }
+    private Step _step = Step.Loading;
+    private Didin.Shared.Models.LinkInfo _info;
+    private string _typed = "";
+    private string _message;
+    private bool _busy;
+    private bool _approved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Code))
+        {
+            _step = Step.Enter;
+            return;
+        }
+        await LoadAsync(Code);
+    }
+
+    private async Task LoadAsync(string code)
+    {
+        _step = Step.Loading;
+        _info = await CatalogClient.GetLinkAsync(code);
+        _step = _info == null || _info.Status != "pending" ? Step.Gone : Step.Ask;
+    }
+
+    private async Task LookUpAsync()
+    {
+        var code = new string((_typed ?? "").Where(char.IsLetterOrDigit).ToArray());
+        if (code.Length != 8)
+        {
+            _message = "The code has 8 letters and digits, like ABCD-2345.";
+            return;
+        }
+        _message = null;
+        _busy = true;
+        await LoadAsync(code);
+        _busy = false;
+    }
+
+    private async Task TypedKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await LookUpAsync();
+    }
+
+    private void EnterAgain()
+    {
+        _typed = "";
+        _step = Step.Enter;
+    }
+
+    private async Task DecideAsync(bool approve)
+    {
+        if (_busy) return;
+        _busy = true;
+        var after = await CatalogClient.DecideLinkAsync(_info.Code, approve);
+        _busy = false;
+        if (after == null)
+        {
+            _step = Step.Gone;
+            return;
+        }
+        _approved = after.Status == "approved";
+        _step = Step.Done;
+    }
+
+    private Task Close() => OnClose.InvokeAsync();
+
+    private static string Ago(int seconds) =>
+        seconds < 60 ? "just now" : seconds < 120 ? "a minute ago" : $"{seconds / 60} minutes ago";
+}

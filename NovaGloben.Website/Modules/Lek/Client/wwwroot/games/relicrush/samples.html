@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Relic Rush art samples</title>
+<style>
+  html, body { margin: 0; background: #000; }
+  canvas { image-rendering: pixelated; display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="640" height="352"></canvas>
+<script src="art.js?v=1"></script>
+<script>
+// A still frame for reviewing the art: a maze made like RelicMaze.cs (left half mirrored), runners of both teams,
+// the relic on a carrier, both shrines and the torch light. ?t=<seconds> &scale=<n> &light=0 to switch the light off.
+(() => {
+  const A = window.RelicArt, q = new URLSearchParams(location.search);
+  let seed = Number(q.get('seed') || 7);
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const COLS = 40, ROWS = 22, CX = 13, CY = 7, half = 6;
+  const cells = new Array(COLS * ROWS).fill('#');
+  const carve = (x, y, w, h) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) if (xx > 0 && yy > 0 && xx < COLS - 1 && yy < ROWS - 1) cells[yy * COLS + xx] = '.'; };
+  for (let cy = 0; cy < CY; cy++) for (let cx = 0; cx < CX; cx++) carve(cx * 3 + 1, cy * 3 + 1, 2, 2);
+  const open = (ax, ay, bx, by) => (ax === bx ? carve(ax * 3 + 1, Math.max(ay, by) * 3, 2, 1) : carve(Math.max(ax, bx) * 3, ay * 3 + 1, 1, 2));
+  const seen = new Set(), stack = [[Math.floor(rnd() * 7), Math.floor(rnd() * 7)]];
+  seen.add(stack[0].join());
+  while (stack.length) {
+    const [x, y] = stack[stack.length - 1];
+    const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [x + dx, y + dy]).filter(([nx, ny]) => nx >= 0 && nx <= half && ny >= 0 && ny < CY && !seen.has(nx + ',' + ny));
+    if (!opts.length) { stack.pop(); continue; }
+    const n = opts[Math.floor(rnd() * opts.length)];
+    open(x, y, n[0], n[1]); seen.add(n.join()); stack.push(n);
+  }
+  for (let i = 0; i < 14; i++) { const x = Math.floor(rnd() * half), y = Math.floor(rnd() * CY); if (rnd() < 0.5 && x < half) open(x, y, x + 1, y); else if (y < CY - 1) open(x, y, x, y + 1); }
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS / 2; x++) cells[y * COLS + (COLS - 1 - x)] = cells[y * COLS + x];
+  const maze = A.renderMaze(cells);
+  const c = document.getElementById('c'), g = c.getContext('2d');
+  const scale = Number(q.get('scale') || 2);
+  c.style.width = 640 * scale + 'px';
+  const room = (cx, cy) => [(cx * 3 + 2) * 16, (cy * 3 + 2) * 16];
+  const runners = [
+    { team: 0, look: 0, at: room(4, 3), fx: 1, fy: 0, carry: true, me: true },
+    { team: 1, look: 2, at: room(5, 3), fx: -1, fy: 0 },
+    { team: 0, look: 3, at: room(2, 1), fx: 0, fy: 1 },
+    { team: 1, look: 4, at: room(8, 5), fx: 0, fy: -1 },
+    { team: 1, look: 1, at: room(10, 2), fx: -0.7, fy: 0.7 },
+    { team: 0, look: 5, at: room(7, 0), fx: 1, fy: 0 }
+  ];
+  const shrines = [[0, ...room(9, 4)], [1, ...room(3, 5)]];
+  const light = A.lighting(640, 352);
+  function draw(t) {
+    g.imageSmoothingEnabled = false;
+    g.drawImage(maze.canvas, 0, 0);
+    for (const [team, x, y] of shrines) A.drawShrine(g, x, y, team, t, team === 0);
+    for (const r of [...runners].sort((a, b) => a.at[1] - b.at[1])) A.drawRunner(g, r.at[0], r.at[1] + 6, { team: r.team, look: r.look, faceX: r.fx, faceY: r.fy, t: t + r.look, moving: true, me: r.me });
+    A.drawTorches(g, maze.torches, t);
+    const carrier = runners.find((r) => r.carry);
+    A.drawRelic(g, carrier.at[0], carrier.at[1] - 18, t, true);
+    if (q.get('light') !== '0') {
+      light.begin();
+      for (const tc of maze.torches) light.add(tc.x, tc.y, 56, 0.9, 'rgba(255,150,60,1)');
+      light.add(carrier.at[0], carrier.at[1] - 14, 82, 1, 'rgba(255,210,90,1)');
+      for (const [team, x, y] of shrines) light.add(x, y - 6, 52, 0.9, team === 0 ? 'rgba(255,90,80,1)' : 'rgba(80,168,255,1)');
+      for (const r of runners) light.add(r.at[0], r.at[1], r.me ? 44 : 30, r.me ? 0.8 : 0.5, null);
+      light.apply(g, q.get('ambient') || 'rgba(6,4,14,0.6)');
+    }
+  }
+  const t = q.has('t') ? Number(q.get('t')) : null;
+  const loop = (ms) => { draw(t == null ? ms / 1000 : t); if (t == null) requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

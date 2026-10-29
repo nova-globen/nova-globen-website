@@ -1,0 +1,95 @@
+@namespace Didin.Module.Media
+@inject Services.MediaOptions Options
+@inject Services.MediaState State
+@inject Services.ICatalogClient CatalogClient
+
+@* A title card: the poster with rounded corners, a frosted panel with the title and "year | genre", and a
+   heart that puts the title on My list without opening it. *@
+<div class="bin-card" @onclick="OnClick" title="@Card.Title" tabindex="0" role="button" aria-label="@Card.Title" @onkeydown="OnKey">
+    <div class="bin-card-media">
+        @if (!string.IsNullOrEmpty(Card.PosterUrl))
+        {
+            <img class="bin-poster" src="@Options.AssetUrl(Card.PosterUrl)" alt="" loading="lazy" />
+        }
+        else
+        {
+            <div class="bin-poster-fallback" aria-hidden="true">@Initials</div>
+        }
+        <button type="button" class="bin-heart @(OnList ? "on" : "")" aria-pressed="@(OnList ? "true" : "false")"
+                aria-label="@(OnList ? $"Remove {Card.Title} from My list" : $"Add {Card.Title} to My list")"
+                @onclick="ToggleList" @onclick:stopPropagation="true" @onkeydown:stopPropagation="true">
+            <BinIcon Name="heart" Filled="@OnList" />
+        </button>
+        @if (State.IsSeen(Card.Id))
+        {
+            <span class="bin-card-chip bin-card-seen"><BinIcon Name="check" /> Seen</span>
+        }
+        else if (Card.Kind == "series")
+        {
+            <span class="bin-card-chip">Series</span>
+        }
+    </div>
+    <div class="bin-card-body">
+        <p class="bin-card-title" dir="auto">@Card.Title</p>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <p class="bin-card-sub" dir="auto">@Subtitle</p>
+        }
+        <p class="bin-card-meta">
+            <span>@(Card.Year?.ToString() ?? "—")</span>
+            @if (Card.Genres.Count > 0)
+            {
+                <span class="bin-sep" aria-hidden="true">|</span>
+                <span class="bin-card-genre">@Card.Genres[0]</span>
+            }
+        </p>
+        @if (Card.ImdbRating != null || Card.RottenTomatoes != null)
+        {
+            <p class="bin-card-meta bin-card-scores">
+                @if (Card.ImdbRating != null)
+                {
+                    <span title="IMDb rating"><BinIcon Name="star" Filled="true" Class="bin-icon-star" /> @(Card.ImdbRating.Value.ToString("0.0"))</span>
+                }
+                @if (Card.RottenTomatoes != null)
+                {
+                    <span class="bin-score-rt" title="Rotten Tomatoes Tomatometer">RT @(Card.RottenTomatoes)%</span>
+                }
+            </p>
+        }
+        @if (Progress != null)
+        {
+            <div class="bin-progress" title="@($"{Progress.Value:P0} watched")"><div style="width:@($"{Math.Clamp(Progress.Value, 0, 1) * 100:0.#}%")"></div></div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Didin.Shared.Models.CatalogCard Card { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public double? Progress { get; set; }   // 0..1 - continue-watching cards
+    [Parameter] public string Subtitle { get; set; }    // e.g. the episode being watched
+
+    private bool OnList => State.OnWatchlist(Card.Id);
+
+    // Enter/Space open the card, like a click (keyboard and TV remote)
+    private async Task OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ") await OnClick.InvokeAsync();
+    }
+
+    private async Task ToggleList()
+    {
+        var onList = !OnList;
+        try
+        {
+            await CatalogClient.SetWatchlistAsync(Card.Id, onList);
+            State.MarkWatchlist(Card.Id, onList);
+        }
+        catch { /* the heart keeps its state if the save failed */ }
+    }
+
+    private string Initials =>
+        string.IsNullOrWhiteSpace(Card.Title) ? "?" :
+        new string(Card.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(w => char.ToUpperInvariant(w[0])).ToArray());
+}

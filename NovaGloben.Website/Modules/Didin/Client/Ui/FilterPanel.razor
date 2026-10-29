@@ -1,0 +1,161 @@
+@namespace Didin.Module.Media
+@inject Services.MediaState State
+
+<div class="bin-filters">
+    <h4>Filters</h4>
+
+    <div class="bin-group">
+        <h4>Type</h4>
+        @foreach (var (value, count) in State.FacetCounts("type"))
+        {
+            <FluentCheckbox Value="@State.Filter.Types.Contains(value)"
+                            ValueChanged="@((bool _) => Toggle(State.Filter.Types, value))">
+                <LabelTemplate>@(KindLabel(value)) <span class="bin-fcount">@(count)</span></LabelTemplate>
+            </FluentCheckbox>
+        }
+    </div>
+
+    <div class="bin-group bin-scroll">
+        <h4>Genre</h4>
+        @foreach (var (value, count) in State.FacetCounts("genre"))
+        {
+            <FluentCheckbox Value="@State.Filter.Genres.Contains(value)"
+                            ValueChanged="@((bool _) => Toggle(State.Filter.Genres, value))">
+                <LabelTemplate>@(value) <span class="bin-fcount">@(count)</span></LabelTemplate>
+            </FluentCheckbox>
+        }
+    </div>
+
+    <div class="bin-group">
+        <h4>Year</h4>
+        <div class="bin-toolbar">
+            <FluentNumberInput TValue="int?" Placeholder="from" Value="@State.Filter.YearMin"
+                               ValueChanged="@((int? v) => SetInt(x => State.Filter.YearMin = x, v))" Style="width: 100%" />
+            <FluentNumberInput TValue="int?" Placeholder="to" Value="@State.Filter.YearMax"
+                               ValueChanged="@((int? v) => SetInt(x => State.Filter.YearMax = x, v))" Style="width: 100%" />
+        </div>
+    </div>
+
+    <div class="bin-group">
+        <h4>Runtime (min)</h4>
+        <div class="bin-toolbar">
+            <FluentNumberInput TValue="int?" Placeholder="from" Value="@State.Filter.RuntimeMin"
+                               ValueChanged="@((int? v) => SetInt(x => State.Filter.RuntimeMin = x, v))" Style="width: 100%" />
+            <FluentNumberInput TValue="int?" Placeholder="to" Value="@State.Filter.RuntimeMax"
+                               ValueChanged="@((int? v) => SetInt(x => State.Filter.RuntimeMax = x, v))" Style="width: 100%" />
+        </div>
+    </div>
+
+    <div class="bin-group">
+        <h4>Quality</h4>
+        @foreach (var (value, count) in State.FacetCounts("quality"))
+        {
+            <FluentCheckbox Value="@State.Filter.Qualities.Contains(value)"
+                            ValueChanged="@((bool _) => Toggle(State.Filter.Qualities, value))">
+                <LabelTemplate>@(value) <span class="bin-fcount">@(count)</span></LabelTemplate>
+            </FluentCheckbox>
+        }
+    </div>
+
+    <div class="bin-group">
+        <h4>Language</h4>
+        @foreach (var (value, count) in State.FacetCounts("language"))
+        {
+            <FluentCheckbox Value="@State.Filter.Languages.Contains(value)"
+                            ValueChanged="@((bool _) => Toggle(State.Filter.Languages, value))">
+                <LabelTemplate>@(value) <span class="bin-fcount">@(count)</span></LabelTemplate>
+            </FluentCheckbox>
+        }
+    </div>
+
+    <div class="bin-group">
+        <h4>Collection</h4>
+        <FluentSelect TOption="string" TValue="string" Value="@(State.Filter.Collections.FirstOrDefault() ?? "")"
+                      ValueChanged="@((string v) => OnCollection(v))" Style="width: 100%">
+            <FluentOption Value="@("")">(any)</FluentOption>
+            @foreach (var (value, count) in State.FacetCounts("collection"))
+            {
+                <FluentOption Value="@value">@(value) (@(count))</FluentOption>
+            }
+        </FluentSelect>
+    </div>
+
+    <div class="bin-group">
+        <h4>Content rating</h4>
+        @foreach (var (value, count) in State.FacetCounts("rating"))
+        {
+            <FluentCheckbox Value="@State.Filter.Ratings.Contains(value)"
+                            ValueChanged="@((bool _) => Toggle(State.Filter.Ratings, value))">
+                <LabelTemplate>@(value) <span class="bin-fcount">@(count)</span></LabelTemplate>
+            </FluentCheckbox>
+        }
+    </div>
+
+    <div class="bin-group">
+        <h4>IMDb rating (min): @(State.Filter.ImdbMin is double m ? m.ToString("0.0") : "Any")</h4>
+        <FluentSlider TValue="double" Min="0" Max="10" Step="0.1"
+                      Value="@ImdbMinValue" ValueChanged="@((double v) => ImdbMinValue = v)" />
+    </div>
+
+    <div class="bin-group">
+        <h4>Sort</h4>
+        <FluentSelect TOption="string" TValue="string" Value="@(State.Filter.Sort ?? "title")"
+                      ValueChanged="@((string v) => OnSort(v))" Style="width: 100%">
+            <FluentOption Value="@("title")">Title A-Z</FluentOption>
+            <FluentOption Value="@("year")">Year (newest)</FluentOption>
+            <FluentOption Value="@("rating")">IMDb rating</FluentOption>
+            <FluentOption Value="@("rt")">Rotten Tomatoes</FluentOption>
+            <FluentOption Value="@("runtime")">Runtime</FluentOption>
+        </FluentSelect>
+    </div>
+</div>
+
+@code {
+    private static string KindLabel(string kind) => kind switch
+    {
+        "movie" => "Movies",
+        "series" => "Series",
+        "short" => "Shorts",
+        "music_video" => "Music videos",
+        _ => string.IsNullOrEmpty(kind) ? kind : char.ToUpperInvariant(kind[0]) + kind[1..]
+    };
+
+    private double ImdbMinValue
+    {
+        get => State.Filter.ImdbMin ?? 0;
+        set
+        {
+            var v = value <= 0 ? (double?)null : value;
+            if (State.Filter.ImdbMin != v)
+            {
+                State.Filter.ImdbMin = v;
+                State.Notify(true);
+            }
+        }
+    }
+
+    private void Toggle(System.Collections.Generic.HashSet<string> set, string value)
+    {
+        if (!set.Remove(value)) set.Add(value);
+        State.Notify(true);
+    }
+
+    private void SetInt(Action<int?> setter, int? value)
+    {
+        setter(value);
+        State.Notify(true);
+    }
+
+    private void OnCollection(string value)
+    {
+        State.Filter.Collections.Clear();
+        if (!string.IsNullOrEmpty(value)) State.Filter.Collections.Add(value);
+        State.Notify(true);
+    }
+
+    private void OnSort(string value)
+    {
+        State.Filter.Sort = string.IsNullOrEmpty(value) ? "title" : value;
+        State.Notify(true);
+    }
+}

@@ -1,0 +1,306 @@
+/* =============================================================
+   Didin Fluent - design system
+   Microsoft Fluent Design (dark) expressed as tokens over vanilla
+   Bootstrap. The Fluent UI web components consume --colorNeutral* /
+   --colorBrand* directly, so one token layer themes the chrome,
+   Stomme's own markup and the Fluent components together.
+   Didin's own classes, ids and tokens use the bin- prefix: db- is
+   Stomme's design system (its classes and --db-* tokens, 10.5).
+   The design: Poppins, a warm near-black,
+   one magenta accent (#C900CC) and large radii.
+   ============================================================= */
+
+:root {
+    /* ---- typography (Fluent type ramp) ---- */
+    --fontFamilyBase: "Poppins", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+    /* ---- Fluent dark neutrals ---- */
+    --colorNeutralForeground1: #f5f5f5;
+    --colorNeutralForeground2: #d6d6d6;
+    --colorNeutralForeground3: #adadad;
+    --colorNeutralForeground4: #8a8a8a;
+    --colorNeutralForegroundOnBrand: #ffffff;
+    --colorNeutralForegroundInverted: #202020;
+    --colorNeutralBackground1: #2a2626;
+    --colorNeutralBackground2: #2f2a2a;
+    --colorNeutralBackground3: #2a2626;
+    --colorNeutralBackground4: #393333;
+    --colorNeutralBackground1Hover: #332e2e;
+    --colorNeutralBackground1Pressed: #221f1f;
+    --colorNeutralBackground1Selected: #3a3434;
+    --colorNeutralStroke1: #4a4a4a;
+    --colorNeutralStroke2: #3d3d3d;
+    --colorNeutralStrokeAccessible: #5c5c5c;
+
+    /* ---- Fluent brand: see the Stomme token block below ---- */
+
+    /* ---- Didin app tokens ---- */
+    --bin-bg: #1e1c1c;
+    --bin-sidebar: #262222;
+    --bin-layer: #2a2626;
+    --bin-text: #f7f5f7;
+    --bin-text-dim: rgba(247, 245, 247, .66);
+    --bin-border: rgba(255, 255, 255, .1);
+    --bin-radius: 10px;
+    --bin-radius-lg: 16px;
+    --bin-radius-xl: 24px;
+    --bin-accent: #c900cc;
+    --bin-accent-hover: #b200b5;
+    --bin-accent-press: #99009c;
+    --bin-accent-light: #e877ea;   /* the accent as text on the dark surface */
+    --bin-accent-soft: rgba(201, 0, 204, .18);
+    --bin-font: var(--fontFamilyBase);
+    --bin-shadow-4: 0 1.6px 3.6px rgba(0, 0, 0, .13), 0 .3px .9px rgba(0, 0, 0, .11);
+    --bin-shadow-8: 0 3.2px 7.2px rgba(0, 0, 0, .13), 0 .6px 1.8px rgba(0, 0, 0, .11);
+    --bin-shadow-16: 0 6.4px 14.4px rgba(0, 0, 0, .13), 0 1.2px 3.6px rgba(0, 0, 0, .11);
+
+    /* ---- Bootstrap bridge ---- */
+    --bs-body-bg: #1e1c1c;
+    --bs-body-color: #e8e8e8;
+    --bs-body-font-family: var(--fontFamilyBase);
+    --bs-body-font-size: .925rem;
+    --bs-heading-color: #f5f5f5;
+    --bs-border-color: rgba(255, 255, 255, .1);
+    --bs-border-color-translucent: rgba(255, 255, 255, .1);
+    --bs-secondary-color: rgba(245, 245, 245, .68);
+    --bs-primary: #c900cc;
+    --bs-primary-rgb: 201, 0, 204;
+    --bs-link-color: #e877ea;
+    --bs-link-hover-color: #f29bf3;
+    --bs-focus-ring-color: rgba(232, 119, 234, .5);
+}
+
+/* ---- Stomme's tokens (--db-*) ----
+   Stomme's chrome (admin pages, dialogs, the installer) reads these, and it binds FluentUI's brand tokens to the
+   accent on <body>, so buttons everywhere take --db-accent: Fluent's dark-theme blue. Didin is dark-only: ThemeInfo's
+   ColorMode fixes every page to dark (Stomme 10.6), and Stomme's own token blocks weigh nothing (:where), so this
+   :root decides. */
+:root {
+    --db-accent: #c900cc;
+    --db-accent-2: #b200b5;
+    --db-accent-3: #4d0a4e;
+    --db-on-accent: #ffffff;
+    --db-bg: #1e1c1c;
+    --db-bg-elev: #2a2626;
+    --db-bg-elev-2: #322d2d;
+    --db-bg-elev-3: #393333;
+    --db-border: rgba(255, 255, 255, .1);
+    --db-border-strong: rgba(255, 255, 255, .2);
+    --db-text: #f5f5f5;
+    --db-text-2: #d6d6d6;
+    --db-muted: rgba(245, 245, 245, .68);
+    --db-sans: var(--fontFamilyBase);
+    --db-radius: 16px;
+    --db-radius-sm: 10px;
+    --db-radius-xs: 2px;
+}
+
+/* Text and outlines in the brand colour sit on the dark surface: a lighter magenta reads there (buttons keep the accent,
+   whose white text passes AA at 4.8:1). FluentUI's controls get the design's larger radii. */
+body {
+    --colorBrandForeground1: #e877ea;
+    --colorBrandForeground2: #f29bf3;
+    --colorBrandForegroundLink: #e877ea;
+    --colorBrandForegroundLinkHover: #f29bf3;
+    --colorBrandForegroundLinkPressed: #f6b5f7;
+    --colorBrandForegroundLinkSelected: #f6b5f7;
+    --colorBrandStroke1: #e877ea;
+    /* the accent itself, pinned here too: the MAUI shell has no Stomme to derive Fluent's brand ramp from it */
+    --colorBrandBackground: #c900cc;
+    --colorBrandBackgroundHover: #b200b5;
+    --colorBrandBackgroundPressed: #99009c;
+    --colorBrandBackgroundSelected: #b200b5;
+    --colorCompoundBrandBackground: #c900cc;
+    --colorCompoundBrandBackgroundHover: #b200b5;
+    --colorCompoundBrandBackgroundPressed: #99009c;
+    --colorCompoundBrandStroke: #c900cc;
+    --colorCompoundBrandStrokeHover: #b200b5;
+    --colorCompoundBrandStrokePressed: #99009c;
+    --borderRadiusMedium: 10px;
+    --borderRadiusLarge: 12px;
+    --fontFamilyBase: "Poppins", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ---- base ---- */
+html { color-scheme: dark; }
+
+body {
+    background-color: var(--bin-bg);
+    color: var(--bs-body-color);
+    font-family: var(--fontFamilyBase);
+}
+/* FluentUI 5's stylesheet locks body (overflow: hidden, height: 100dvh), which kills page scrolling.
+   Stomme 10.5.2 unlocks it too, but the MAUI shell has no Stomme, so keep the page open here - except while
+   FluentUI holds a dialog open (.prevent-scroll), whose scroll lock is intended. */
+body:not(:has(.prevent-scroll)) { overflow: visible !important; height: auto !important; }
+
+h1, h2, h3, h4, h5, h6 { color: var(--bin-text); font-weight: 600; }
+p, li, td, th, label, .form-label { color: var(--bs-body-color); }
+a { color: var(--colorBrandForegroundLink); text-decoration: none; }
+a:hover { color: var(--colorBrandForegroundLinkHover); }
+hr { border-color: var(--bin-border); opacity: 1; }
+code, pre { color: var(--bin-text); background: var(--bin-layer); border-radius: var(--bin-radius); }
+mark { background: #4a3c00; color: var(--bin-text); }
+::placeholder { color: var(--colorNeutralForeground4); opacity: 1; }
+:focus-visible { outline: 2px solid var(--colorBrandForeground1); outline-offset: 1px; }
+* { scrollbar-color: var(--colorNeutralForeground4) var(--bin-bg); }
+
+/* ---- top bar (Fluent app header) ---- */
+.bin-topbar {
+    position: sticky; top: 0; z-index: 1030;
+    display: flex; align-items: center; gap: .85rem;
+    min-height: 48px; padding: .35rem 1.1rem;
+    background: var(--bin-layer);
+    border-bottom: 1px solid var(--bin-border);
+    box-shadow: var(--bin-shadow-4);
+}
+.bin-brand { display: flex; align-items: center; gap: .5rem; color: var(--bin-text); font-weight: 600; font-size: 1rem; letter-spacing: .01em; text-decoration: none; }
+.bin-brand:hover { color: var(--bin-text); }
+.bin-brand-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.65rem; height: 1.65rem; font-size: .72rem;
+    background: var(--colorBrandBackground); color: var(--colorNeutralForegroundOnBrand);
+    border-radius: var(--bin-radius);
+}
+.bin-brand .img-fluid { max-height: 30px; }
+.bin-topbar .app-menu { display: flex; align-items: center; gap: .2rem; }
+.bin-topbar .app-menu .nav-item { white-space: nowrap; }
+/* the menu: .app-menu .nav-link before Stomme 10.5, .db-nav-link since */
+.bin-topbar .app-menu .nav-link,
+.bin-topbar .db-nav-link {
+    display: flex; align-items: center; gap: .45rem;
+    color: var(--bin-text-dim); font-size: .9rem;
+    padding: .42rem .85rem; border-radius: var(--bin-radius);
+}
+.bin-topbar .app-menu .nav-link:hover,
+.bin-topbar .app-menu .nav-link.active,
+.bin-topbar .db-nav-link:hover,
+.bin-topbar .db-nav-link.active {
+    background: rgba(255, 255, 255, .08); color: var(--bin-text);
+}
+.bin-topbar-actions {
+    margin-left: auto; display: flex; align-items: center; gap: .75rem;
+    color: var(--bin-text-dim); font-size: .9rem;
+}
+.bin-topbar-actions a { color: var(--bin-text-dim); }
+.bin-topbar-actions a:hover { color: var(--bin-text); }
+.bin-topbar .navbar-toggler { border-color: var(--bin-border); background: transparent; }
+/* The account controls are quiet: one primary colour per view, and that is the content's Play.
+   Stomme 10.5 renders the user name as a.db-btn.app-profile and Logout as a .db-btn. */
+.bin-topbar-actions .db-btn {
+    display: inline-flex; align-items: center; min-height: 32px; padding: .25rem .75rem;
+    background: transparent; color: var(--bin-text); border: 1px solid var(--bin-border);
+    border-radius: var(--bin-radius); font-size: .88rem; font-weight: 500; box-shadow: none;
+}
+.bin-topbar-actions .db-btn:hover { background: rgba(255, 255, 255, .08); color: var(--bin-text); }
+.bin-topbar-actions .db-btn.app-profile { border-color: transparent; color: var(--bin-text-dim); }
+.bin-topbar-actions .db-btn.app-profile::before { content: "\25CF"; color: var(--colorBrandForeground1); font-size: .6rem; margin-right: .45rem; }
+.bin-topbar-actions .db-icon-btn { min-width: 36px; min-height: 36px; }
+/* a menu with nothing but Home repeats the brand link: hide it */
+.bin-topbar .db-nav:has(.db-nav-item:only-child) { display: none; }
+@media (max-width: 600px) {
+    /* phones: one row - brand, name, logout, control panel; layout editing is a desktop job */
+    .bin-topbar { flex-wrap: wrap; gap: .4rem .6rem; padding: .35rem .75rem; }
+    .bin-topbar-actions { gap: .35rem; }
+    .bin-topbar-actions .btn, .bin-topbar-actions .db-btn { padding: .25rem .55rem; font-size: .85rem; }
+    .bin-topbar-actions .app-editmode { display: none; }
+    .bin-content { padding: .75rem .75rem 2rem; }
+}
+
+
+/* ---- content / panes / container ---- */
+.bin-content {
+    max-width: 1500px; margin: 0 auto;
+    padding: 1.15rem 1.25rem 3rem;
+    min-height: calc(100vh - 48px);
+}
+.bin-content .row { --bs-gutter-x: 1.25rem; }
+/* Large screens and TVs (10-foot UI): everything rem-based grows with the root size, the page
+   uses the width, and a TV (no hover: a remote, not a mouse) gets a bigger scale plus overscan-safe margins. */
+@media (min-width: 1600px) {
+    html { font-size: 17px; }
+    .bin-content { max-width: 1760px; }
+}
+@media (min-width: 1200px) and (hover: none) {
+    /* zoom, not just a bigger root font: FluentUI's controls are sized in px tokens and would stay small */
+    html { zoom: 1.3; }
+    .bin-content { max-width: none; padding-left: 3vw; padding-right: 3vw; }
+    .bin-topbar { padding-left: 3vw; padding-right: 3vw; }
+}
+.bin-container { margin-bottom: .75rem; }
+
+/* module admin actions stay out of the way until hovered */
+.app-moduleactions a.dropdown-toggle {
+    color: var(--colorNeutralForeground4); font-size: .8rem;
+}
+.app-moduleactions:hover a.dropdown-toggle { color: var(--bin-text); }
+
+/* ---- framework popups (control panel, module actions) ---- */
+.dropdown-menu {
+    background: var(--bin-layer); border: 1px solid var(--bin-border);
+    border-radius: var(--bin-radius-lg); box-shadow: var(--bin-shadow-16);
+    padding: .35rem;
+}
+.dropdown-item { color: var(--bin-text); border-radius: var(--bin-radius); padding: .4rem .75rem; }
+.dropdown-item:hover, .dropdown-item:focus { background: rgba(255, 255, 255, .08); color: var(--bin-text); }
+.dropdown-divider { border-color: var(--bin-border); }
+
+/* ---- Bootstrap component bridges ---- */
+.btn {
+    border-radius: var(--bin-radius); font-size: .9rem;
+    transition: background-color .12s ease, border-color .12s ease;
+}
+.btn-primary { background: var(--colorBrandBackground); border-color: var(--colorBrandBackground); }
+.btn-primary:hover, .btn-primary:focus { background: var(--colorBrandBackgroundHover); border-color: var(--colorBrandBackgroundHover); }
+.btn-secondary, .btn-outline-secondary {
+    background: transparent; border-color: var(--bin-border); color: var(--bin-text);
+}
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, .08); border-color: var(--bin-border); color: var(--bin-text);
+}
+.btn-outline-light { border-color: var(--bin-border); color: var(--bin-text); }
+.btn-outline-light:hover { background: rgba(255, 255, 255, .08); color: var(--bin-text); }
+
+.form-control, .form-select {
+    background-color: var(--colorNeutralBackground3);
+    border-color: var(--bin-border); color: var(--bin-text);
+    border-radius: var(--bin-radius);
+}
+.form-control:focus, .form-select:focus {
+    background-color: var(--colorNeutralBackground3);
+    border-color: var(--colorBrandForeground1); color: var(--bin-text);
+    box-shadow: 0 0 0 1px var(--colorBrandForeground1);
+}
+.form-check-input { background-color: var(--colorNeutralBackground3); border-color: var(--bin-border); }
+.form-check-input:checked { background-color: var(--colorBrandBackground); border-color: var(--colorBrandBackground); }
+.form-check-input:focus { box-shadow: 0 0 0 1px var(--colorBrandForeground1); border-color: var(--colorBrandForeground1); }
+.form-text, .form-check-label { color: var(--bin-text-dim); }
+.input-group-text { background: var(--colorNeutralBackground4); border-color: var(--bin-border); color: var(--bin-text); }
+
+.table { --bs-table-bg: transparent; --bs-table-color: var(--bs-body-color); --bs-table-border-color: var(--bin-border); color: var(--bs-body-color); }
+.table thead th { color: var(--bin-text); font-weight: 600; }
+.table > :not(caption) > * > * { box-shadow: none; }
+
+.card { background: var(--bin-layer); border-color: var(--bin-border); border-radius: var(--bin-radius-lg); }
+.card-header, .card-footer { background: rgba(255, 255, 255, .03); border-color: var(--bin-border); }
+
+.alert { border-radius: var(--bin-radius-lg); border: 1px solid var(--bin-border); background: var(--bin-layer); color: var(--bin-text); }
+.alert-info { border-color: var(--colorBrandStroke1); }
+.alert-dismissible .btn-close { z-index: 1; }
+.btn-close { filter: invert(.8); }
+
+.modal-content { background: var(--bin-layer); border-color: var(--bin-border); border-radius: var(--bin-radius-lg); }
+.modal-header, .modal-footer { border-color: var(--bin-border); }
+.accordion-item { background: var(--bin-layer); border-color: var(--bin-border); }
+.accordion-button { background: var(--bin-layer); color: var(--bin-text); }
+.accordion-button:not(.collapsed) { background: rgba(255, 255, 255, .05); color: var(--bin-text); }
+.accordion-button::after { filter: invert(.8); }
+.nav-tabs { border-color: var(--bin-border); }
+.nav-tabs .nav-link { color: var(--bin-text-dim); border-color: transparent; border-radius: var(--bin-radius) var(--bin-radius) 0 0; }
+.nav-tabs .nav-link:hover { color: var(--bin-text); border-color: var(--bin-border) var(--bin-border) transparent; }
+.nav-tabs .nav-link.active { background: var(--bin-layer); color: var(--bin-text); border-color: var(--bin-border) var(--bin-border) var(--bin-layer); }
+.pagination .page-link { background: var(--bin-layer); border-color: var(--bin-border); color: var(--colorBrandForegroundLink); }
+.pagination .page-item.active .page-link { background: var(--colorBrandBackground); border-color: var(--colorBrandBackground); color: var(--colorNeutralForegroundOnBrand); }
+.pagination .page-item.disabled .page-link { background: transparent; color: var(--colorNeutralForeground4); }
+.badge { border-radius: 999px; }
+.app-tooltip img { vertical-align: middle; opacity: .55; margin-left: .2rem; }

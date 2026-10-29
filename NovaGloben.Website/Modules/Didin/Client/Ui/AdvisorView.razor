@@ -1,0 +1,220 @@
+@namespace Didin.Module.Media
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+@inject Services.MediaOptions Options
+
+@* "Ask Didin": say what you are in the mood for, get ten titles from the library chosen with your ratings and
+   history. Each can be played, marked seen (which asks for a rating) or turned down; "None of these" asks for ten
+   others - again and again, never repeating one - until something suits. *@
+<div class="bin-advisor" id="bin-advisor">
+    <div class="bin-advisor-head">
+        <h2 class="bin-view-title"><BinIcon Name="sparkle" /> Ask Didin</h2>
+        @if (Conversation.Turns.Count > 0)
+        {
+            <FluentButton Appearance="ButtonAppearance.Default" OnClick="StartOver" Id="bin-advisor-new">Start over</FluentButton>
+        }
+    </div>
+
+    @if (_status == null)
+    {
+        <p class="bin-loading"><em>Checking the assistant...</em></p>
+    }
+    else if (!_status.Available)
+    {
+        <div class="bin-empty" id="bin-advisor-off">
+            <p>Ask Didin is not set up yet. @(_status.Reason)</p>
+            @if (State.User.IsAdmin)
+            {
+                <p class="bin-advisor-hint">Switch it on in the site's <a href="@Options.PageUrl("/admin/assistant")">assistant
+                    settings</a>: a provider, its endpoint, a model and its key.</p>
+            }
+        </div>
+    }
+    else
+    {
+        @if (Conversation.Turns.Count == 0)
+        {
+            <p class="bin-advisor-intro">Tell me what you are in the mood for. I know what you have rated and watched, and I suggest ten titles from your library.</p>
+            <div class="bin-advisor-ideas">
+                @foreach (var idea in Ideas)
+                {
+                    <button type="button" class="bin-advisor-idea" @onclick="() => AskAsync(idea)" disabled="@_busy">@idea</button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="bin-advisor-transcript" id="bin-advisor-transcript" aria-live="polite">
+                @foreach (var turn in Conversation.Turns)
+                {
+                    <div class="bin-advisor-turn @(turn.Role == "user" ? "user" : "advisor")" dir="auto">@Shown(turn)</div>
+                }
+            </div>
+        }
+
+        @if (Conversation.Error != null)
+        {
+            <p class="bin-link-error" role="alert" id="bin-advisor-error">@Conversation.Error</p>
+        }
+
+        <form class="bin-advisor-ask" @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+            <textarea id="bin-advisor-input" rows="2" maxlength="2000" dir="auto" @bind="_text" @bind:event="oninput"
+                      placeholder="@(Conversation.Turns.Count == 0 ? "Something funny and short for tonight..." : "Tell me more, or why these do not suit you...")"
+                      aria-label="What you are in the mood for" @onkeydown="InputKey"></textarea>
+            <FluentButton Appearance="ButtonAppearance.Primary" Type="ButtonType.Submit" Loading="_busy" Id="bin-advisor-send"
+                          Disabled="@(string.IsNullOrWhiteSpace(_text))">Ask</FluentButton>
+        </form>
+
+        @if (_busy)
+        {
+            <p class="bin-advisor-thinking" role="status">Choosing ten titles for you...</p>
+        }
+
+        @if (Conversation.Picks.Count > 0)
+        {
+            <div class="bin-advisor-picks" id="bin-advisor-picks">
+                @foreach (var pick in Conversation.Picks)
+                {
+                    var card = State.Catalog.Cards.FirstOrDefault(c => c.Id == pick.TitleId);
+                    if (card == null) continue;
+                    Conversation.Outcome.TryGetValue(card.Id, out var outcome);
+                    <div class="bin-advisor-pick @outcome" data-title="@card.Id">
+                        <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                        @if (!string.IsNullOrEmpty(pick.Reason))
+                        {
+                            <p class="bin-advisor-reason" dir="auto">@pick.Reason</p>
+                        }
+                        @if (outcome == "seen")
+                        {
+                            <p class="bin-advisor-done"><BinIcon Name="check" /> Rated and marked seen</p>
+                        }
+                        else if (outcome == "notforme")
+                        {
+                            <p class="bin-advisor-done">Not for you - left out from now on</p>
+                        }
+                        else
+                        {
+                            <div class="bin-advisor-actions">
+                                <FluentButton Appearance="ButtonAppearance.Primary" Class="bin-advisor-play" OnClick="() => OnWatch.InvokeAsync(card)">▶ Play</FluentButton>
+                                <FluentButton Appearance="ButtonAppearance.Default" Class="bin-advisor-seen" OnClick="() => _rating = card"><BinIcon Name="check" /> Seen</FluentButton>
+                                <FluentButton Appearance="ButtonAppearance.Default" Class="bin-advisor-no" OnClick="() => NotForMe(card.Id)">Not for me</FluentButton>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="bin-advisor-more">
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="NoneOfTheseAsync" Loading="_busy" Id="bin-advisor-more">None of these - show me 10 others</FluentButton>
+            </div>
+        }
+    }
+</div>
+
+@if (_rating != null)
+{
+    @* seen from here means rated too: the dialog keeps "Mark as seen" on *@
+    <RateDialog Card="_rating" RequireSeen="true" OnClose="RatedAsync" />
+}
+
+@code {
+    [Parameter] public Services.AdvisorConversation Conversation { get; set; }
+    [Parameter] public EventCallback<Didin.Shared.Models.CatalogCard> OnWatch { get; set; }
+
+    private static readonly string[] Ideas =
+    {
+        "Something funny and light for tonight",
+        "A gripping thriller I have not seen",
+        "Like the films I rated highest",
+        "A short series I can finish this week",
+    };
+
+    private Didin.Shared.Models.AdvisorStatus _status;
+    private string _text = "";
+    private bool _busy;
+    private Didin.Shared.Models.CatalogCard _rating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _status = await CatalogClient.GetAdvisorStatusAsync(); }
+        catch { _status = new Didin.Shared.Models.AdvisorStatus { Reason = "The assistant is not available." }; }
+    }
+
+    private Task SubmitAsync() => AskAsync(_text);
+
+    private async Task InputKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey && !string.IsNullOrWhiteSpace(_text)) await AskAsync(_text);
+    }
+
+    private Task NoneOfTheseAsync()
+    {
+        // the box may say why; empty means "just others"
+        foreach (var pick in Conversation.Picks) Conversation.Outcome.TryAdd(pick.TitleId, "notforme");
+        return AskAsync(string.IsNullOrWhiteSpace(_text) ? "None of these suit me - show me ten others." : _text, newTen: true);
+    }
+
+    private async Task AskAsync(string text, bool newTen = false)
+    {
+        if (_busy || string.IsNullOrWhiteSpace(text)) return;
+        _busy = true;
+        Conversation.Error = null;
+        var message = text.Trim();
+        _text = "";
+        var request = new Didin.Shared.Models.AdvisorRequest
+        {
+            Message = message,
+            History = Conversation.Turns.ToList(),
+            Exclude = Conversation.Offered.Concat(Conversation.Outcome.Keys).Distinct().ToList(),
+        };
+        Conversation.Turns.Add(new Didin.Shared.Models.AdvisorTurn { Role = "user", Text = message });
+        StateHasChanged();
+        Didin.Shared.Models.AdvisorReply reply;
+        try { reply = await CatalogClient.AskAdvisorAsync(request); }
+        catch { reply = new Didin.Shared.Models.AdvisorReply { Error = "The assistant could not answer just now. Try again in a moment." }; }
+
+        if (!string.IsNullOrEmpty(reply?.Error))
+        {
+            Conversation.Error = reply.Error;
+            Conversation.Turns.RemoveAt(Conversation.Turns.Count - 1);   // not answered: as if not asked, so it can be asked again
+            _text = message;
+        }
+        else
+        {
+            Conversation.Picks = reply.Picks;
+            foreach (var p in reply.Picks) Conversation.Offered.Add(p.TitleId);
+            // the advisor's turn carries the titles it chose, so the next request knows what was already offered
+            var names = reply.Picks.Select(p => State.Catalog.Cards.FirstOrDefault(c => c.Id == p.TitleId)?.Title).Where(n => n != null);
+            Conversation.Turns.Add(new Didin.Shared.Models.AdvisorTurn
+            {
+                Role = "assistant",
+                Text = reply.Reply + (reply.Picks.Count > 0 ? "\n[Suggested: " + string.Join("; ", names) + "]" : ""),
+            });
+        }
+        _busy = false;
+    }
+
+    private static string Shown(Didin.Shared.Models.AdvisorTurn turn)
+    {
+        var text = turn.Text ?? "";
+        var cut = text.IndexOf("\n[Suggested:", StringComparison.Ordinal);
+        return cut >= 0 ? text[..cut] : text;
+    }
+
+    private void NotForMe(int titleId)
+    {
+        Conversation.Outcome[titleId] = "notforme";
+    }
+
+    private Task RatedAsync()
+    {
+        if (_rating != null && State.IsSeen(_rating.Id)) Conversation.Outcome[_rating.Id] = "seen";
+        _rating = null;
+        return Task.CompletedTask;
+    }
+
+    private void StartOver()
+    {
+        Conversation.Clear();
+        _text = "";
+    }
+}

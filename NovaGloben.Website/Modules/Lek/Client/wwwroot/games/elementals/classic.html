@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Elementals (classic art)</title>
+<link rel="stylesheet" href="elementals.css?v=4">
+</head>
+<body>
+<div id="app">
+  <div id="stage"><canvas id="game" width="640" height="352"></canvas></div>
+
+  <div id="corner">
+    <span id="ping"></span>
+    <button id="btn-keys" class="icon" title="Controls">&#9881;</button>
+    <button id="btn-sound" class="icon" title="Sound">&#128266;</button>
+    <button id="btn-full" class="icon" title="Full screen">&#x26F6;</button>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div class="pad-left"><button data-hold="left">&#9664;</button><button data-hold="down">&#9660;</button><button data-hold="right">&#9654;</button></div>
+    <div class="pad-right">
+      <button data-press="ab0">R</button><button data-press="ab1">T</button><button data-press="ab2">Y</button>
+      <button data-press="swap">&#8646;</button><button data-hold="attack" class="big">&#9876;</button><button data-hold="jump" class="big">&#9650;</button>
+    </div>
+  </div>
+
+  <section id="menu" class="panel">
+    <h1 class="logo">ELEMENTALS</h1>
+    <p class="fine">Classic art: the first look, kept so you can compare. Rooms are shared with the new version.</p>
+    <p class="tag">Pick a hero, master three abilities, outplay your rival. No gear, no grind: skill decides.</p>
+    <label>Your name <input id="name" maxlength="14" autocomplete="off" placeholder="nickname"></label>
+    <div class="row"><button id="create" class="primary">Create a room</button></div>
+    <div class="row"><input id="code" maxlength="4" autocomplete="off" placeholder="CODE" class="code"><button id="join">Join</button></div>
+    <p id="menu-msg" class="msg"></p>
+    <p class="fine">1v1, 2v2 or 3v3. Empty seats are filled with bots, so you can play alone.</p>
+    <p class="fine credits">Music: "Curse of the Scarab" Kevin MacLeod (incompetech.com), licensed under
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; other music and
+      sounds CC0 by CodeManu, nene, Synth-thetic, Emma_MA, Spring Spring, artisticdude, bart and Kenney.</p>
+  </section>
+
+  <section id="lobby" class="panel wide hidden">
+    <div class="lobby-head">
+      <h1 class="logo small">ELEMENTALS</h1>
+      <div class="roomcode">Room <b id="room-code"></b> <button id="share" class="small">Copy invite link</button></div>
+    </div>
+    <div class="lobby-grid">
+      <div class="col">
+        <h2>Match</h2>
+        <div class="seg" id="modes"><button data-mode="1">1v1</button><button data-mode="2">2v2</button><button data-mode="3">3v3</button></div>
+        <div class="maps" id="maps"></div>
+        <div class="teams">
+          <div class="team t0"><h3>Sun</h3><ul id="team0"></ul><button data-team="0" class="small">Join Sun</button></div>
+          <div class="team t1"><h3>Moon</h3><ul id="team1"></ul><button data-team="1" class="small">Join Moon</button></div>
+        </div>
+        <div class="row">
+          <button id="start" class="primary">Start the match</button>
+          <button id="leave">Leave</button>
+        </div>
+        <p id="lobby-msg" class="msg"></p>
+        <p class="fine">Best of three rounds of 1:30. At the bell, a side more than 4 hearts ahead wins; otherwise the round is a draw.</p>
+      </div>
+      <div class="col">
+        <h2>Hero</h2>
+        <div class="heroes" id="heroes"></div>
+        <div class="hero-detail" id="hero-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="keys" class="panel hidden">
+    <h2>Controls</h2>
+    <p class="fine">Click an action, then press the key you want. The mouse aims and left click attacks; the arrow keys aim too.</p>
+    <div id="binds" class="binds"></div>
+    <div class="row"><button id="keys-reset" class="small">Defaults</button><button id="keys-close" class="primary">Done</button></div>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script src="../site.js?v=1"></script>
+    <script>window.ELEMENTALS_CLASSIC = true; window.ELEMENTALS_PAGE = "/elementals-classic";</script>
+<script src="art-classic.js?v=1"></script>
+<script src="physics.js?v=1"></script>
+<script src="audio.js?v=2"></script>
+<script src="game.js?v=5"></script>
+</body>
+</html>

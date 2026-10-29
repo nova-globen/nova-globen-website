@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Bullet Noir</title>
+<link rel="stylesheet" href="noir.css?v=5">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/addons/" } }</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="view"></canvas>
+  <div id="grade"></div>
+  <div id="hurt"></div>
+
+  <div id="hud" class="hidden">
+    <div id="crosshair"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><b></b></div>
+    <div id="hitmark">&#10005;</div>
+    <div id="top">
+      <div id="score"><span id="my-kills">0</span><small>/ 15</small></div>
+      <div id="clock">5:00</div>
+      <div id="feed"></div>
+    </div>
+    <div id="bottom">
+      <div id="health"><div class="label">HEALTH</div><div class="bar"><div id="hp-fill"></div></div><div id="hp-num">100</div></div>
+      <div id="bt"><div class="glass"><div id="bt-fill"></div></div><div class="label">BULLET TIME</div></div>
+      <div id="weapon"><div id="w-name">PISTOL</div><div id="w-ammo">12</div><div id="w-hint"></div></div>
+    </div>
+    <div id="banner"><div id="banner-text"></div><div id="banner-sub"></div></div>
+    <div id="dead" class="hidden"><div class="down">YOU'RE DOWN</div><div id="dead-by"></div><div id="dead-t"></div></div>
+    <div id="board" class="hidden"><h2>The Docks</h2><table><thead><tr><th></th><th>Kills</th><th>Deaths</th></tr></thead><tbody id="board-rows"></tbody></table></div>
+    <div id="lock" class="hidden"><div>Click to fight</div><small>Mouse aims. Esc frees the cursor.</small></div>
+  </div>
+
+  <div id="corner">
+    <span id="probe"></span><span id="ping"></span><span id="fps"></span>
+    <button id="btn-sound" class="icon" title="Sound">&#128266;</button>
+    <button id="btn-full" class="icon" title="Full screen">&#x26F6;</button>
+  </div>
+
+  <section id="menu" class="panel">
+    <h1 class="logo">BULLET NOIR</h1>
+    <p class="tag">A snowy night at the docks. Everyone's armed. Dive through the air, slow time around you, and watch the bullets come.</p>
+    <label>Your name <input id="name" maxlength="14" autocomplete="off" placeholder="nickname"></label>
+    <div class="row"><button id="create" class="primary">Create a room</button></div>
+    <div class="row"><input id="code" maxlength="4" autocomplete="off" placeholder="CODE" class="code"><button id="join">Join</button></div>
+    <p id="menu-msg" class="msg"></p>
+    <p id="loading" class="fine">Loading the docks&hellip;</p>
+    <p class="fine">Free-for-all, 2 to 8 players; bots fill the empty seats. A first 3D test. Models: Quaternius (CC0).</p>
+  </section>
+
+  <section id="lobby" class="panel wide hidden">
+    <div class="lobby-head">
+      <h1 class="logo small">BULLET NOIR</h1>
+      <div class="roomcode">Room <b id="room-code"></b> <button id="share" class="small">Copy invite link</button></div>
+    </div>
+    <div class="lobby-grid">
+      <div class="col">
+        <h2>Players</h2>
+        <div class="seg" id="sizes"><button data-size="2">2</button><button data-size="4">4</button><button data-size="6">6</button><button data-size="8">8</button></div>
+        <ul id="players"></ul>
+        <div class="row"><button id="start" class="primary">Start the shootout</button><button id="leave">Leave</button></div>
+        <p id="lobby-msg" class="msg"></p>
+        <label class="sens">Mouse sensitivity <b id="sens-val">1.0</b><input id="sens" type="range" min="0.2" max="3" step="0.1" value="1"></label>
+        <label class="sens">Aiming <select id="aim-mode"><option value="lock">Mouse look (captures the mouse, best on a real mouse)</option><option value="cursor">Cursor aim (Remote Desktop, touchpad)</option></select></label>
+        <label class="check"><input id="raw" type="checkbox" checked> Raw mouse input <small>(turn off if aiming feels wrong; F2 in a match shows what the mouse reports)</small></label>
+      </div>
+      <div class="col rules">
+        <h2>How it works</h2>
+        <ul>
+          <li><kbd>WASD</kbd> move, the <b>mouse</b> aims, <b>left click</b> shoots, the <b>arrow keys</b> turn and look. Over Remote Desktop or on a touchpad pick <b>Cursor aim</b>: shoot where the cursor points, push it to the screen edge to turn.</li>
+          <li><b>Shootdodge</b>: <kbd>Space</kbd> or <kbd>Shift</kbd> dives the way you move. You're harder to hit in the air and on the floor, and time slows around you while you fly.</li>
+          <li><b>Bullet time</b>: <b>right click</b> or <kbd>Q</kbd>. A bubble opens around you: bullets inside crawl, and everyone else in it moves slower. Kills refill it.</li>
+          <li><kbd>R</kbd> reloads, <kbd>1</kbd> <kbd>2</kbd> or the wheel swap guns, <kbd>[</kbd> <kbd>]</kbd> change mouse sensitivity. Pick up a shotgun, SMG or rifle; painkillers heal.</li>
+          <li>Shoot the red barrels. Headshots do double. First to <b>15</b> kills, or the most after 5 minutes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script src="../site.js?v=1"></script>
+    <script src="physics.js?v=1"></script>
+<script src="audio.js?v=1"></script>
+<script type="module" src="game.js?v=10"></script>
+</body>
+</html>

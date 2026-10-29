@@ -1,0 +1,18 @@
+@namespace Didin.Module.Media
+@inject Services.MediaOptions Options
+
+@* Download the original file, beside its play button: a plain link, so the browser (or the app) saves it under
+   its own name and can resume it. A damaged file is not offered. *@
+@if (File != null && File.Playback != "damaged")
+{
+    <a class="bin-download" href="@Options.DownloadUrl(File.Token)" download
+       title="Download (@Size(File.SizeBytes))" aria-label="Download @Label (@Size(File.SizeBytes))"><BinIcon Name="download" /></a>
+}
+
+@code {
+    [Parameter] public Didin.Shared.Models.MediaFileInfo File { get; set; }
+    [Parameter] public string Label { get; set; }
+
+    public static string Size(long bytes) =>
+        bytes >= 1L << 30 ? $"{bytes / 1073741824.0:0.0} GB" : $"{Math.Max(1, bytes / 1048576.0):0} MB";
+}

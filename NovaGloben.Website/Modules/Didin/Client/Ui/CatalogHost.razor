@@ -1,0 +1,660 @@
+@namespace Didin.Module.Media
+@implements IDisposable
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+@inject IJSRuntime Js
+@inject Services.MediaOptions Options
+@inject NavigationManager Nav
+
+<div class="didin">
+    @if (_loading)
+    {
+        <p class="bin-loading"><em>Loading catalog...</em></p>
+    }
+    else if (_error != null)
+    {
+        <div class="bin-empty">
+            <p>@_error</p>
+            <FluentButton Appearance="ButtonAppearance.Default" OnClick="LoadAsync">Retry</FluentButton>
+        </div>
+    }
+    else
+    {
+        @* The app's own chrome: a sidebar with the views, the content beside it. It lives here, not in the
+           site theme, so the MAUI shell (which hosts this component without the theme) has it too. On phones the
+           sidebar is a tab bar at the bottom. *@
+        <div class="bin-app">
+            <aside class="bin-sidebar" aria-label="Didin">
+                <button type="button" class="bin-brand" @onclick='() => Go("home")' aria-label="Didin - home">
+                    <BinLogo /><span class="bin-brand-name">Didin</span>
+                </button>
+                <nav class="bin-nav" aria-label="Views">
+                    @foreach (var (view, label, icon) in Views)
+                    {
+                        <button type="button" class="bin-nav-item @(_view == view && State.SelectedTitleId == null ? "active" : "")"
+                                aria-current="@(_view == view && State.SelectedTitleId == null ? "page" : null)" data-view="@view"
+                                @onclick="() => Go(view)">
+                            <BinIcon Name="@icon" /><span>@label</span>
+                        </button>
+                    }
+                    @if (State.User.IsAdmin)
+                    {
+                        <button type="button" id="bin-library-open" class="bin-nav-item @(_view == "library" ? "active" : "")"
+                                aria-current="@(_view == "library" ? "page" : null)" data-view="library" @onclick='() => Go("library")'>
+                            <BinIcon Name="library" /><span>Library</span>
+                        </button>
+                    }
+                </nav>
+            </aside>
+
+            <section class="bin-main">
+                @if (_view == "library")
+                {
+                    <LibraryView OnBack='() => Go("home")' />
+                }
+                else if (_view == "assistant" && State.SelectedTitleId == null)
+                {
+                    <AdvisorView Conversation="_advisor" OnWatch="WatchNow" />
+                }
+                else if (State.SelectedTitleId != null)
+                {
+                    <DetailsView TitleId="State.SelectedTitleId.Value" OnBack="() => State.Select(null)" OnPlay="PlayFile" OnPerson="OpenPerson" />
+                }
+                else
+                {
+                    <div class="bin-topnav">
+                        <div class="bin-tabs" role="group" aria-label="Kind">
+                            @foreach (var (kind, label) in Kinds)
+                            {
+                                <button type="button" class="bin-tab @(KindActive(kind) ? "active" : "")" aria-pressed="@(KindActive(kind) ? "true" : "false")"
+                                        @onclick="() => SetKind(kind)">@label</button>
+                            }
+                        </div>
+                        <div class="bin-toolbar">
+                            <div class="bin-search">
+                                <BinIcon Name="search" Class="bin-search-icon" />
+                                <FluentTextInput Placeholder="Search the catalog..." Immediate="true" Value="@State.Filter.Text"
+                                                 ValueChanged="@((string v) => OnSearch(v))" aria-label="Search the catalog" />
+                            </div>
+                            <FluentButton Appearance="ButtonAppearance.Default" Class="bin-filters-toggle" OnClick="() => _filtersOpen = !_filtersOpen"
+                                          aria-expanded="@(_filtersOpen ? "true" : "false")">
+                                <BinIcon Name="filter" /> @(State.Filter.IsEmpty ? "Filters" : "Filters •")
+                            </FluentButton>
+                            @if (!State.Filter.IsEmpty)
+                            {
+                                <FluentButton Appearance="ButtonAppearance.Default" OnClick="ClearFilters" Id="bin-clear-filters">Clear filters</FluentButton>
+                            }
+                        </div>
+                    </div>
+
+                    @if (_view == "home" && State.Filter.IsEmpty && _person == null)
+                    {
+                        var hero = Featured();
+                        if (hero != null)
+                        {
+                            <div class="bin-hero" id="bin-hero">
+                                @if (!string.IsNullOrEmpty(hero.PosterUrl))
+                                {
+                                    <img class="bin-hero-bg" src="@Options.AssetUrl(hero.PosterUrl)" alt="" aria-hidden="true" />
+                                }
+                                <div class="bin-hero-text">
+                                    <p class="bin-eyebrow">Featured today</p>
+                                    <h1 class="bin-hero-title" dir="auto">@hero.Title</h1>
+                                    <p class="bin-hero-meta">@HeroMeta(hero)</p>
+                                    <div class="bin-hero-actions">
+                                        <FluentButton Appearance="ButtonAppearance.Primary" Size="ButtonSize.Large" Id="bin-hero-play" OnClick="() => WatchNow(hero)">
+                                            <BinIcon Name="play" Filled="true" /> Watch now
+                                        </FluentButton>
+                                        <button type="button" class="bin-heart bin-heart-lg @(State.OnWatchlist(hero.Id) ? "on" : "")"
+                                                aria-pressed="@(State.OnWatchlist(hero.Id) ? "true" : "false")"
+                                                aria-label="@(State.OnWatchlist(hero.Id) ? "Remove from My list" : "Add to My list")"
+                                                @onclick="() => ToggleList(hero.Id)">
+                                            <BinIcon Name="heart" Filled="@State.OnWatchlist(hero.Id)" />
+                                        </button>
+                                        <button type="button" class="bin-hero-more" @onclick="() => State.Select(hero.Id)">More info</button>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(hero.PosterUrl))
+                                {
+                                    <img class="bin-hero-poster" src="@Options.AssetUrl(hero.PosterUrl)" alt="" />
+                                }
+                            </div>
+                        }
+                        @if (State.User.Finished.Count > 0)
+                        {
+                            @* played to the end, not rated yet: rate it (and mark it seen) or skip it *@
+                            <h2 class="bin-row-title">Finished watching</h2>
+                            <div class="bin-row" id="bin-finished">
+                                @foreach (var done in State.User.Finished.ToList())
+                                {
+                                    var card = State.Catalog.Cards.FirstOrDefault(c => c.Id == done.TitleId);
+                                    if (card == null) continue;
+                                    <div class="bin-finished-item" data-title="@card.Id">
+                                        <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                                        <div class="bin-finished-actions">
+                                            <FluentButton Appearance="ButtonAppearance.Primary" Class="bin-finished-rate" OnClick="() => _rating = card">Rate</FluentButton>
+                                            <FluentButton Appearance="ButtonAppearance.Default" Class="bin-finished-skip" OnClick="() => SkipFinished(card.Id)">Skip</FluentButton>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @if (State.User.Continue.Any(i => !State.IsSeen(i.TitleId)))
+                        {
+                            <h2 class="bin-row-title">Continue watching</h2>
+                            <div class="bin-row" id="bin-continue">
+                                @foreach (var item in State.User.Continue)
+                                {
+                                    var card = State.Catalog.Cards.FirstOrDefault(c => c.Id == item.TitleId);
+                                    if (card == null || State.IsSeen(card.Id)) continue;
+                                    <MediaCard Card="card" Subtitle="@item.Label" Progress="@(item.Duration > 0 ? item.Position / item.Duration : (double?)null)"
+                                               OnClick="() => Resume(item)" />
+                                }
+                            </div>
+                        }
+                        @if (State.User.Watchlist.Any(id => !State.IsSeen(id)))
+                        {
+                            <h2 class="bin-row-title">My list</h2>
+                            <div class="bin-row" id="bin-mylist">
+                                @foreach (var id in State.User.Watchlist)
+                                {
+                                    var card = State.Catalog.Cards.FirstOrDefault(c => c.Id == id);
+                                    if (card == null || State.IsSeen(card.Id)) continue;
+                                    <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                                }
+                            </div>
+                        }
+                        <h2 class="bin-row-title">Top rated</h2>
+                        <div class="bin-row" id="bin-toprated">
+                            @foreach (var card in TopRated().Take(18))
+                            {
+                                <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                            }
+                        </div>
+                        <h2 class="bin-row-title">Recently added</h2>
+                        <div class="bin-row" id="bin-recent">
+                            @foreach (var card in RecentlyAdded().Take(18))
+                            {
+                                <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                            }
+                        </div>
+                    }
+
+                    var shown = Shown();
+                    @if (_person != null)
+                    {
+                        <FluentButton Appearance="ButtonAppearance.Default" OnClick="ClosePerson" Id="bin-person-back" Class="bin-back">← Back</FluentButton>
+                    }
+                    <div class="bin-section-head">
+                        <h2 class="bin-view-title" dir="auto">@ViewTitle</h2>
+                        @if (_person != null)
+                        {
+                            <p class="bin-person-roles" id="bin-person-roles">@string.Join(" · ", _person.Roles.Select(RoleLabel))</p>
+                        }
+                        <div class="bin-count">@shown.Count of @State.Catalog.Cards.Count titles</div>
+                    </div>
+                    @if (shown.Count == 0)
+                    {
+                        <div class="bin-empty" id="bin-empty">
+                            @if (_view == "watched" && State.Filter.IsEmpty)
+                            {
+                                <p>Nothing marked as seen yet. A title you mark as seen leaves every list and waits here.</p>
+                                <FluentButton Appearance="ButtonAppearance.Primary" OnClick='() => Go("home")'>Browse the catalog</FluentButton>
+                            }
+                            else if (_view == "mylist" && State.Filter.IsEmpty)
+                            {
+                                <p>Nothing on My list yet. Press the heart on any title to keep it here.</p>
+                                <FluentButton Appearance="ButtonAppearance.Primary" OnClick='() => Go("home")'>Browse the catalog</FluentButton>
+                            }
+                            else
+                            {
+                                <p>
+                                    @if (!string.IsNullOrWhiteSpace(State.Filter.Text))
+                                    {
+                                        <text>No titles match “<span dir="auto">@State.Filter.Text.Trim()</span>”@(OnlySearch ? "." : " with the current filters.")</text>
+                                    }
+                                    else
+                                    {
+                                        <text>No titles match the current filters.</text>
+                                    }
+                                </p>
+                                <FluentButton Appearance="ButtonAppearance.Primary" OnClick="ClearFilters">
+                                    @(OnlySearch ? "Clear the search" : "Clear search and filters")
+                                </FluentButton>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bin-grid">
+                            @foreach (var card in shown.Take(State.Limit))
+                            {
+                                <MediaCard Card="card" OnClick="() => State.Select(card.Id)" />
+                            }
+                        </div>
+                        @if (shown.Count > State.Limit)
+                        {
+                            <div class="bin-more">
+                                <FluentButton Appearance="ButtonAppearance.Default" OnClick="() => State.ShowMore()">
+                                    Show more (@(shown.Count - State.Limit) remaining)
+                                </FluentButton>
+                            </div>
+                        }
+                    }
+
+                    @* Filters slide in from the side (all sizes), over the results, and end with a way back to them. *@
+                    <div class="bin-drawer @(_filtersOpen ? "bin-filters-open" : "")">
+                        @if (_filtersOpen)
+                        {
+                            <div class="bin-drawer-backdrop" @onclick="() => _filtersOpen = false"></div>
+                        }
+                        <div class="bin-drawer-panel" role="dialog" aria-label="Filters" aria-hidden="@(_filtersOpen ? "false" : "true")">
+                            <div class="bin-drawer-head">
+                                <h2>Filters</h2>
+                                <button type="button" class="bin-icon-btn" aria-label="Close filters" @onclick="() => _filtersOpen = false"><BinIcon Name="close" /></button>
+                            </div>
+                            <FilterPanel />
+                            <div class="bin-filters-done">
+                                <FluentButton Appearance="ButtonAppearance.Primary" OnClick="() => _filtersOpen = false">
+                                    Show @shown.Count @(shown.Count == 1 ? "title" : "titles")
+                                </FluentButton>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </section>
+        </div>
+    }
+    @if (_playing != null)
+    {
+        @* Fullscreen is this wrapper's, so it holds while the player goes on to the next part or episode; the player
+           itself is keyed by file, so each one is built fresh (subtitles, focus, progress). Closing removes the wrapper,
+           which ends fullscreen. *@
+        <div id="bin-player-shell">
+            <VideoPlayer @key="_playing.Token" File="_playing" Title="@_playingTitle" StartAt="_startAt" OnClose="ClosePlayer"
+                         UpNext="@UpNext" OnEnded="PlayNext" />
+        </div>
+    }
+    @if (_rating != null)
+    {
+        <RateDialog Card="_rating" OnClose="() => _rating = null" />
+    }
+    @if (_linkCode != null)
+    {
+        @* a TV or computer asks to be signed in from this phone: /link?code=... lands here as ?link= *@
+        <LinkApproval Code="@_linkCode" OnClose="CloseLink" />
+    }
+</div>
+
+
+@code {
+    private bool _loading = true;
+    private string _error;
+    private Didin.Shared.Models.MediaFileInfo _playing;
+    private string _playingTitle;
+    private double? _startAt;
+    private bool _filtersOpen;
+
+    private bool OnlySearch => State.Filter.NoCriteriaButText;   // the search text is the only thing set
+
+    private void ClearFilters()
+    {
+        State.Filter = new Services.MediaFilter();
+        State.Notify(true);
+    }
+
+    // ---- views (the sidebar) and the kind tabs ----
+    private string _view = "home";   // home | mylist | top | new | library
+
+    private static readonly (string View, string Label, string Icon)[] Views =
+    {
+        ("home", "Home", "home"), ("assistant", "Ask Didin", "sparkle"), ("mylist", "My list", "heart"), ("top", "Top rated", "trending"), ("new", "Recently added", "new"),
+        ("watched", "Watched", "check"),
+    };
+
+    private static readonly (string Kind, string Label)[] Kinds = { ("", "All"), ("movie", "Movies"), ("series", "Series") };
+
+    private string ViewTitle => _person != null ? _person.Name : _view switch
+    {
+        "mylist" => "My list",
+        "top" => "Top rated",
+        "new" => "Recently added",
+        "watched" => "Watched",
+        _ => State.Filter.IsEmpty ? "All titles" : "Results",
+    };
+
+    private void Go(string view)
+    {
+        _person = null;
+        _view = view;
+        _filtersOpen = false;
+        State.Select(null);
+        State.Notify(true);
+    }
+
+    private bool KindActive(string kind) =>
+        kind == "" ? State.Filter.Types.Count == 0 : State.Filter.Types.Count == 1 && State.Filter.Types.Contains(kind);
+
+    private void SetKind(string kind)
+    {
+        State.Filter.Types.Clear();
+        if (kind != "") State.Filter.Types.Add(kind);
+        State.Notify(true);
+    }
+
+    // what the current view lists: the filtered catalog, narrowed or ordered by the view
+    private List<Didin.Shared.Models.CatalogCard> Shown()
+    {
+        var cards = State.Filtered();
+        // a person's titles: all of them, whatever the search and filters - seen ones too, marked - newest first
+        if (_person != null)
+        {
+            var theirs = _person.Titles.Select(t => t.TitleId).ToHashSet();
+            return State.Catalog.Cards.Where(c => theirs.Contains(c.Id)).OrderByDescending(c => c.Year ?? 0).ThenBy(c => c.Title).ToList();
+        }
+        // Watched lists the seen titles, newest first; every other list leaves them out - a search still finds them,
+        // marked Seen, so they can always be reached
+        if (_view == "watched")
+        {
+            var byId = cards.ToDictionary(c => c.Id);
+            return State.User.Seen.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+        }
+        if (string.IsNullOrWhiteSpace(State.Filter.Text)) cards = cards.Where(c => !State.IsSeen(c.Id)).ToList();
+        return _view switch
+        {
+            "mylist" => cards.Where(c => State.OnWatchlist(c.Id)).ToList(),
+            "top" => cards.Where(c => c.ImdbRating != null).OrderByDescending(c => c.ImdbRating).ThenByDescending(c => c.RottenTomatoes ?? 0).ToList(),
+            "new" => cards.OrderByDescending(c => c.Id).ToList(),   // index ids grow with every import
+            _ => cards,
+        };
+    }
+
+    private IEnumerable<Didin.Shared.Models.CatalogCard> TopRated() =>
+        State.Catalog.Cards.Where(c => c.ImdbRating != null && !string.IsNullOrEmpty(c.PosterUrl) && !State.IsSeen(c.Id))
+            .OrderByDescending(c => c.ImdbRating).ThenByDescending(c => c.RottenTomatoes ?? 0);
+
+    private IEnumerable<Didin.Shared.Models.CatalogCard> RecentlyAdded() =>
+        State.Catalog.Cards.Where(c => !string.IsNullOrEmpty(c.PosterUrl) && !State.IsSeen(c.Id)).OrderByDescending(c => c.Id);
+
+    // one well-rated film with a poster, a different one each day
+    private Didin.Shared.Models.CatalogCard Featured()
+    {
+        var pool = State.Catalog.Cards
+            .Where(c => c.Kind == "movie" && !string.IsNullOrEmpty(c.PosterUrl) && (c.ImdbRating >= 7.5 || c.RottenTomatoes >= 85) && !State.IsSeen(c.Id))
+            .OrderBy(c => c.Id).ToList();
+        return pool.Count == 0 ? null : pool[(int)(DateTime.UtcNow.Date - DateTime.UnixEpoch).TotalDays % pool.Count];
+    }
+
+    private static string HeroMeta(Didin.Shared.Models.CatalogCard c) => string.Join("  |  ", new[]
+    {
+        c.Year?.ToString(), string.Join(", ", c.Genres.Take(2)), c.RuntimeMinutes is int m ? $"{m / 60}h {m % 60:00}m" : null,
+        c.ImdbRating is double r ? $"★ {r:0.0}" : null,
+    }.Where(x => !string.IsNullOrEmpty(x)));
+
+    // "Watch now": a film plays straight away (its first part, the rest following); a series opens on its episodes
+    private async Task WatchNow(Didin.Shared.Models.CatalogCard card)
+    {
+        if (card.Kind == "series") { State.Select(card.Id); return; }
+        Didin.Shared.Models.TitleDetails details;
+        try { details = await CatalogClient.GetTitleAsync(card.Id); }
+        catch { State.Select(card.Id); return; }
+        var parts = details?.Files.Where(f => f.Role == null && f.Playback is not ("transcode" or "damaged"))
+            .OrderBy(f => f.Part ?? 0).ToList();
+        if (parts == null || parts.Count == 0) { State.Select(card.Id); return; }
+        var first = parts[0];
+        var next = parts.Skip(1).Where(f => f.Part != null && f.Quality == first.Quality).Select(f => (f, details.Title)).ToList();
+        PlayFile((first, details.Title, next));
+    }
+
+    private async Task ToggleList(int titleId)
+    {
+        var onList = !State.OnWatchlist(titleId);
+        try
+        {
+            await CatalogClient.SetWatchlistAsync(titleId, onList);
+            State.MarkWatchlist(titleId, onList);
+        }
+        catch { /* keeps its state if the save failed */ }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.Changed += OnStateChanged;
+        _linkCode = LinkCodeFromUrl();
+        await LoadAsync();
+    }
+
+    // ---- a person's titles: from a name on a title page; Back returns to that title ----
+    private Didin.Shared.Models.PersonTitles _person;
+    private int? _personFrom;
+
+    private async Task OpenPerson(string name)
+    {
+        Didin.Shared.Models.PersonTitles person;
+        try { person = await CatalogClient.GetPersonAsync(name); }
+        catch { return; }
+        if (person == null) return;
+        _personFrom = State.SelectedTitleId;
+        _person = person;
+        _filtersOpen = false;
+        State.Select(null);
+        State.Notify(true);
+    }
+
+    private void ClosePerson()
+    {
+        var from = _personFrom;
+        _person = null;
+        _personFrom = null;
+        State.Select(from);
+        State.Notify();
+    }
+
+    private static string RoleLabel(string role) => role switch
+    {
+        "actor" => "Actor", "director" => "Director", "writer" => "Writer", "producer" => "Producer",
+        "composer" => "Composer", "creator" => "Creator", _ => role,
+    };
+
+    private Didin.Shared.Models.CatalogCard _rating;   // the title being rated from Finished watching
+    private readonly Services.AdvisorConversation _advisor = new();   // Ask Didin: kept while titles open and close
+
+    private async Task SkipFinished(int titleId)
+    {
+        State.DropFinished(titleId);
+        try { await CatalogClient.SkipFinishedAsync(titleId); }
+        catch { /* best effort: it comes back on the next load */ }
+    }
+
+    private string _linkCode;   // set while the "sign in another device" approval is open
+
+    private string LinkCodeFromUrl()
+    {
+        var query = new Uri(Nav.Uri).Query.TrimStart('?');
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = pair.Split('=', 2);
+            if (kv[0] == "link") return kv.Length > 1 ? Uri.UnescapeDataString(kv[1].Replace('+', ' ')) : "";
+        }
+        return null;
+    }
+
+    private async Task CloseLink()
+    {
+        _linkCode = null;
+        // drop ?link= from the address (no navigation, so the catalog stays), so a reload does not ask again
+        try { await Js.InvokeVoidAsync("history.replaceState", null, "", new Uri(Nav.Uri).AbsolutePath); }
+        catch (JSException) { }
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var interop = new Interop(Js);
+            Didin.Shared.Models.CatalogDocument doc = null;
+
+            // cached copy wins when the version matches
+            var version = await CatalogClient.GetCatalogVersionAsync();
+            if (version != null)
+            {
+                var cached = await interop.LoadCatalogAsync(version.Version);
+                if (cached != null)
+                {
+                    try { doc = System.Text.Json.JsonSerializer.Deserialize<Didin.Shared.Models.CatalogDocument>(cached); }
+                    catch { doc = null; }
+                }
+                doc ??= await CatalogClient.GetCatalogAsync();
+                _ = interop.SaveCatalogAsync(version.Version, System.Text.Json.JsonSerializer.Serialize(doc));
+            }
+            else
+            {
+                doc = await CatalogClient.GetCatalogAsync();
+            }
+
+            if (doc == null || doc.Cards.Count == 0)
+            {
+                _error = "The catalogue is empty: a site administrator imports it.";
+            }
+            else
+            {
+                // capture saved filters BEFORE SetCatalog: SetCatalog notifies,
+                // and that save would otherwise clobber the stored state
+                var saved = await interop.LoadFiltersAsync();
+                State.SetCatalog(doc);
+                await RefreshUserStateAsync();
+
+                if (!string.IsNullOrEmpty(saved))
+                {
+                    try
+                    {
+                        using var doc2 = System.Text.Json.JsonDocument.Parse(saved);
+                        var root = doc2.RootElement;
+                        var f = new Services.MediaFilter();
+                        if (root.TryGetProperty("Text", out var tp) && tp.ValueKind == System.Text.Json.JsonValueKind.String) f.Text = tp.GetString();
+                        foreach (var name in new[] { "Types", "Genres", "Qualities", "Languages", "Collections", "Ratings" })
+                        {
+                            if (!root.TryGetProperty(name, out var arr) || arr.ValueKind != System.Text.Json.JsonValueKind.Array) continue;
+                            var set = name switch
+                            {
+                                "Types" => f.Types, "Genres" => f.Genres, "Qualities" => f.Qualities,
+                                "Languages" => f.Languages, "Collections" => f.Collections, _ => f.Ratings,
+                            };
+                            foreach (var v in arr.EnumerateArray()) if (v.ValueKind == System.Text.Json.JsonValueKind.String) set.Add(v.GetString());
+                        }
+                        foreach (var (name, setter) in new (string, Action<int?>)[]
+                                 {
+                                     ("YearMin", v => f.YearMin = v), ("YearMax", v => f.YearMax = v),
+                                     ("RuntimeMin", v => f.RuntimeMin = v), ("RuntimeMax", v => f.RuntimeMax = v),
+                                 })
+                        {
+                            if (root.TryGetProperty(name, out var n) && n.ValueKind == System.Text.Json.JsonValueKind.Number) setter(n.GetInt32());
+                        }
+                        if (root.TryGetProperty("ImdbMin", out var im) && im.ValueKind == System.Text.Json.JsonValueKind.Number) f.ImdbMin = im.GetDouble();
+                        if (root.TryGetProperty("Sort", out var so) && so.ValueKind == System.Text.Json.JsonValueKind.String) f.Sort = so.GetString() ?? "title";
+                        State.ReplaceFilter(f);
+                    }
+                    catch { /* corrupt filter state - start clean */ }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not load catalog: {ex.Message}";
+        }
+        _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await new Interop(Js).EnableKeyboardNavigationAsync();   // arrows / TV remote
+            // MKV on this device? Apple's Safari engine (every iPhone/iPad browser, Safari on a Mac) has no MKV - unless the
+            // browser itself says it can, which keeps this right if Apple ever adds it
+            try
+            {
+                State.NoMatroska = await Js.InvokeAsync<bool>("eval",
+                    "(() => { var ua = navigator.userAgent; " +
+                    "var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); " +
+                    "var macSafari = /Macintosh/.test(ua) && /Safari[/]/.test(ua) && !/Chrome|Chromium|Edg|OPR|Firefox/.test(ua); " +
+                    "var says = document.createElement('video').canPlayType('video/x-matroska; codecs=avc1.64001f'); " +
+                    "return (ios || macSafari) && !says; })()");
+                if (State.NoMatroska) State.Notify();
+            }
+            catch (JSException) { }
+        }
+    }
+
+    private void OnSearch(string value)
+    {
+        State.Filter.Text = value;
+        State.Notify(true);
+    }
+
+    // what plays when this file ends: the film's next parts or the series' next episodes
+    private List<(Didin.Shared.Models.MediaFileInfo File, string Title)> _queue = new();
+
+    private string UpNext => _queue.Count == 0 ? null
+        : _queue[0].File.Part != null && _queue[0].Title == _playingTitle ? $"Part {_queue[0].File.Part}" : _queue[0].Title;
+
+    private void PlayFile((Didin.Shared.Models.MediaFileInfo File, string Title, List<(Didin.Shared.Models.MediaFileInfo File, string Title)> Next) args)
+    {
+        _playing = args.File;
+        _playingTitle = args.Title;
+        _startAt = State.ResumeAt(args.File.Token);
+        _queue = args.Next ?? new();
+    }
+
+    private void PlayNext()
+    {
+        if (_queue.Count == 0) return;   // the last one: the player stays on its final frame
+        var (file, title) = _queue[0];
+        _queue.RemoveAt(0);
+        _playing = file;
+        _playingTitle = title;
+        _startAt = null;   // a part or episode played on to starts at its beginning
+    }
+
+    private void Resume(Didin.Shared.Models.ContinueItem item)
+    {
+        _playing = item.File;
+        _playingTitle = item.Label == null ? item.Title : $"{item.Title} - {item.Label}";
+        _startAt = item.Position;
+        _queue = new();
+    }
+
+    private async Task ClosePlayer()
+    {
+        _playing = null;
+        await RefreshUserStateAsync();   // the row reflects where playback stopped
+    }
+
+    /// <summary>The user's list and part-watched files; best-effort - browsing works without it.</summary>
+    private async Task RefreshUserStateAsync()
+    {
+        try { State.SetUserState(await CatalogClient.GetUserStateAsync()); }
+        catch { /* no state endpoint or no user - keep browsing */ }
+    }
+
+    private void OnStateChanged()
+    {
+        _ = SaveFiltersAsync();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveFiltersAsync()
+    {
+        if (_loading) return; // never clobber stored filters while loading
+        try
+        {
+            var interop = new Interop(Js);
+            await interop.SaveFiltersAsync(System.Text.Json.JsonSerializer.Serialize(State.Filter));
+        }
+        catch { /* persistence is best-effort */ }
+    }
+
+    public void Dispose() => State.Changed -= OnStateChanged;
+}

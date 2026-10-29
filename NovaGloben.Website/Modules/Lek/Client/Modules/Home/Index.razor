@@ -1,0 +1,51 @@
+@namespace Lek.Module.Home
+@inherits ModuleBase
+
+<div class="lek-games">
+    <a class="lek-card" href="@Page("/bullet-noir")">
+        <div class="lek-card-art lek-card-noir">&#127747;</div>
+        <h3>Bullet Noir</h3>
+        <p>3D shootout on snowy docks, 2 to 8 players. Dive through the air and slow time around you; bullets you can see. A first 3D test.</p>
+    </a>
+    <a class="lek-card" href="@Page("/relic-rush")">
+        <div class="lek-card-art lek-card-relic">&#128302;</div>
+        <h3>Relic Rush</h3>
+        <p>Red against Blue in a temple maze. Grab the relic, pass it, steal it, and carry it to your hidden shrine.</p>
+    </a>
+    <a class="lek-card" href="@Page("/elementals")">
+        <div class="lek-card-art lek-card-elementals">&#128293;&#10052;&#9889;&#127797;</div>
+        <h3>Elementals</h3>
+        <p>2D arena PvP, 1v1 to 3v3. Six heroes, pick two weapons and three abilities; skill decides. New Terraria-style heroes.</p>
+    </a>
+    <a class="lek-card" href="@Page("/elementals-classic")">
+        <div class="lek-card-art lek-card-elementals">&#128293;&#10052;&#9889;&#127797;</div>
+        <h3>Elementals (classic art)</h3>
+        <p>The same game with its first look, to compare. Rooms are shared, so you can meet players on the new version.</p>
+    </a>
+    <a class="lek-card" href="@Page("/inside-job")">
+        <div class="lek-card-art lek-card-insidejob">&#128274;</div>
+        <h3>Inside Job</h3>
+        <p>Design a safehouse the solver proves beatable, then raid everyone else's vault. Stealth, asynchronous, no gear.</p>
+    </a>
+    <a class="lek-card" href="@Page("/fuse")">
+        <div class="lek-card-art lek-card-fuse">&#128163;</div>
+        <h3>Fuse</h3>
+        <p>Pass the bomb before the music stops. 3 to 10 players online, bots fill the gaps.</p>
+    </a>
+    <a class="lek-card" href="@Page("/spark")">
+        <div class="lek-card-art lek-card-spark">&#9889;</div>
+        <h3>Spark</h3>
+        <p>Arena brawl, 2 to 6 players. Pick Blaze, Frost or Bolt; every character is equal, only your aim and timing count.</p>
+    </a>
+    <a class="lek-card" href="@Page("/silent-hour")">
+        <div class="lek-card-art lek-card-silent">&#128373;</div>
+        <h3>Silent Hour</h3>
+        <p>Today's stealth puzzle. Sneak two operatives past the guards in as few turns as you can.</p>
+    </a>
+</div>
+
+@code {
+    private string Page(string path) => LekAssets.SiteBase(PageState?.Alias) + path;
+
+    public override string RenderMode => RenderModes.Static;
+}

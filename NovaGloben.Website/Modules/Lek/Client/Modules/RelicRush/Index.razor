@@ -1,0 +1,26 @@
+@namespace Lek.Module.RelicRush
+@inherits ModuleBase
+
+@* Relic Rush is a static canvas page (wwwroot/games/relicrush/) talking to the Relic Rush SignalR hub; this module frames it. *@
+<div class="lek-game-frame">
+    <iframe src="@Source" title="Relic Rush" allow="autoplay; fullscreen" allowfullscreen loading="eager"></iframe>
+</div>
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+    private string Source
+    {
+        get
+        {
+            var parts = new List<string>();
+            var name = PageState?.User?.DisplayName;
+            if (!string.IsNullOrEmpty(name)) parts.Add("name=" + Uri.EscapeDataString(name));
+            if (PageState?.QueryString != null && PageState.QueryString.TryGetValue("room", out var room) && !string.IsNullOrEmpty(room))
+            {
+                parts.Add("room=" + Uri.EscapeDataString(room));
+            }
+            return LekAssets.Frame("games/relicrush/index.html", PageState?.Alias, parts);
+        }
+    }
+}

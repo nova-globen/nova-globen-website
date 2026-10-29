@@ -1,0 +1,446 @@
+@namespace Didin.Module.Media
+@inject IJSRuntime Js
+@inject Services.MediaOptions Options
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+@inject Services.ICastDevice Cast
+@implements IAsyncDisposable
+
+<div class="bin-player-backdrop @(CastingHere ? "bin-casting" : "")" id="bin-player">
+    <div class="bin-player-bar">
+        @* the design's glass back arrow (the design, Player screens): Esc and a remote's Back do the same *@
+        <button type="button" class="bin-player-close" id="bin-close" aria-label="Close the player" title="Close (Esc)" @onclick="Close">
+            <BinIcon Name="back" /><span class="bin-sr">Close</span>
+        </button>
+        <div class="bin-player-title">
+            <strong>@Title</strong>
+            @if (File.Quality != null)
+            {
+                <span class="bin-badge bin-b-quality" style="margin-left:.5rem;">@File.Quality</span>
+            }
+            @if (File.Part != null)
+            {
+                <span class="bin-badge" style="margin-left:.3rem;" id="bin-player-part">@(File.Role == "extra" ? "Extra" : "Part") @File.Part of @(File.PartCount?.ToString() ?? "?")</span>
+            }
+            @if (UpNext != null)
+            {
+                <span class="bin-badge bin-up-next" id="bin-up-next" title="Plays when this one ends">Up next: @UpNext</span>
+            }
+        </div>
+        <div class="bin-player-actions">
+            @if (CanCast)
+            {
+                @* Cast to TV: shown once a Chromecast / Google TV is on the network *@
+                <button type="button" id="bin-cast-tv" class="bin-cast-btn @(CastingHere ? "bin-on" : "")" aria-pressed="@(CastingHere ? "true" : "false")"
+                        title="@(CastingHere ? $"Casting to {Cast.Status.Device} - stop" : "Cast to TV")" @onclick="ToggleCast">
+                    <BinIcon Name="cast" /><span class="bin-sr">@(CastingHere ? "Stop casting" : "Cast to TV")</span>
+                </button>
+            }
+            @* AirPlay: Safari only; the page script shows it when an AirPlay device is around *@
+            <button type="button" id="bin-airplay" class="bin-cast-btn" hidden title="AirPlay"
+                    onclick="var v = document.getElementById('bin-video'); if (v && v.webkitShowPlaybackTargetPicker) v.webkitShowPlaybackTargetPicker();">
+                <BinIcon Name="airplay" /><span class="bin-sr">AirPlay</span>
+            </button>
+            @if (HasSubtitles)
+            {
+                @* The subtitle picker: buttons all the way down, so mouse, touch, keyboard and a TV remote
+                   (through Interop's key handler) all drive it. Phones get it as a bottom sheet (Module.css). *@
+                <div class="bin-sub">
+                    <button type="button" id="bin-sub-toggle" class="bin-sub-toggle" aria-haspopup="menu"
+                            aria-expanded="@(_menuOpen ? "true" : "false")" aria-keyshortcuts="c"
+                            title="Subtitles (C)" @onclick="ToggleMenu">
+                        <span class="bin-sub-cc" aria-hidden="true">CC</span>
+                        <span class="bin-sub-current">@CurrentLabel</span>
+                    </button>
+                    @if (_menuOpen)
+                    {
+                        <div class="bin-sub-backdrop" @onclick="CloseMenu"></div>
+                        <div class="bin-sub-menu" id="bin-sub-menu" role="menu" aria-label="Subtitles">
+                            <div class="bin-sub-heading" aria-hidden="true">Subtitles</div>
+                            <button type="button" role="menuitemradio" class="bin-sub-option" data-track=""
+                                    aria-checked="@(_selected == null ? "true" : "false")" @onclick="() => Choose(null)">
+                                <span class="bin-sub-check" aria-hidden="true">@(_selected == null ? "✓" : "")</span>
+                                <span class="bin-sub-label">Off</span>
+                            </button>
+                            @foreach (var (id, track) in Tracks)
+                            {
+                                <button type="button" role="menuitemradio" class="bin-sub-option" data-track="@id"
+                                        aria-checked="@(_selected == id ? "true" : "false")" @onclick="() => Choose(id)">
+                                    <span class="bin-sub-check" aria-hidden="true">@(_selected == id ? "✓" : "")</span>
+                                    <span class="bin-sub-label" dir="auto">@track.Label</span>
+                                    @if (track.Best && Tracks.Count(t => t.Track.Lang == track.Lang) > 1)
+                                    {
+                                        <span class="bin-sub-best">matches this file</span>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+    <video class="bin-player-video" id="bin-video" controls autoplay playsinline tabindex="0" src="@Src"
+           onerror="this.nextElementSibling.removeAttribute('hidden')">
+        @if (string.IsNullOrEmpty(Options.ApiBase))
+        {
+            @* Sidecar subtitles as WebVTT. Same-origin only: a track from another origin is refused, so the
+               MAUI shell adds its tracks from fetched text instead (AddTracksAsync). Ids are what the picker selects by. *@
+            @foreach (var (id, sub) in Tracks)
+            {
+                <track id="@id" kind="subtitles" src="@Options.AssetUrl(sub.Url)" srclang="@sub.Lang" label="@sub.Label" />
+            }
+        }
+    </video>
+    @if (CastingHere)
+    {
+        <div class="bin-cast-panel" id="bin-cast-panel">
+            <BinIcon Name="cast" Class="bin-cast-big" />
+            <p class="bin-cast-on">Playing on <strong>@Cast.Status.Device</strong></p>
+            <p class="bin-cast-time" id="bin-cast-time">@Clock(Cast.Status.Position) / @Clock(Cast.Status.Duration)</p>
+            <div class="bin-cast-controls">
+                <button type="button" class="bin-cast-ctl" title="Back 10 seconds" @onclick="() => CastSeek(-10)">&minus;10 s</button>
+                <button type="button" class="bin-cast-ctl bin-cast-play" id="bin-cast-play" title="@(Cast.Status.Paused ? "Play" : "Pause")" @onclick="Cast.PlayPauseAsync">
+                    <BinIcon Name="@(Cast.Status.Paused ? "play" : "pause")" Filled="@Cast.Status.Paused" /><span class="bin-sr">@(Cast.Status.Paused ? "Play" : "Pause")</span>
+                </button>
+                <button type="button" class="bin-cast-ctl" title="Forward 30 seconds" @onclick="() => CastSeek(30)">+30 s</button>
+            </div>
+            <button type="button" class="bin-cast-stop" id="bin-cast-stop" @onclick="StopCasting">Stop casting</button>
+        </div>
+    }
+    <div class="bin-codec-error" hidden="@(!KnownUnplayable)">
+        @if (File.Playback == "damaged")
+        {
+            <text>This file is damaged and cannot be played - it needs to be re-acquired.</text>
+        }
+        else if (State.CannotPlayHere(File))
+        {
+            <text>This film is an MKV file, which iPhone, iPad and Safari cannot play. It plays in Chrome or Edge on a
+            computer or on Android, or download it for a player such as VLC.</text>
+        }
+        else
+        {
+            <text>This video's format (@(File.Codecs ?? "codec/container")) cannot be played in the browser.
+            The file itself is fine: download it for a player such as VLC.</text>
+        }
+    </div>
+    @if (!KnownUnplayable)
+    {
+        <button type="button" class="bin-bigplay" aria-label="Play" tabindex="-1"
+                onclick="var v = document.getElementById('bin-video'); if (v) v.play();"><BinIcon Name="play" Filled="true" /></button>
+    }
+    @if (File.Playback == "audio")
+    {
+        <div class="bin-codec-note">The picture plays, but this file's audio (@File.Codecs) is not supported by the browser - expect no sound.</div>
+    }
+</div>
+
+@code {
+    [Parameter] public Didin.Shared.Models.MediaFileInfo File { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public double? StartAt { get; set; }   // resume position in seconds
+    [Parameter] public string UpNext { get; set; }      // what plays when this ends (the next part or episode); null = nothing
+    [Parameter] public EventCallback OnEnded { get; set; }
+
+    private System.Threading.PeriodicTimer _saveTimer;
+
+    // ---- subtitles
+    private List<(string Id, Didin.Shared.Models.SubtitleTrack Track)> _tracks;
+    private List<(string Id, Didin.Shared.Models.SubtitleTrack Track)> Tracks =>
+        _tracks ??= (File.Subtitles ?? new()).Select((t, i) => ($"bin-sub-{i}", t)).ToList();
+    private bool HasSubtitles => !KnownUnplayable && Tracks.Count > 0;
+    private string _selected;                 // the showing track's id; null = off
+    private bool _menuOpen;
+    private string _focusAfterRender;         // a selector to focus once the menu has (dis)appeared
+    private DotNetObjectReference<VideoPlayer> _self;
+
+    private string CurrentLabel => _selected == null ? "Off" :
+        Tracks.FirstOrDefault(t => t.Id == _selected).Track?.Label ?? "On";
+
+    // The user's remembered language picks its track: the one marked Best, else the first in that language.
+    private string InitialTrack()
+    {
+        var lang = State.User?.SubtitleLang;
+        if (string.IsNullOrEmpty(lang) || lang == "off") return null;
+        var inLanguage = Tracks.Where(t => t.Track.Lang == lang).ToList();
+        return inLanguage.Count == 0 ? null : (inLanguage.FirstOrDefault(t => t.Track.Best).Id ?? inLanguage[0].Id);
+    }
+
+    private void ToggleMenu()
+    {
+        _menuOpen = !_menuOpen;
+        _focusAfterRender = _menuOpen ? ".bin-sub-option[aria-checked=\"true\"]" : "#bin-sub-toggle";
+    }
+
+    private void CloseMenu()
+    {
+        _menuOpen = false;
+        _focusAfterRender = "#bin-sub-toggle";
+    }
+
+    private async Task Choose(string id)
+    {
+        _menuOpen = false;
+        _focusAfterRender = "#bin-sub-toggle";
+        _selected = id;
+        await new Interop(Js).SetSubtitleAsync(id);
+        if (CastingHere) await Cast.SetTrackAsync(TrackIndex(id));
+        Remember(id);
+    }
+
+    // A choice in the browser's own captions menu: the picker follows it, and so does the remembered language.
+    [JSInvokable]
+    public Task OnSubtitleChanged(string id)
+    {
+        if (id == _selected) return Task.CompletedTask;
+        _selected = Tracks.Any(t => t.Id == id) ? id : null;
+        Remember(_selected);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void Remember(string id)
+    {
+        var lang = id == null ? "off" : Tracks.FirstOrDefault(t => t.Id == id).Track?.Lang;
+        if (string.IsNullOrEmpty(lang) || lang == State.User?.SubtitleLang) return;
+        State.SetSubtitleLanguage(lang);
+        _ = SaveLanguageAsync(lang);
+    }
+
+    private async Task SaveLanguageAsync(string lang)
+    {
+        try { await CatalogClient.SetSubtitleLanguageAsync(lang); }
+        catch { /* remembered for this session; the next choice saves again */ }
+    }
+
+    // Another-origin host (the MAUI shell): fetch each WebVTT with the token and add it as a same-origin blob track.
+    private async Task AddTracksAsync(Interop interop)
+    {
+        foreach (var (id, sub) in Tracks)
+        {
+            string vtt;
+            try { vtt = await CatalogClient.GetTextAsync(sub.Url); }
+            catch { continue; }   // one unreadable subtitle must not cost the others
+            if (!string.IsNullOrEmpty(vtt))
+            {
+                await interop.AddSubtitleTrackAsync("bin-video", id, vtt, sub.Lang, sub.Label);
+            }
+        }
+    }
+
+    // A file the catalogue already marks as unplayable shows its notice instead of a failing player.
+    private bool KnownUnplayable => File.Playback is "transcode" or "damaged" || State.CannotPlayHere(File);
+    private string Src => KnownUnplayable ? null : Options.StreamUrl(File.Token);
+
+    // ---- cast to TV: the TV plays the file and the player becomes its remote; progress, subtitles and the
+    // next part follow it. Closing the player stops the TV; stopping from the TV (or Chrome's menu) plays on here.
+    private bool CanCast => !KnownUnplayable && (Cast.Status.Available || CastingHere);
+    private bool CastingHere => Cast.Status.Connected && Cast.Status.FileToken == File.Token;
+    private bool _wasCasting;            // this file was on the TV: when the session ends, play on here from there
+    private bool _castEndHandled;
+    private double _castLast;
+
+    private static int? TrackIndex(string id) =>
+        id != null && id.StartsWith("bin-sub-", StringComparison.Ordinal) && int.TryParse(id["bin-sub-".Length..], out var n) ? n : null;
+
+    private static string Clock(double seconds)
+    {
+        if (!(seconds > 0) || double.IsInfinity(seconds)) return "0:00";
+        var t = TimeSpan.FromSeconds(seconds);
+        return t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}" : $"{t.Minutes}:{t.Seconds:00}";
+    }
+
+    protected override void OnInitialized() => Cast.Changed += OnCastChanged;
+
+    private void OnCastChanged() => _ = InvokeAsync(async () =>
+    {
+        if (CastingHere)
+        {
+            _wasCasting = true;
+            _castLast = Cast.Status.Position;
+            await LocalAsync("v.pause();");
+            if (Cast.Status.Ended && !_castEndHandled)
+            {
+                _castEndHandled = true;
+                await OnVideoEnded();
+                return;
+            }
+        }
+        else if (_wasCasting && !Cast.Status.Connected)
+        {
+            _wasCasting = false;
+            await PlayLocalFrom(_castLast);
+        }
+        StateHasChanged();
+    });
+
+    private async Task ToggleCast()
+    {
+        if (CastingHere) { await StopCasting(); return; }
+        double at = 0;
+        try { at = await Js.InvokeAsync<double>("eval", "(() => { var v = document.getElementById('bin-video'); return v ? v.currentTime : 0; })()"); }
+        catch { }
+        await StartCastAsync(at);
+    }
+
+    private async Task StartCastAsync(double position)
+    {
+        Didin.Shared.Models.CastMedia media;
+        try { media = await CatalogClient.GetCastAsync(File.Token); }
+        catch { return; }
+        if (media == null) return;
+        _castEndHandled = false;
+        await Cast.StartAsync(File.Token, media, Title, position, TrackIndex(_selected));
+    }
+
+    private async Task StopCasting()
+    {
+        var at = Cast.Status.Position;
+        _wasCasting = false;
+        await Cast.StopAsync();
+        await PlayLocalFrom(at);
+    }
+
+    private Task CastSeek(double by) =>
+        Cast.SeekAsync(Math.Max(0, Math.Min(Cast.Status.Duration - 1, Cast.Status.Position + by)));
+
+    private Task PlayLocalFrom(double at) =>
+        LocalAsync($"v.currentTime = {at.ToString(System.Globalization.CultureInfo.InvariantCulture)}; v.play().catch(function () {{}});");
+
+    /// <summary>Runs statements against this player's video as <c>v</c>; best effort.</summary>
+    private async Task LocalAsync(string statements)
+    {
+        try { await Js.InvokeVoidAsync("eval", $"(() => {{ var v = document.getElementById('bin-video'); if (!v) return; {statements} }})()"); }
+        catch { }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var interop = new Interop(Js);
+            if (!KnownUnplayable)
+            {
+                await Cast.InitAsync();
+                // AirPlay in Safari: the button shows while a device is around
+                await LocalAsync("if (!window.WebKitPlaybackTargetAvailabilityEvent) return; var b = document.getElementById('bin-airplay'); " +
+                    "v.addEventListener('webkitplaybacktargetavailabilitychanged', function (e) { if (b) b.hidden = e.availability !== 'available'; });");
+                // a session still open from the last part or episode: this one goes on to the TV too
+                if (Cast.Status.Connected) _ = StartCastAsync(StartAt ?? 0);
+            }
+            await interop.FullscreenAsync("bin-player-shell");   // the host's wrapper: it outlives one part
+            if (StartAt is double start && start > 0 && !KnownUnplayable)
+            {
+                // seek once the media knows its duration; a fresh element ignores currentTime before that
+                await Js.InvokeVoidAsync("eval",
+                    $"(() => {{ var v = document.getElementById('bin-video'); if (!v) return; var go = () => {{ v.currentTime = {start.ToString(System.Globalization.CultureInfo.InvariantCulture)}; }}; if (v.readyState >= 1) go(); else v.addEventListener('loadedmetadata', go, {{ once: true }}); }})()");
+            }
+            if (!KnownUnplayable)
+            {
+                _ = SaveLoopAsync();
+                if (UpNext != null)
+                {
+                    _self ??= DotNetObjectReference.Create(this);
+                    await interop.OnEndedAsync("bin-video", _self);
+                }
+                if (HasSubtitles)
+                {
+                    _selected = InitialTrack();
+                    _self ??= DotNetObjectReference.Create(this);
+                    await interop.InitSubtitlesAsync("bin-video", _self, _selected);
+                    if (_selected != null) StateHasChanged();
+                }
+                if (!string.IsNullOrEmpty(Options.ApiBase))
+                {
+                    _ = AddTracksAsync(interop);
+                }
+            }
+            try
+            {
+                // play, and give the video the keyboard focus: a TV remote's OK then plays/pauses and Up reaches the bar
+                await Js.InvokeVoidAsync("eval",
+                    "(() => { var v = document.getElementById('bin-video'); if (!v) return; " +
+                    // the big centre play button shows while the video is paused (the design, Player paused)
+                    "var b = document.getElementById('bin-player'); var sync = function () { if (b) b.classList.toggle('bin-paused', v.paused && !v.ended); }; " +
+                    "v.addEventListener('play', sync); v.addEventListener('pause', sync); v.addEventListener('ended', sync); " +
+                    "v.play().catch(function () {}).then(sync); v.focus({ preventScroll: true }); })()");
+            }
+            catch { /* autoplay blocked - the user can press play */ }
+        }
+        else if (_focusAfterRender != null)
+        {
+            var selector = _focusAfterRender;
+            _focusAfterRender = null;
+            await new Interop(Js).FocusAsync(selector);
+        }
+    }
+
+    /// <summary>The video reached its end: record it as watched, then let the host go on to the next part or episode.</summary>
+    [JSInvokable]
+    public async Task OnVideoEnded()
+    {
+        await SaveProgressAsync();
+        if (OnEnded.HasDelegate) await OnEnded.InvokeAsync();
+    }
+
+    private async Task SaveLoopAsync()
+    {
+        _saveTimer = new System.Threading.PeriodicTimer(TimeSpan.FromSeconds(15));
+        try
+        {
+            while (await _saveTimer.WaitForNextTickAsync())
+            {
+                await SaveProgressAsync();
+            }
+        }
+        catch (ObjectDisposedException) { }
+    }
+
+    /// <summary>Where the video is now -> the user's progress. Best-effort: playback never depends on it.</summary>
+    private async Task SaveProgressAsync()
+    {
+        try
+        {
+            var pos = CastingHere
+                ? new[] { Cast.Status.Ended ? Cast.Status.Duration : Cast.Status.Position, Cast.Status.Duration }
+                : await Js.InvokeAsync<double[]>("eval",
+                    "(() => { var v = document.getElementById('bin-video'); return v && isFinite(v.duration) ? [v.currentTime, v.duration] : [0, 0]; })()");
+            // Saved once the duration is known, position 0 included: rewinding to the start and closing must clear
+            // the resume point, not leave the last periodic save behind.
+            if (pos.Length == 2 && pos[1] > 0)
+            {
+                await CatalogClient.SaveProgressAsync(File.Token, pos[0], pos[1]);
+            }
+        }
+        catch { /* circuit gone, endpoint missing - never break playback */ }
+    }
+
+    private async Task Close()
+    {
+        _saveTimer?.Dispose();
+        await SaveProgressAsync();
+        if (CastingHere)
+        {
+            _wasCasting = false;
+            await Cast.StopAsync();
+        }
+        var interop = new Interop(Js);
+        await interop.ExitFullscreenAsync();
+        await OnClose.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Cast.Changed -= OnCastChanged;
+        _saveTimer?.Dispose();
+        try
+        {
+            var interop = new Interop(Js);
+            if (_self != null) await interop.ReleaseSubtitlesAsync();
+            // no fullscreen exit here: going on to the next part disposes this player and must stay fullscreen; closing
+            // exits it (Close) or removes the host's wrapper, which ends fullscreen too
+        }
+        catch { /* circuit may be gone */ }
+        _self?.Dispose();
+    }
+}

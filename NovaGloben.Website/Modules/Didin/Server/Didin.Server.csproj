@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Didin as a module of this host: the catalogue, streaming, subtitles, posters, casting and sign-in-from-a-phone APIs of
+    the /didin site, over Stomme's module store. Switched per host by module.didin.enabled. The assembly name ends in
+    .Stomme, which the host's module scan requires.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyName>Didin.Server.Stomme</AssemblyName>
+    <RootNamespace>Didin.Server</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Stomme.Server" />
+    <PackageReference Include="QRCoder" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Didin.Shared.csproj" />
+    <ProjectReference Include="..\Client\Didin.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Didin.Tests" />
+  </ItemGroup>
+
+</Project>

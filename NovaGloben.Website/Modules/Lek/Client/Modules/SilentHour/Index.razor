@@ -1,0 +1,13 @@
+@namespace Lek.Module.SilentHour
+@inherits ModuleBase
+
+@* Silent Hour is a self-contained HTML file (wwwroot/games/silent-hour.html); this module frames it unchanged. *@
+<div class="lek-game-frame">
+    <iframe src="@Source" title="Silent Hour" loading="eager"></iframe>
+</div>
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+        private string Source => LekAssets.Frame("games/silent-hour.html", PageState?.Alias);
+}

@@ -1,0 +1,514 @@
+@namespace Didin.Module.Media
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+@inject Services.MediaOptions Options
+@inject IJSRuntime Js
+
+@if (_details == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_details.PosterUrl))
+    {
+        @* the poster's colours, blurred, behind the top of the page (as on the home banner) *@
+        <div class="bin-details-glow" aria-hidden="true"><img src="@Options.AssetUrl(_details.PosterUrl)" alt="" /></div>
+    }
+    <FluentButton Appearance="ButtonAppearance.Default" OnClick="OnBack" Id="bin-back" Class="bin-back">← Back to browse</FluentButton>
+
+    <div class="bin-details">
+        <div>
+            @if (!string.IsNullOrEmpty(_details.PosterUrl))
+            {
+                <img class="bin-poster" src="@Options.AssetUrl(_details.PosterUrl)" alt="@_details.Title" />
+            }
+            else
+            {
+                <div class="bin-poster-fallback">@Initials(_details.Title)</div>
+            }
+        </div>
+        <div>
+            @* title and rating on one line (the design, Trending) *@
+            <div class="bin-title-row">
+                <h2 dir="auto">
+                    @_details.Title
+                    @if (_details.Year != null)
+                    {
+                        <span class="bin-title-year"> (@(_details.EndYear != null ? $"{_details.Year}–{_details.EndYear}" : _details.Year.ToString()))</span>
+                    }
+                </h2>
+                @if (_details.ImdbRating != null)
+                {
+                    <span class="bin-title-rating" title="IMDb rating"><BinIcon Name="star" Filled="true" /> @(_details.ImdbRating.Value.ToString("0.0"))<span class="bin-of">/10</span></span>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(_details.OriginalTitle) && _details.OriginalTitle != _details.Title)
+            {
+                <div class="bin-original-title" dir="auto">@_details.OriginalTitle</div>
+            }
+            @if (!string.IsNullOrEmpty(_details.Tagline))
+            {
+                <div class="bin-tagline" dir="auto">@_details.Tagline</div>
+            }
+
+            <div class="bin-facts">
+                <span class="bin-badge bin-b-kind">@_details.Kind</span>
+                @foreach (var g in _details.Genres)
+                {
+                    <span class="bin-badge">@g</span>
+                }
+                @if (_details.RuntimeMinutes != null)
+                {
+                    <span class="bin-badge">@_details.RuntimeMinutes min</span>
+                }
+                @if (_details.ContentRating != null)
+                {
+                    <span class="bin-badge">@_details.ContentRating</span>
+                }
+                @if (_details.RottenTomatoes != null)
+                {
+                    <span class="bin-badge" id="bin-score-rt" title="Rotten Tomatoes Tomatometer">@(_details.RottenTomatoes)% Rotten Tomatoes</span>
+                }
+                @if (_details.Metascore != null)
+                {
+                    <span class="bin-badge" id="bin-score-mc" title="Metacritic Metascore">@(_details.Metascore) Metacritic</span>
+                }
+                @if (_ratings?.Count > 0)
+                {
+                    <span class="bin-badge" id="bin-user-rating">★ @(_ratings.Average?.ToString("0.0")) Didin (@_ratings.Count)</span>
+                }
+                @if (_details.Languages.Count > 0)
+                {
+                    <span class="bin-badge">@string.Join(", ", _details.Languages)</span>
+                }
+                @if (!string.IsNullOrEmpty(_details.Network))
+                {
+                    <span class="bin-badge">@_details.Network</span>
+                }
+            </div>
+
+            @* What people came for comes first: play (and the list) right under the title, the plot after it. *@
+            <div class="bin-actions">
+                @if (_details.Kind == "series")
+                {
+                    var first = FirstEpisode();
+                    if (first != null)
+                    {
+                        <FluentButton Appearance="ButtonAppearance.Primary" OnClick="() => Play(first.Value.File)">▶ Play @first.Value.Code</FluentButton>
+                    }
+                }
+                else
+                {
+                    @* one bright button - the first - and the other parts quieter, so the page has one obvious start *@
+                    var firstFeature = Features().FirstOrDefault();
+                    @foreach (var f in Features())
+                    {
+                        <FluentButton Appearance="@(f == firstFeature ? ButtonAppearance.Primary : ButtonAppearance.Default)"
+                                      Class="bin-part-btn" OnClick="() => Play(f)">
+                            ▶ @FeatureLabel(f)
+                        </FluentButton>
+                        <DownloadButton File="f" Label="@FeatureLabel(f)" />
+                        <PlaybackNote File="f" />
+                    }
+                }
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleWatchlist" Id="bin-watchlist"
+                              Class="@(State.OnWatchlist(TitleId) ? "bin-list-btn on" : "bin-list-btn")">
+                    <BinIcon Name="heart" Filled="@State.OnWatchlist(TitleId)" /> @(State.OnWatchlist(TitleId) ? "In my list" : "My list")
+                </FluentButton>
+                @* seen: out of every list but search and Watched *@
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="ToggleSeen" Id="bin-seen"
+                              Class="@(State.IsSeen(TitleId) ? "bin-list-btn bin-seen-btn on" : "bin-list-btn bin-seen-btn")">
+                    <BinIcon Name="check" /> @(State.IsSeen(TitleId) ? "Seen" : "Mark as seen")
+                </FluentButton>
+                @if (!string.IsNullOrEmpty(_details.TrailerUrl))
+                {
+                    @* YouTube, in a new tab: the trailer is not ours to stream. *@
+                    <a class="bin-trailer" id="bin-trailer" href="@_details.TrailerUrl" target="_blank" rel="noopener noreferrer">Trailer ↗</a>
+                }
+            </div>
+
+            <p class="bin-plot" dir="auto">@(_details.PlotFull ?? _details.Plot)</p>
+
+            @if (_details.Kind != "series" && _details.Files.Any(f => f.Role == "extra"))
+            {
+                <h3 class="bin-section-title">Extras</h3>
+                <div class="bin-actions" id="bin-extras">
+                    @foreach (var f in _details.Files.Where(f => f.Role == "extra").OrderBy(f => f.Part))
+                    {
+                        <FluentButton Appearance="ButtonAppearance.Default" OnClick="() => PlayExtra(f)">
+                            ▶ Extra @f.Part@(f.DurationSeconds is double extraLength ? $" · {Minutes(extraLength)}" : "")
+                        </FluentButton>
+                        <DownloadButton File="f" Label="@($"Extra {f.Part}")" />
+                    }
+                </div>
+            }
+
+            @if (_details.Kind == "series")
+            {
+                <h3 class="bin-section-title">Episodes</h3>
+                <div class="bin-season-tabs">
+                    <FluentButton Appearance="@(_selectedSeason == 0 ? ButtonAppearance.Primary : ButtonAppearance.Default)"
+                                  OnClick="() => SelectSeason(0)">All</FluentButton>
+                    @foreach (var s in _details.Seasons)
+                    {
+                        <FluentButton Appearance="@(_selectedSeason == s.Season ? ButtonAppearance.Primary : ButtonAppearance.Default)"
+                                      OnClick="() => SelectSeason(s.Season)">Season @s.Season</FluentButton>
+                    }
+                </div>
+                @foreach (var season in VisibleSeasons)
+                {
+                    var seasonFiles = SeasonFiles(season);
+                    <div class="bin-season-head">
+                        <h4>Season @season.Season</h4>
+                        @if (seasonFiles.Count > 0)
+                        {
+                            @* one file per episode, one after another: each resumable, stoppable part-way *@
+                            <FluentButton Appearance="ButtonAppearance.Default" Class="bin-download-season" Id="@($"bin-download-season-{season.Season}")"
+                                          OnClick="() => DownloadSeason(seasonFiles)">
+                                <BinIcon Name="download" /> Download season · @seasonFiles.Count @(seasonFiles.Count == 1 ? "episode" : "episodes") · @DownloadButton.Size(seasonFiles.Sum(f => f.SizeBytes))
+                            </FluentButton>
+                        }
+                    </div>
+                    <div class="bin-episodes">
+                        @foreach (var ep in season.Episodes)
+                        {
+                            <div class="bin-episode">
+                                <div class="bin-ep-no">@(string.Format("S{0:00}E{1:00}", ep.Season, ep.Number))</div>
+                                <div class="bin-ep-main">
+                                    <strong dir="auto">@(ep.Name ?? "Untitled episode")</strong>
+                                    @if (ep.AirDate != null)
+                                    {
+                                        <span class="bin-card-meta" style="display:inline;"> · @ep.AirDate</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(ep.Plot))
+                                    {
+                                        <div class="bin-ep-plot" dir="auto">@ep.Plot</div>
+                                    }
+                                </div>
+                                @foreach (var f in ep.Files)
+                                {
+                                    <FluentButton Appearance="ButtonAppearance.Primary" OnClick="() => Play(f)">▶ @(ep.Files.Count > 1 ? f.Quality ?? f.FileName : "Play")</FluentButton>
+                                    <DownloadButton File="f" Label="@(string.Format("S{0:00}E{1:00}", ep.Season, ep.Number))" />
+                                    <PlaybackNote File="f" />
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            @* Credits: the crew as "Directed by / Written by" lines, the cast as a scannable list (8, then "Show all"). *@
+            @if (_details.People.Count > 0)
+            {
+                <h3 class="bin-section-title">Cast &amp; crew</h3>
+                <dl class="bin-crew">
+                    @foreach (var (label, role) in CrewRoles)
+                    {
+                        var names = Crew(role);
+                        if (names.Count > 0)
+                        {
+                            <div>
+                                <dt>@label</dt>
+                                <dd dir="auto">
+                                    @for (var i = 0; i < names.Count; i++)
+                                    {
+                                        var name = names[i];
+                                        @if (i > 0) { <text>, </text> }
+                                        <button type="button" class="bin-person" @onclick="() => OnPerson.InvokeAsync(name)">@name</button>
+                                    }
+                                </dd>
+                            </div>
+                        }
+                    }
+                </dl>
+                var cast = Cast();
+                if (cast.Count > 0)
+                {
+                    <ul class="bin-cast" id="bin-cast">
+                        @foreach (var person in cast.Take(_allCast ? cast.Count : CastPreview))
+                        {
+                            <li>
+                                <button type="button" class="bin-person bin-cast-name" dir="auto" @onclick="() => OnPerson.InvokeAsync(person.Name)">@person.Name</button>
+                                @if (!string.IsNullOrEmpty(person.Character))
+                                {
+                                    <span class="bin-cast-role" dir="auto">@person.Character</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                    @if (cast.Count > CastPreview)
+                    {
+                        <FluentButton Appearance="ButtonAppearance.Default" OnClick="() => _allCast = !_allCast" Id="bin-cast-more">
+                            @(_allCast ? "Show fewer" : $"Show all {cast.Count}")
+                        </FluentButton>
+                    }
+                }
+            }
+
+            @* the user's own rating + everyone's reviews *@
+            <h3 class="bin-section-title">Your rating</h3>
+            <div class="bin-rate" id="bin-rate">
+                @for (var n = 1; n <= 5; n++)
+                {
+                    var stars = n;
+                    <button type="button" class="bin-star @(stars <= _stars ? "on" : "")" aria-label="@stars stars" @onclick="() => _stars = stars">★</button>
+                }
+                <textarea class="bin-review" maxlength="1000" placeholder="A few words (optional)" dir="auto" @bind="_review"></textarea>
+                <div class="bin-badges" style="gap:.5rem;">
+                    <FluentButton Appearance="ButtonAppearance.Primary" Disabled="@(_stars == 0)" OnClick="SaveRating" Id="bin-rate-save">Save rating</FluentButton>
+                    @if (_ratings?.Mine != null)
+                    {
+                        <FluentButton Appearance="ButtonAppearance.Default" OnClick="RemoveRating" Id="bin-rate-remove">Remove</FluentButton>
+                    }
+                </div>
+            </div>
+            @if (_ratings?.Reviews.Count > 0)
+            {
+                <div class="bin-reviews">
+                    @foreach (var r in _ratings.Reviews)
+                    {
+                        <div class="bin-reviewline"><strong>@r.User</strong> <span class="bin-stars">@(new string('★', r.Stars))</span>
+                            <div dir="auto">@r.Review</div></div>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(_details.Awards))
+            {
+                <h3 class="bin-section-title">Awards</h3>
+                <p class="bin-plot">@_details.Awards</p>
+            }
+
+            @if (_details.Related.Count > 0)
+            {
+                <h3 class="bin-section-title">More from @_details.Related.First().Collection</h3>
+                <div class="bin-related">
+                    @foreach (var r in _details.Related)
+                    {
+                        <div class="bin-card" @onclick="() => State.Select(r.Id)" tabindex="0" role="button" aria-label="@r.Title"
+                             @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
+                            @if (!string.IsNullOrEmpty(r.PosterUrl))
+                            {
+                                <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="bin-poster-fallback">@Initials(r.Title)</div>
+                            }
+                            <div class="bin-card-body">
+                                <p class="bin-card-title" dir="auto">@r.Title</p>
+                                <div class="bin-card-meta"><span>@(r.Year?.ToString() ?? "")</span></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            @if (_details.Recommended.Count > 0)
+            {
+                <h3 class="bin-section-title">More like this</h3>
+                <div class="bin-related" id="bin-recommended">
+                    @foreach (var r in _details.Recommended)
+                    {
+                        <div class="bin-card" @onclick="() => State.Select(r.Id)" title="@r.Reason" tabindex="0" role="button" aria-label="@r.Title"
+                             @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
+                            @if (!string.IsNullOrEmpty(r.PosterUrl))
+                            {
+                                <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="bin-poster-fallback">@Initials(r.Title)</div>
+                            }
+                            <div class="bin-card-body">
+                                <p class="bin-card-title" dir="auto">@r.Title</p>
+                                <p class="bin-card-sub" dir="auto">@r.Reason</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int TitleId { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback<string> OnPerson { get; set; }   // a name was pressed: that person's titles
+    [Parameter] public EventCallback<(Didin.Shared.Models.MediaFileInfo File, string Title, System.Collections.Generic.List<(Didin.Shared.Models.MediaFileInfo File, string Title)> Next)> OnPlay { get; set; }
+
+    private Didin.Shared.Models.TitleDetails _details;
+    private int _selectedSeason;
+
+    // a season's download: each episode's first file that is not damaged
+    private static System.Collections.Generic.List<Didin.Shared.Models.MediaFileInfo> SeasonFiles(Didin.Shared.Models.SeasonInfo season) =>
+        season.Episodes.Select(e => e.Files.FirstOrDefault(f => f.Playback != "damaged")).Where(f => f != null).ToList();
+
+    private async Task DownloadSeason(System.Collections.Generic.List<Didin.Shared.Models.MediaFileInfo> files)
+    {
+        // the browser saves each as its own download; a short pause between them keeps it from merging or dropping any
+        var urls = System.Text.Json.JsonSerializer.Serialize(files.Select(f => Options.DownloadUrl(f.Token)));
+        await Js.InvokeVoidAsync("eval",
+            "(async function (urls) { for (var i = 0; i < urls.length; i++) { var a = document.createElement('a'); a.href = urls[i]; " +
+            "a.download = ''; document.body.appendChild(a); a.click(); a.remove(); await new Promise(function (r) { setTimeout(r, 1500); }); } })(" +
+            urls + ")");
+    }
+
+    private System.Collections.Generic.List<Didin.Shared.Models.SeasonInfo> VisibleSeasons =>
+        _details == null ? new() :
+        _selectedSeason == 0 ? _details.Seasons :
+        _details.Seasons.Where(s => s.Season == _selectedSeason).ToList();
+
+    private void SelectSeason(int season)
+    {
+        _selectedSeason = season;
+    }
+
+    private const int CastPreview = 8;
+    private bool _allCast;
+    private static readonly (string Label, string Role)[] CrewRoles =
+        { ("Directed by", "director"), ("Created by", "creator"), ("Written by", "writer"), ("Produced by", "producer"), ("Music by", "composer") };
+
+    private System.Collections.Generic.List<string> Crew(string role) =>
+        _details.People.Where(p => p.Role == role).Select(p => p.Name).Distinct().ToList();
+
+    private System.Collections.Generic.List<Didin.Shared.Models.PersonCredit> Cast() =>
+        _details.People.Where(p => p.Role == "actor").OrderBy(p => p.Billing ?? 999).ToList();
+
+    // A series starts from its first episode that has a file.
+    private (Didin.Shared.Models.MediaFileInfo File, string Code)? FirstEpisode()
+    {
+        foreach (var season in _details.Seasons.OrderBy(s => s.Season))
+        {
+            foreach (var ep in season.Episodes.OrderBy(e => e.Number))
+            {
+                var file = ep.Files.FirstOrDefault(f => f.Playback is not ("transcode" or "damaged")) ?? ep.Files.FirstOrDefault();
+                if (file != null) return (file, string.Format("S{0:00}E{1:00}", ep.Season, ep.Number));
+            }
+        }
+        return null;
+    }
+
+    private Didin.Shared.Models.TitleRatings _ratings;
+    private int _stars;
+    private string _review;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _details = await CatalogClient.GetTitleAsync(TitleId);
+        _selectedSeason = 0;
+        _allCast = false;
+        await LoadRatingsAsync();
+    }
+
+    private async Task LoadRatingsAsync()
+    {
+        try { _ratings = await CatalogClient.GetRatingsAsync(TitleId); }
+        catch { _ratings = null; }   // ratings are extra - the page works without them
+        _stars = _ratings?.Mine?.Stars ?? 0;
+        _review = _ratings?.Mine?.Review;
+    }
+
+    private async Task SaveRating()
+    {
+        if (_stars < 1) return;
+        try { await CatalogClient.SaveRatingAsync(TitleId, _stars, _review); }
+        catch { return; }
+        await LoadRatingsAsync();
+    }
+
+    private async Task RemoveRating()
+    {
+        try { await CatalogClient.DeleteRatingAsync(TitleId); }
+        catch { return; }
+        await LoadRatingsAsync();
+    }
+
+    private static string Initials(string title) =>
+        string.IsNullOrWhiteSpace(title) ? "?" :
+        new string(title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(w => char.ToUpperInvariant(w[0])).ToArray());
+
+    private async Task ToggleWatchlist()
+    {
+        var onList = !State.OnWatchlist(TitleId);
+        try
+        {
+            await CatalogClient.SetWatchlistAsync(TitleId, onList);
+            State.MarkWatchlist(TitleId, onList);
+        }
+        catch { /* the button keeps its state if the save failed */ }
+    }
+
+    private async Task ToggleSeen()
+    {
+        var seen = !State.IsSeen(TitleId);
+        try
+        {
+            await CatalogClient.SetSeenAsync(TitleId, seen);
+            State.MarkSeen(TitleId, seen);
+        }
+        catch { /* the button keeps its state if the save failed */ }
+    }
+
+    // The film's own files: DVD menu segments and extras are not (the catalogue marks them).
+    private IEnumerable<Didin.Shared.Models.MediaFileInfo> Features() =>
+        _details.Files.Where(f => f.Role == null).OrderBy(f => f.Quality).ThenBy(f => f.Part ?? 0);
+
+    private static string Minutes(double seconds) => $"{Math.Max(1, (int)Math.Round(seconds / 60))} min";
+
+    // "Part 2 · 720p · 44 min" as one string: separate spans lost their leading space inside the flex button.
+    private static string FeatureLabel(Didin.Shared.Models.MediaFileInfo f)
+    {
+        var bits = new List<string> { f.Part != null ? $"Part {f.Part}" : "Play" };
+        if (f.Quality != null) bits.Add(f.Quality);
+        if (f.Part != null && f.DurationSeconds is double length) bits.Add(Minutes(length));
+        return string.Join(" · ", bits);
+    }
+
+    // What plays after this file, so the player goes on by itself (parts of a film, the next episodes of a series).
+    private System.Collections.Generic.List<(Didin.Shared.Models.MediaFileInfo File, string Title)> After(Didin.Shared.Models.MediaFileInfo file)
+    {
+        var next = new System.Collections.Generic.List<(Didin.Shared.Models.MediaFileInfo, string)>();
+        if (_details.Kind == "series")
+        {
+            var episodes = _details.Seasons.OrderBy(s => s.Season).SelectMany(s => s.Episodes.OrderBy(e => e.Number)).ToList();
+            var at = episodes.FindIndex(e => e.Files.Any(f => f.Token == file.Token));
+            if (at < 0) return next;
+            foreach (var ep in episodes.Skip(at + 1))
+            {
+                var f = ep.Files.FirstOrDefault(x => x.Quality == file.Quality && x.Playback is not ("transcode" or "damaged"))
+                        ?? ep.Files.FirstOrDefault(x => x.Playback is not ("transcode" or "damaged"));
+                if (f == null) break;   // a gap or an unplayable episode ends the run
+                next.Add((f, $"{_details.Title} - {EpisodeCode(ep)}"));
+            }
+            return next;
+        }
+        if (file.Part == null) return next;
+        foreach (var f in Features().Where(f => f.Part > file.Part && f.Quality == file.Quality && f.Playback is not ("transcode" or "damaged")))
+        {
+            next.Add((f, _details.Title));
+        }
+        return next;
+    }
+
+    private static string EpisodeCode(Didin.Shared.Models.EpisodeInfo ep) => string.Format("S{0:00}E{1:00}", ep.Season, ep.Number);
+
+    private string TitleFor(Didin.Shared.Models.MediaFileInfo file)
+    {
+        if (_details.Kind != "series") return _details?.Title;
+        var ep = _details.Seasons.SelectMany(s => s.Episodes).FirstOrDefault(e => e.Files.Any(f => f.Token == file.Token));
+        return ep == null ? _details.Title : $"{_details.Title} - {EpisodeCode(ep)}";
+    }
+
+    private async Task Play(Didin.Shared.Models.MediaFileInfo file)
+    {
+        await OnPlay.InvokeAsync((file, TitleFor(file), After(file)));
+    }
+
+    private async Task PlayExtra(Didin.Shared.Models.MediaFileInfo file)
+    {
+        await OnPlay.InvokeAsync((file, $"{_details.Title} - Extra {file.Part}", new System.Collections.Generic.List<(Didin.Shared.Models.MediaFileInfo, string)>()));
+    }
+}

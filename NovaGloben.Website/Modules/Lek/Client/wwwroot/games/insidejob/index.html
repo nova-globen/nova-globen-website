@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inside Job</title>
+<link rel="stylesheet" href="insidejob.css?v=1">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Inside Job</h1>
+      <p class="tag">Design a safehouse nobody can crack. Then crack everybody else's.</p>
+    </div>
+    <nav id="tabs">
+      <button data-screen="home" class="on">Safehouse</button>
+      <button data-screen="editor">Design</button>
+      <button data-screen="targets">Raid</button>
+      <button data-screen="replays">Replays</button>
+    </nav>
+  </header>
+
+  <section id="screen-guest" class="screen hidden">
+    <div class="card">
+      <h2>Sign in to play</h2>
+      <p>Your safehouse, your vault and your raids live on your account. <a href="#" data-site="/login" data-return="/inside-job" target="_top">Sign in</a> or <a href="#" data-site="/register" data-return="/inside-job" target="_top">register</a>, it takes a minute.</p>
+      <p class="muted">Want to try the rules first? <a href="#" data-site="/silent-hour" target="_top">Silent Hour</a> is the same stealth game as a daily puzzle.</p>
+    </div>
+  </section>
+
+  <section id="screen-home" class="screen">
+    <div class="cols">
+      <div class="card">
+        <h2>Vault</h2>
+        <div class="big" id="home-loot">–</div>
+        <p class="muted">Loot fills by 100 an hour, up to 2,000. Raiders who beat your par take 30% of it.</p>
+        <dl class="stats">
+          <div><dt>Par</dt><dd id="home-par">–</dd></div>
+          <div><dt>Raided</dt><dd id="home-suffered">–</dd></div>
+          <div><dt>Defended</dt><dd id="home-defended">–</dd></div>
+          <div><dt>Earned</dt><dd id="home-earned">–</dd></div>
+        </dl>
+        <p id="home-msg" class="msg"></p>
+        <div class="row">
+          <button id="home-design" class="primary">Design the safehouse</button>
+          <button id="home-raid">Find a target</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Your layout</h2>
+        <svg id="home-board" viewBox="0 0 90 90" role="img" aria-label="Your safehouse"></svg>
+        <p class="muted" id="home-layout-note">No safehouse yet. Pick a starter in Design and save it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-editor" class="screen hidden">
+    <div class="cols">
+      <div class="card">
+        <h2>Design</h2>
+        <p class="muted">Click squares to paint. A guard route is a straight line: click its first square, then its last. A one-square route is a sentry; set the facing with the arrows. Every safehouse must be beatable: Verify runs the solver and gives your par.</p>
+        <div class="palette" id="palette">
+          <button data-tool="wall" class="on">Wall</button>
+          <button data-tool="floor">Floor</button>
+          <button data-tool="start">Start (2)</button>
+          <button data-tool="exit">OUT (2)</button>
+          <button data-tool="vault">Vault</button>
+          <button data-tool="guard">Guard route</button>
+          <button data-tool="erase-guard">Remove guard</button>
+        </div>
+        <div class="row">
+          <label class="inline">Starter <select id="starter"><option value="">keep mine</option></select></label>
+          <button id="ed-load" class="small">Load</button>
+        </div>
+        <div id="guard-list" class="guards"></div>
+        <div class="row">
+          <button id="ed-verify" class="primary">Verify</button>
+          <button id="ed-save" disabled>Save safehouse</button>
+          <button id="ed-watch" class="small" disabled>Watch the solver</button>
+        </div>
+        <p id="ed-msg" class="msg"></p>
+      </div>
+      <div class="card">
+        <svg id="ed-board" viewBox="0 0 90 90" role="img" aria-label="Safehouse editor"></svg>
+        <ul class="legend">
+          <li><span class="sw now"></span>Watched by a guard at the start of the cycle</li>
+          <li><span class="sw route"></span>Patrol route</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-targets" class="screen hidden">
+    <div class="card">
+      <h2>Targets</h2>
+      <p class="muted">Beat the par and you take 30% of the vault. Within three turns of par, 15%. Slower, 5%. Caught, and you pay 10% of yours.</p>
+      <table id="targets"><thead><tr><th>Player</th><th>Par</th><th>Vault</th><th>Raided</th><th></th></tr></thead><tbody></tbody></table>
+      <p id="targets-msg" class="msg"></p>
+    </div>
+  </section>
+
+  <section id="screen-raid" class="screen hidden">
+    <div class="cols">
+      <div class="card boardcol">
+        <div id="raid-title" class="raid-title"></div>
+        <div id="status" role="status" aria-live="polite"></div>
+        <svg id="raid-board" viewBox="0 0 90 90" role="img" aria-label="Raid map"></svg>
+        <ul class="legend">
+          <li><span class="sw now"></span>Watched now</li>
+          <li><span class="sw close"></span>Close range (catches the Spy too)</li>
+          <li><span class="sw next"></span>Watched after the guards step</li>
+        </ul>
+      </div>
+      <aside class="card panel">
+        <dl class="stats">
+          <div><dt>Turns</dt><dd id="raid-turns">0</dd></div>
+          <div><dt>Par</dt><dd id="raid-par">–</dd></div>
+          <div><dt>Vault</dt><dd id="raid-loot">–</dd></div>
+        </dl>
+        <div class="squad">
+          <button class="op" id="opB" aria-pressed="true"><span class="glyph b">B</span><span><b>Beret <kbd>1</kbd></b><span>Seen anywhere in a guard's view. One takedown per raid, from beside or behind.</span></span></button>
+          <button class="op" id="opS" aria-pressed="false"><span class="glyph s"><i>S</i></span><span><b>Spy <kbd>2</kbd></b><span>Disguised: only caught right in front of a guard. Only he can open the vault.</span></span></button>
+        </div>
+        <div class="controls">
+          <button id="wait">Wait <kbd>Space</kbd></button>
+          <button id="tkd">Take out <kbd>T</kbd></button>
+          <button id="undo">Undo <kbd>Z</kbd></button>
+          <button id="restart">Restart <kbd>R</kbd></button>
+          <button id="abort">Abort raid</button>
+        </div>
+        <div id="raid-result" class="result hidden">
+          <h2 id="raid-outcome"></h2>
+          <p id="raid-detail"></p>
+          <button id="raid-done" class="primary">Back to targets</button>
+        </div>
+        <p class="muted">Undo is free: a raid only counts when you reach the OUT squares with the loot, or when you decide to leave. Abort counts as caught.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section id="screen-replays" class="screen hidden">
+    <div class="cols">
+      <div class="card">
+        <h2>Raids on your safehouse</h2>
+        <ul id="replay-list" class="replays"></ul>
+        <p id="replay-msg" class="msg"></p>
+      </div>
+      <div class="card">
+        <div id="replay-title" class="raid-title"></div>
+        <svg id="replay-board" viewBox="0 0 90 90" role="img" aria-label="Replay"></svg>
+        <div class="row">
+          <button id="rp-prev" class="small">&lsaquo;</button>
+          <button id="rp-play" class="small">Play</button>
+          <button id="rp-next" class="small">&rsaquo;</button>
+          <span id="rp-step" class="muted"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="../site.js?v=1"></script>
+    <script src="core.js?v=1"></script>
+<script src="starters.js?v=1"></script>
+<script src="insidejob.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+@namespace Didin.Module.Media
+@inherits ModuleBase
+@inject Services.MediaOptions Options
+
+@* Stomme's entry point: the app itself is CatalogHost. *@
+<CatalogHost />
+
+@code {
+    protected override void OnInitialized() => Options.SiteBase = DidinAssets.SiteBase(PageState.Alias);
+}

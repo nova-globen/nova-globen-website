@@ -42,16 +42,23 @@ namespace NovaGloben.Website.Startup
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.Use((context, next) => SecurityHeaders.InvokeAsync(context, () => next(context)));
-            app.Use((context, next) => VisitorCookies.InvokeAsync(context, () => next(context)));
-            app.Use((context, next) => ContactEndpoint.InvokeAsync(context, () => next(context)));
-            ArticleAssets.Serve(app);
-            app.Use((context, next) => ProductLinks.InvokeAsync(context, () => next(context)));
-            app.Use((context, next) => ProductManifests.InvokeAsync(context, () => next(context)));
-            var folders = SiteManifest.LoadAll().Where(m => m.Folder.Length > 0).Select(m => m.Folder).ToArray();
-            app.Use((context, next) => LegacyUrls.InvokeAsync(context, () => next(context), folders));
-            app.Use((context, next) => ArticleFeed.InvokeAsync(context, () => next(context)));
-            app.Use((context, next) => SiteMap.InvokeAsync(context, () => next(context)));
+            // Everything here is the website's own: its sites (the root and its language folders), never a module's
+            // tenant or route on the same host (WebsiteScope).
+            var manifests = SiteManifest.LoadAll();
+            var websiteFolders = manifests.Select(m => m.Folder).ToArray();
+            var folders = manifests.Where(m => m.Folder.Length > 0).Select(m => m.Folder).ToArray();
+            app.UseForWebsite(websiteFolders, website =>
+            {
+                website.Use((context, next) => SecurityHeaders.InvokeAsync(context, () => next(context)));
+                website.Use((context, next) => VisitorCookies.InvokeAsync(context, () => next(context)));
+                website.Use((context, next) => ContactEndpoint.InvokeAsync(context, () => next(context)));
+                ArticleAssets.Serve(website);
+                website.Use((context, next) => ProductLinks.InvokeAsync(context, () => next(context)));
+                website.Use((context, next) => ProductManifests.InvokeAsync(context, () => next(context)));
+                website.Use((context, next) => LegacyUrls.InvokeAsync(context, () => next(context), folders));
+                website.Use((context, next) => ArticleFeed.InvokeAsync(context, () => next(context)));
+                website.Use((context, next) => SiteMap.InvokeAsync(context, () => next(context)));
+            });
         }
 
         public void ConfigureMvc(IMvcBuilder mvcBuilder)

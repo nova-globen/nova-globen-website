@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Relic Rush</title>
+<link rel="stylesheet" href="relicrush.css?v=1">
+</head>
+<body>
+<div id="app">
+  <div id="stage"><canvas id="game" width="640" height="352"></canvas></div>
+
+  <div id="corner">
+    <span id="ping"></span>
+    <button id="btn-sound" class="icon" title="Sound">&#128266;</button>
+    <button id="btn-full" class="icon" title="Full screen">&#x26F6;</button>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div class="dpad">
+      <button data-hold="up" class="u">&#9650;</button><button data-hold="left" class="l">&#9664;</button>
+      <button data-hold="right" class="r">&#9654;</button><button data-hold="down" class="d">&#9660;</button>
+    </div>
+    <div class="acts"><button data-press="pass">PASS</button><button data-press="steal" class="big">STEAL</button><button data-hold="dash">DASH</button></div>
+  </div>
+
+  <section id="menu" class="panel">
+    <h1 class="logo">RELIC RUSH</h1>
+    <p class="tag">Red against Blue in a temple maze. Grab the relic, pass it, steal it, and carry it to your own hidden shrine.</p>
+    <label>Your name <input id="name" maxlength="14" autocomplete="off" placeholder="nickname"></label>
+    <div class="row"><button id="create" class="primary">Create a room</button></div>
+    <div class="row"><input id="code" maxlength="4" autocomplete="off" placeholder="CODE" class="code"><button id="join">Join</button></div>
+    <p id="menu-msg" class="msg"></p>
+    <p class="fine">1v1 to 4v4; bots fill empty seats.</p>
+  </section>
+
+  <section id="lobby" class="panel wide hidden">
+    <div class="lobby-head">
+      <h1 class="logo small">RELIC RUSH</h1>
+      <div class="roomcode">Room <b id="room-code"></b> <button id="share" class="small">Copy invite link</button></div>
+    </div>
+    <div class="lobby-grid">
+      <div class="col">
+        <h2>Teams</h2>
+        <div class="seg" id="modes"><button data-mode="1">1v1</button><button data-mode="2">2v2</button><button data-mode="3">3v3</button><button data-mode="4">4v4</button></div>
+        <div class="teams">
+          <div class="team t0"><h3>Red</h3><ul id="team0"></ul><button data-team="0" class="small">Join Red</button></div>
+          <div class="team t1"><h3>Blue</h3><ul id="team1"></ul><button data-team="1" class="small">Join Blue</button></div>
+        </div>
+        <div class="row"><button id="start" class="primary">Start the match</button><button id="leave">Leave</button></div>
+        <p id="lobby-msg" class="msg"></p>
+      </div>
+      <div class="col rules">
+        <h2>How to play</h2>
+        <ul>
+          <li>One player starts with the <b>relic</b>. Carry it to <b>your team's shrine</b> to score.</li>
+          <li>You only see <b>your own</b> shrine. The other team's lights up when their carrier gets close.</li>
+          <li><b>Steal</b>: get next to the carrier and press <kbd>Space</kbd> (or right click).</li>
+          <li><b>Pass</b>: <kbd>E</kbd> or left click throws it straight to a teammate in sight, aimed with the mouse or the way you face. Passes can't be intercepted.</li>
+          <li><b>Dash</b>: <kbd>Shift</kbd>, every 3 seconds. Move with <kbd>WASD</kbd> or the arrows.</li>
+          <li>First to <b>3</b>, or the best score after 4 minutes. A tie is a draw. The maze is new every match.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>window.AUDIO_BASE = '../elementals/';</script>
+<script src="../site.js?v=1"></script>
+    <script src="art.js?v=1"></script>
+<script src="physics.js?v=1"></script>
+<script src="audio.js?v=1"></script>
+<script src="game.js?v=1"></script>
+</body>
+</html>

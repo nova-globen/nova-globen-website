@@ -1,0 +1,28 @@
+@namespace Didin.Module.Media
+@inject Services.MediaState State
+
+@* What the catalogue says about a file before anyone presses Play: only the problem cases show. *@
+@if (State.CannotPlayHere(File))
+{
+    @* an MKV on an iPhone, iPad or Mac Safari *@
+    <span class="bin-badge bin-b-warn" title="MKV files do not play on Apple devices">not on iPhone/iPad</span>
+}
+else
+{
+@switch (File?.Playback)
+{
+    case "audio":
+        <span class="bin-badge bin-b-warn" title="@File.Codecs">no sound in browser</span>
+        break;
+    case "transcode":
+        <span class="bin-badge bin-b-warn" title="@File.Codecs">needs conversion</span>
+        break;
+    case "damaged":
+        <span class="bin-badge bin-b-bad">file damaged</span>
+        break;
+}
+}
+
+@code {
+    [Parameter] public Didin.Shared.Models.MediaFileInfo File { get; set; }
+}

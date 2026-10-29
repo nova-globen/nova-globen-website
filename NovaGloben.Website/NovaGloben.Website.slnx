@@ -3,4 +3,13 @@
   <Project Path="Client\NovaGloben.Website.Client.csproj" />
   <Project Path="Shared\NovaGloben.Website.Shared.csproj" />
   <Project Path="Tests\NovaGloben.Website.Tests.csproj" />
+  <Project Path="Modules\Fravashi\Server\Fravashi.Broker.Server.csproj" />
+  <Project Path="Modules\Fravashi\Tests\Fravashi.Broker.Tests.csproj" />
+  <Project Path="Modules\Didin\Shared\Didin.Shared.csproj" />
+  <Project Path="Modules\Didin\Client\Didin.Client.csproj" />
+  <Project Path="Modules\Didin\Server\Didin.Server.csproj" />
+  <Project Path="Modules\Didin\Tests\Didin.Tests.csproj" />
+  <Project Path="Modules\Lek\Client\Lek.Client.csproj" />
+  <Project Path="Modules\Lek\Server\Lek.Server.csproj" />
+  <Project Path="Modules\Lek\Tests\Lek.Tests.csproj" />
 </Solution>

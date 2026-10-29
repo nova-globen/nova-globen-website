@@ -1,0 +1,171 @@
+@namespace Didin.Module.Login
+@inherits ModuleBase
+@using System.Collections.Generic
+@using System.Net
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Stomme.Models
+@using Stomme.Services
+@using Stomme.Shared
+@using Didin.Module.Media
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<div class="bin-login">
+    @if (PageState.User != null)
+    {
+        <div class="bin-login-card">
+            <h2>You are signed in</h2>
+            <FluentButton Appearance="ButtonAppearance.Primary" OnClick="@(() => NavigationManager.NavigateTo(_returnurl))">Continue</FluentButton>
+        </div>
+    }
+    else
+    {
+        @* the Welcome screen: the mark and the name over a dim glow, then the form *@
+        <div class="bin-login-card" @onkeypress="KeyPressed">
+            <div class="bin-login-form">
+                <div class="bin-login-brand"><BinLogo /><span>Didin</span></div>
+                <p class="bin-login-sub">Your movies and series, ready to watch</p>
+                @if (_error != null)
+                {
+                    <div class="bin-login-error" role="alert">@_error</div>
+                }
+                <FluentTextInput Label="Username" Placeholder="Enter your username" AutoComplete="username"
+                                 @bind-Value="_username" Required="true" />
+                <FluentTextInput Label="Password" Placeholder="Enter your password" AutoComplete="current-password"
+                                 TextInputType="TextInputType.Password" @bind-Value="_password" Required="true" />
+                <FluentCheckbox Label="Stay signed in" @bind-Value="_remember" />
+                <div class="bin-login-actions">
+                    <FluentButton Appearance="ButtonAppearance.Primary" OnClick="LoginAsync" Loading="_busy">Sign in</FluentButton>
+                    <FluentButton Appearance="ButtonAppearance.Default" OnClick="@(() => NavigationManager.NavigateTo(_returnurl))">Cancel</FluentButton>
+                </div>
+            </div>
+            @* Sign in with your phone: filled and driven by qr-link.js, which starts only on screens 761 px
+               and wider - a phone has the form. Nothing in here is rendered by Blazor after the first render. *@
+            <div class="bin-login-qr" id="bin-login-qr" hidden>
+                <h3>Sign in with your phone</h3>
+                <div class="bin-qr-frame"><img class="bin-qr-img" alt="QR code: scan it with your phone to sign in here" /></div>
+                <p class="bin-qr-steps">Scan the code with your phone's camera, then approve this screen on the phone.</p>
+                <p class="bin-qr-alt">Or go to <strong class="bin-qr-url"></strong> and enter <strong class="bin-qr-code"></strong></p>
+                <p class="bin-qr-status" role="status"></p>
+                <button type="button" class="bin-qr-new" hidden>Show a new code</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string SiteBase => DidinAssets.SiteBase(PageState.Alias);
+
+    /// <summary>
+    /// A return address the browser cannot misread: root-relative or absolute as given, otherwise rooted, and the
+    /// site's home when there is none. A bare folder name ("didin") would resolve against the page's base address,
+    /// which is the site's folder itself on a folder site.
+    /// </summary>
+    private string Absolute(string url) =>
+        string.IsNullOrEmpty(url) ? SiteBase + "/"
+        : url.StartsWith("/", System.StringComparison.Ordinal) || url.Contains("://", System.StringComparison.Ordinal) ? url
+        : "/" + url;
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private bool _remember;
+    private bool _busy;
+    private string _error;
+    private string _returnurl = string.Empty;
+
+    public override SecurityAccessLevel SecurityAccessLevel => SecurityAccessLevel.Anonymous;
+
+    protected override void OnInitialized()
+    {
+        // same fallback as the stock login module: direct visits have no ReturnUrl
+        _returnurl = Absolute(!string.IsNullOrEmpty(PageState.ReturnUrl) ? PageState.ReturnUrl : null);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && PageState.User == null)
+        {
+            // phone sign-in: the module script is plain ES, loaded with import() (module JS is not auto-included)
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval",
+                    $"import('{DidinAssets.Url(DidinAssets.QrLink)}').then(m => m.start(document.getElementById('bin-login-qr'), '{SiteBase}'))");
+            }
+            catch (JSException) { }
+        }
+    }
+
+    /// <summary>Enter submits - key events bubble out of the Fluent shadow DOM.</summary>
+    private async Task KeyPressed(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await LoginAsync();
+        }
+    }
+
+    private async Task LoginAsync()
+    {
+        if (_busy) return;
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_username) || string.IsNullOrEmpty(_password))
+        {
+            _error = "Enter your username and password.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var user = new User
+            {
+                SiteId = PageState.Site.SiteId,
+                Username = _username.Trim(),
+                Password = _password,
+                LastIPAddress = SiteState.RemoteIPAddress
+            };
+            user = await UserService.LoginUserAsync(user, false, _remember);
+            if (user != null && user.IsAuthenticated)
+            {
+                await PostLoginAsync();
+                return; // the form post navigates the browser away
+            }
+            _error = "Sign-in failed. Check your username and password.";
+        }
+        catch (Exception ex)
+        {
+            _error = "Sign-in failed: " + ex.Message;
+        }
+        _busy = false;
+    }
+
+    /// <summary>
+    /// Post back to the Login page so the auth cookie is set - identical to the
+    /// stock Stomme login flow (Stomme.Modules.Admin.Login). The fields are
+    /// passed as JSON and turned into a real form by eval JS (the host strips
+    /// script tags from HeadContent and internal module JS is not auto-included,
+    /// so the Didin interop is eval-based - same pattern as Didin.Module.Media).
+    /// </summary>
+    private async Task PostLoginAsync()
+    {
+        var url = Utilities.TenantUrl(PageState.Alias, "/pages/login/");
+        var fields = new Dictionary<string, string>
+        {
+            ["__url"] = url,
+            ["__RequestVerificationToken"] = SiteState.AntiForgeryToken ?? string.Empty,
+            ["username"] = _username.Trim(),
+            ["password"] = _password,
+            ["remember"] = _remember ? "true" : "false",
+            ["returnurl"] = WebUtility.UrlEncode(_returnurl),
+        };
+        var payload = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(
+            System.Text.Json.JsonSerializer.Serialize(fields));
+        await JSRuntime.InvokeVoidAsync("eval",
+            "(() => { var d = JSON.parse(\"" + payload + "\"); " +
+            "var f = document.createElement('form'); f.method = 'post'; f.action = d.__url; " +
+            "Object.keys(d).forEach(function (k) { if (k === '__url') return; " +
+            "var i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = d[k]; f.appendChild(i); }); " +
+            "document.body.appendChild(f); f.submit(); })()");
+    }
+}

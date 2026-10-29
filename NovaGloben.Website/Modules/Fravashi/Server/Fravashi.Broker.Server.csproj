@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Fravashi's credential broker as a module of this host: it validates a per-user bearer token, enforces
+    per-user rate limits, quotas and token budgets, inspects prompts when a key is configured, forwards to the
+    provider's Messages API with the organisation's key added server-side only, and writes a structured audit log.
+    Its routes are under /fravashi/api, its update channel under /fravashi/updates. Server only: it has no pages.
+    The assembly name ends in .Stomme, which the host's module scan requires.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyName>Fravashi.Broker.Server.Stomme</AssemblyName>
+    <RootNamespace>Fravashi.Broker</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Stomme.Server" />
+  </ItemGroup>
+
+  <!-- The usings a web project gets implicitly, which the broker's code was written against. -->
+  <ItemGroup>
+    <Using Include="System.Net.Http.Json" />
+    <Using Include="Microsoft.AspNetCore.Builder" />
+    <Using Include="Microsoft.AspNetCore.Hosting" />
+    <Using Include="Microsoft.AspNetCore.Http" />
+    <Using Include="Microsoft.AspNetCore.Routing" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Microsoft.Extensions.Hosting" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Fravashi.Broker.Tests" />
+  </ItemGroup>
+
+  <!-- The questions every user prompt is asked. Embedded rather than shipped beside the binary: the question set IS
+       the inspection policy, and the image's integrity should cover it with the code. -->
+  <ItemGroup>
+    <None Remove="PromptAudit\prompt-audit-questions.json" />
+    <EmbeddedResource Include="PromptAudit\prompt-audit-questions.json"
+                      LogicalName="Fravashi.Broker.PromptAudit.prompt-audit-questions.json" />
+  </ItemGroup>
+
+</Project>

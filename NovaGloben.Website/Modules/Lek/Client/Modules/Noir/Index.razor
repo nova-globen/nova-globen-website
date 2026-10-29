@@ -1,0 +1,26 @@
+@namespace Lek.Module.Noir
+@inherits ModuleBase
+
+@* Bullet Noir is a static three.js page (wwwroot/games/noir/) talking to the Bullet Noir SignalR hub; this module frames it. *@
+<div class="lek-game-frame">
+    <iframe src="@Source" title="Bullet Noir" allow="autoplay; fullscreen" allowfullscreen loading="eager"></iframe>
+</div>
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+    private string Source
+    {
+        get
+        {
+            var parts = new List<string>();
+            var name = PageState?.User?.DisplayName;
+            if (!string.IsNullOrEmpty(name)) parts.Add("name=" + Uri.EscapeDataString(name));
+            if (PageState?.QueryString != null && PageState.QueryString.TryGetValue("room", out var room) && !string.IsNullOrEmpty(room))
+            {
+                parts.Add("room=" + Uri.EscapeDataString(room));
+            }
+            return LekAssets.Frame("games/noir/index.html", PageState?.Alias, parts);
+        }
+    }
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fuse</title>
+<link rel="stylesheet" href="fuse.css?v=5">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="512" height="288"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="hud-left"></div>
+    <div id="hud-center"></div>
+    <div id="hud-right"></div>
+  </div>
+  <div id="ping" class="hidden" title="round trip to the server"></div>
+  <button id="fullscreen" class="icon hidden" title="Full screen">&#x26F6;</button>
+  <button id="throw" class="hidden">THROW</button>
+
+  <div id="banner" class="hidden"></div>
+
+  <div id="lobby" class="panel">
+    <h1>FUSE</h1>
+    <p class="tag">Pass the bomb. When the music stops, whoever holds it is out.</p>
+    <div id="connect-form">
+      <label>Your name
+        <input id="name" maxlength="14" autocomplete="off" placeholder="nickname">
+      </label>
+      <div class="row">
+        <button id="create" class="primary">Create room</button>
+      </div>
+      <div class="row">
+        <input id="code" maxlength="4" autocomplete="off" placeholder="CODE" class="code">
+        <button id="join">Join</button>
+      </div>
+      <p id="connect-msg" class="msg"></p>
+    </div>
+    <div id="room-form" class="hidden">
+      <div class="roomcode">Room <span id="room-code"></span> <button id="share" class="small">copy link</button></div>
+      <div class="row">
+        <label class="inline">Map <select id="map"></select></label>
+      </div>
+      <div class="row options">
+        <label class="inline">Bombs <select id="opt-bombs"><option value="1">1</option><option value="2">2 (6+ players)</option></select></label>
+        <label class="check"><input type="checkbox" id="opt-mystery"> mystery boxes</label>
+        <label class="check"><input type="checkbox" id="opt-joker"> joker</label>
+      </div>
+      <ul id="players"></ul>
+      <div class="row owner-only">
+        <button id="addbot" class="small">+ bot</button>
+        <button id="removebot" class="small">- bot</button>
+      </div>
+      <div class="row">
+        <button id="start" class="primary owner-only">Start</button>
+        <button id="leave">Leave</button>
+      </div>
+      <p id="room-msg" class="msg"></p>
+      <p class="help">WASD / arrows to move. On a phone, drag anywhere on the map.<br>
+        Boxes appear during a round: <span class="k-speed">speed</span>, <span class="k-shield">shield</span> (nobody can hand you the bomb for 5 s) or a <span class="k-slow">slow</span> trap.<br>
+        <span class="k-joker">Joker</span>: one player wants to explode and takes everyone nearby with him. Take the bomb from the Joker and you can THROW it (Space).</p>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script src="../site.js?v=1"></script>
+    <script src="fuse.js?v=5"></script>
+</body>
+</html>

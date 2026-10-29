@@ -5,17 +5,23 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Stomme.Client" Version="10.74.2" />
-    <PackageVersion Include="Stomme.Sdk.Slim" Version="10.74.2" />
-    <PackageVersion Include="Stomme.Server" Version="10.74.2" />
-    <PackageVersion Include="Stomme.Shared" Version="10.74.2" />
+    <PackageVersion Include="Stomme.Client" Version="10.75.3" />
+    <PackageVersion Include="Stomme.Sdk.Slim" Version="10.75.3" />
+    <PackageVersion Include="Stomme.Server" Version="10.75.3" />
+    <PackageVersion Include="Stomme.Shared" Version="10.75.3" />
     <!-- The Articles module: markdown (BSD-2-Clause) and server-side code highlighting (MIT). -->
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="ColorCode.HTML" Version="2.0.15" />
+    <!-- The Didin module: QR codes for signing in with a phone (MIT). -->
+    <PackageVersion Include="QRCoder" Version="1.6.0" />
+    <!-- The Didin module's client: Microsoft's Fluent UI components (MIT). -->
+    <PackageVersion Include="Microsoft.FluentUI.AspNetCore.Components" Version="5.0.0" />
     <!-- Tests only: xUnit (Apache-2.0), the test SDK (MIT). -->
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <!-- The broker module's tests: assertions (Apache-2.0). -->
+    <PackageVersion Include="AwesomeAssertions" Version="9.5.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />

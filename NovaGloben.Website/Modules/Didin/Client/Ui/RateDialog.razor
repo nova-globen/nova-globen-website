@@ -1,0 +1,76 @@
+@namespace Didin.Module.Media
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+
+@* Rating a title the user finished: the stars, an optional review, and "Mark as seen" - ticked by default, so
+   rating a finished film also takes it out of the lists. Skip is on the row itself. *@
+<div class="bin-link bin-rate-dialog" role="dialog" aria-modal="true" aria-labelledby="bin-rate-title" id="bin-rate-dialog">
+    <div class="bin-link-backdrop" @onclick="Close"></div>
+    <div class="bin-link-card">
+        <button type="button" class="bin-icon-btn bin-link-close" aria-label="Close" @onclick="Close"><BinIcon Name="close" /></button>
+        <h2 id="bin-rate-title" dir="auto">Rate @Card.Title</h2>
+        <div class="bin-rate-stars" role="radiogroup" aria-label="Your rating">
+            @for (var i = 1; i <= 5; i++)
+            {
+                var star = i;
+                <button type="button" class="bin-rate-star @(star <= _stars ? "on" : "")" role="radio"
+                        aria-checked="@(star == _stars ? "true" : "false")" aria-label="@star of 5"
+                        @onclick="() => _stars = star"><BinIcon Name="star" Filled="@(star <= _stars)" /></button>
+            }
+        </div>
+        <textarea class="bin-rate-review" id="bin-rate-dialog-review" rows="3" maxlength="1000" dir="auto"
+                  placeholder="A few words (optional)" @bind="_review" @bind:event="oninput" aria-label="Review"></textarea>
+        <label class="bin-rate-seen">
+            <input type="checkbox" id="bin-rate-dialog-seen" @bind="_seen" disabled="@RequireSeen" />
+            <span>Mark as seen - it leaves the lists and moves to Watched</span>
+        </label>
+        @if (_error != null)
+        {
+            <p class="bin-link-error" role="alert">@_error</p>
+        }
+        <div class="bin-link-actions">
+            <FluentButton Appearance="ButtonAppearance.Primary" OnClick="SaveAsync" Loading="_busy" Disabled="@(_stars == 0)" Id="bin-rate-dialog-save">Save</FluentButton>
+            <FluentButton Appearance="ButtonAppearance.Default" OnClick="Close">Cancel</FluentButton>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Didin.Shared.Models.CatalogCard Card { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool RequireSeen { get; set; }   // from Ask Didin: marking seen there means rating it
+
+    private int _stars;
+    private string _review = "";
+    private bool _seen = true;
+    private bool _busy;
+    private string _error;
+
+    private async Task SaveAsync()
+    {
+        if (_busy || _stars == 0) return;
+        _busy = true;
+        _error = null;
+        try
+        {
+            await CatalogClient.SaveRatingAsync(Card.Id, _stars, _review);
+            if (_seen || RequireSeen)
+            {
+                await CatalogClient.SetSeenAsync(Card.Id, true);
+                State.MarkSeen(Card.Id, true);
+            }
+            else
+            {
+                State.DropFinished(Card.Id);   // rated, so it is no longer "finished, not rated"
+            }
+            await OnClose.InvokeAsync();
+        }
+        catch
+        {
+            _error = "Saving the rating failed. Try again.";
+        }
+        _busy = false;
+    }
+
+    private Task Close() => OnClose.InvokeAsync();
+}

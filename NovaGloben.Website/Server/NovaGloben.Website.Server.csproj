@@ -55,6 +55,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Client\NovaGloben.Website.Client.csproj" />
     <ProjectReference Include="..\Shared\NovaGloben.Website.Shared.csproj" />
+    <!-- Modules this host serves, each switched per host by module.<id>.enabled. -->
+    <ProjectReference Include="..\Modules\Fravashi\Server\Fravashi.Broker.Server.csproj" />
+    <ProjectReference Include="..\Modules\Didin\Server\Didin.Server.csproj" />
+    <ProjectReference Include="..\Modules\Lek\Server\Lek.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

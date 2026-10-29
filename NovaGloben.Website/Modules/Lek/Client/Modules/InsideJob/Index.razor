@@ -1,0 +1,22 @@
+@namespace Lek.Module.InsideJob
+@inherits ModuleBase
+
+@* Inside Job is a static page (wwwroot/games/insidejob/) over api/insidejob; this module frames it. *@
+<div class="lek-game-frame">
+    <iframe src="@Source" title="Inside Job" loading="eager"></iframe>
+</div>
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+    private string Source
+    {
+        get
+        {
+            var parts = new List<string>();
+            var name = PageState?.User?.DisplayName;
+            if (!string.IsNullOrEmpty(name)) parts.Add("name=" + Uri.EscapeDataString(name));
+            return LekAssets.Frame("games/insidejob/index.html", PageState?.Alias, parts);
+        }
+    }
+}

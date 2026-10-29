@@ -1,0 +1,192 @@
+@namespace Didin.Module.Media
+@inject Services.ICatalogClient CatalogClient
+@inject Services.MediaState State
+
+@* The library's health for administrators. A verdict recorded here is read by whoever prepares the next import, which
+   carries it into the catalogue. *@
+<div class="bin-library" id="bin-library">
+    <FluentButton Appearance="ButtonAppearance.Default" OnClick="OnBack" Id="bin-library-back" Class="bin-back">← Back to browse</FluentButton>
+    <div class="bin-library-head">
+        <h2>Library</h2>
+        @if (_report != null)
+        {
+            <span class="bin-library-version">Catalog @_report.CatalogVersion</span>
+        }
+    </div>
+    @if (_error != null)
+    {
+        <div class="bin-empty">@_error</div>
+    }
+    else if (_report == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        @* the figures are the point of this page: one tile each *@
+        <div class="bin-stats">
+            <div class="bin-stat"><strong>@_report.Titles</strong><span>titles</span></div>
+            <div class="bin-stat"><strong>@_report.Files</strong><span>files</span></div>
+            <div class="bin-stat"><strong>@_report.Posters</strong><span>posters</span></div>
+            <div class="bin-stat"><strong>@_report.FilesWithSubtitles</strong><span>with subtitles</span></div>
+            @foreach (var (cls, n) in _report.Playback.OrderByDescending(kv => kv.Value))
+            {
+                <div class="bin-stat @(cls == "damaged" ? "bin-stat-warn" : "")"><strong>@n</strong><span>@cls</span></div>
+            }
+            <div class="bin-stat"><strong>@_report.Users</strong><span>@(_report.Users == 1 ? "user" : "users") with saved state</span></div>
+            <div class="bin-stat"><strong>@_report.Ratings</strong><span>ratings</span></div>
+        </div>
+        <details class="bin-library-howto">
+            <summary>How to refresh the catalog</summary>
+            <p class="bin-library-note">
+                A site administrator imports the catalogue at <code>api/import/catalog</code>, with its posters and
+                extracted subtitles. An import updates titles and files by their numbers and never deletes. Prepare the next
+                import with the verdicts below.
+            </p>
+        </details>
+        <h3 class="bin-section-title">Review queue <span class="bin-count">@_report.ReviewQueue.Count</span></h3>
+        <p class="bin-library-note">
+            Files the index could not identify. For each file: <strong>Ignore</strong> it (not a film: a capture, a stub, a
+            duplicate), say which catalog film it <strong>is</strong>, or leave a <strong>note</strong> for the next
+            identification run. A series episode needs a note.
+        </p>
+        @if (_report.ReviewQueue.Count == 0)
+        {
+            <p class="bin-library-empty">Nothing to review. Every file is identified or ignored.</p>
+        }
+        <ul class="bin-review" id="bin-review-queue">
+            @foreach (var f in _report.ReviewQueue)
+            {
+                var file = f;
+                var draft = Draft(file);
+                <li class="bin-review-item" data-path="@file.Path">
+                    <div class="bin-review-path" dir="auto">@file.Path</div>
+                    @if (!string.IsNullOrEmpty(file.Notes))
+                    {
+                        <div class="bin-review-notes" dir="auto">@file.Notes</div>
+                    }
+                    @if (file.Verdict != null)
+                    {
+                        <div class="bin-review-verdict" role="status">
+                            <strong>@VerdictText(file.Verdict)</strong>
+                            @if (!string.IsNullOrEmpty(file.Verdict.Note) && file.Verdict.Verdict != "note")
+                            {
+                                <span dir="auto"> - @file.Verdict.Note</span>
+                            }
+                            <span class="bin-review-by"> (@file.Verdict.UserName, @file.Verdict.UpdatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))</span>
+                            <FluentButton Appearance="ButtonAppearance.Subtle" Class="bin-review-undo" OnClick="@(() => Clear(file))">Undo</FluentButton>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="bin-review-actions">
+                            <FluentButton Appearance="ButtonAppearance.Default" Class="bin-review-ignore" OnClick="@(() => Save(file, draft, "ignore", null))">Ignore</FluentButton>
+                            <div class="bin-review-search">
+                                <input type="search" placeholder="It is... (search a film)" aria-label="Which catalog film this file is"
+                                       value="@draft.Query" @oninput="@(e => draft.Query = e.Value?.ToString() ?? string.Empty)" />
+                                @if (draft.Query.Trim().Length >= 2)
+                                {
+                                    <div class="bin-review-suggest" role="listbox">
+                                        @foreach (var c in Matches(draft.Query))
+                                        {
+                                            var card = c;
+                                            <button type="button" role="option" @onclick="@(() => Save(file, draft, "title", card.Id))">
+                                                @card.Title@(card.Year != null ? $" ({card.Year})" : "")
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <input type="text" class="bin-review-note" placeholder="Note (optional; what it is)" aria-label="Note"
+                                   maxlength="500" value="@draft.Note" @oninput="@(e => draft.Note = e.Value?.ToString() ?? string.Empty)" />
+                            <FluentButton Appearance="ButtonAppearance.Default" Class="bin-review-save-note"
+                                          Disabled="@string.IsNullOrWhiteSpace(draft.Note)" OnClick="@(() => Save(file, draft, "note", null))">Save note</FluentButton>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+        <h3 class="bin-section-title">Damaged files <span class="bin-count">@_report.Damaged.Count</span></h3>
+        <p class="bin-library-note">Files that cannot be played. Re-acquire them. Damaged files you ignored are counted above but not listed.</p>
+        @if (_report.Damaged.Count == 0)
+        {
+            <p class="bin-library-empty">No damaged files waiting.</p>
+        }
+        <table class="bin-table" id="bin-damaged">
+            @foreach (var f in _report.Damaged)
+            {
+                <tr><td dir="auto">@f.Title</td><td dir="auto">@f.Path</td></tr>
+            }
+        </table>
+        <h3 class="bin-section-title">Missing from the share <span class="bin-count">@_report.Missing.Count</span></h3>
+        <p class="bin-library-note">Hidden from browsing until they come back.</p>
+        @if (_report.Missing.Count == 0)
+        {
+            <p class="bin-library-empty">Every indexed file is on the share.</p>
+        }
+        <table class="bin-table" id="bin-missing">
+            @foreach (var f in _report.Missing)
+            {
+                <tr><td dir="auto">@f.Title</td><td dir="auto">@f.Path</td></tr>
+            }
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnBack { get; set; }
+    private Didin.Shared.Models.LibraryReport _report;
+    private string _error;
+    private readonly Dictionary<string, VerdictDraft> _drafts = new();
+
+    private sealed class VerdictDraft
+    {
+        public string Query { get; set; } = "";
+        public string Note { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        try { _report = await CatalogClient.GetLibraryReportAsync(); }
+        catch (Exception ex) { _error = "The library report is for administrators: " + ex.Message; }
+    }
+
+    private VerdictDraft Draft(Didin.Shared.Models.LibraryFile f) =>
+        _drafts.TryGetValue(f.Token, out var d) ? d : _drafts[f.Token] = new VerdictDraft();
+
+    // films and other single-file kinds only: a series file needs its episode, which a note carries
+    private IEnumerable<Didin.Shared.Models.CatalogCard> Matches(string query)
+    {
+        var q = Services.SearchText.Normalize(query);
+        return State.Catalog.Cards
+            .Where(c => c.Kind != "series")
+            .Where(c => Services.SearchText.Contains(Services.SearchText.Normalize(c.Title + " " + c.OriginalTitle), q))
+            .OrderBy(c => c.Title, StringComparer.OrdinalIgnoreCase)
+            .Take(6);
+    }
+
+    private static string VerdictText(Didin.Shared.Models.ReviewVerdict v) => v.Verdict switch
+    {
+        "ignore" => "Ignored",
+        "title" => $"Is {v.Title ?? $"title {v.TitleId}"}",
+        _ => $"Note: {v.Note}",
+    };
+
+    private async Task Save(Didin.Shared.Models.LibraryFile f, VerdictDraft draft, string verdict, int? titleId)
+    {
+        await CatalogClient.SaveReviewVerdictAsync(f.Token, new Didin.Shared.Models.ReviewVerdictUpdate
+        {
+            Verdict = verdict, TitleId = titleId, Note = string.IsNullOrWhiteSpace(draft.Note) ? null : draft.Note
+        });
+        _drafts.Remove(f.Token);
+        await Load();
+    }
+
+    private async Task Clear(Didin.Shared.Models.LibraryFile f)
+    {
+        await CatalogClient.DeleteReviewVerdictAsync(f.Token);
+        await Load();
+    }
+}

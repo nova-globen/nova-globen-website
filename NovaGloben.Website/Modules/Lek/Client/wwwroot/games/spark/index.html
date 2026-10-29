@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Spark</title>
+<link rel="stylesheet" href="spark.css?v=1">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="512" height="288"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="hud-left"></div>
+    <div id="hud-center"></div>
+    <div id="hud-right"></div>
+  </div>
+  <div id="bars" class="hidden">
+    <div class="bar"><span id="hp-bar"></span></div>
+    <div class="cds"><span id="cd1" class="cd">FIRE</span><span id="cd2" class="cd">ABILITY</span></div>
+  </div>
+  <div id="score" class="hidden"></div>
+  <div id="ping" class="hidden"></div>
+  <button id="fullscreen" class="icon hidden" title="Full screen">&#x26F6;</button>
+  <div id="touch" class="hidden">
+    <button id="btn-fire">FIRE</button>
+    <button id="btn-ability">ABILITY</button>
+  </div>
+
+  <div id="banner" class="hidden"></div>
+
+  <div id="lobby" class="panel">
+    <h1>SPARK</h1>
+    <p class="tag">Arena brawl. Every character is equal; only aim and timing count.</p>
+    <div id="connect-form">
+      <label>Your name
+        <input id="name" maxlength="14" autocomplete="off" placeholder="nickname">
+      </label>
+      <div class="row">
+        <button id="create" class="primary">Create room</button>
+      </div>
+      <div class="row">
+        <input id="code" maxlength="4" autocomplete="off" placeholder="CODE" class="code">
+        <button id="join">Join</button>
+      </div>
+      <p id="connect-msg" class="msg"></p>
+    </div>
+    <div id="room-form" class="hidden">
+      <div class="roomcode">Room <span id="room-code"></span> <button id="share" class="small">copy link</button></div>
+      <div id="kinds" class="kinds"></div>
+      <ul id="players"></ul>
+      <div class="row owner-only">
+        <button id="addbot" class="small">+ bot</button>
+        <button id="removebot" class="small">- bot</button>
+      </div>
+      <div class="row">
+        <button id="start" class="primary owner-only">Start</button>
+        <button id="leave">Leave</button>
+      </div>
+      <p id="room-msg" class="msg"></p>
+      <p class="help">WASD / arrows to move, mouse to aim. Click or Space fires, right click, Shift or E is your ability.
+        First to 10 kills, or the best score after 3 minutes. An ability shows before it lands: watch for the glow.</p>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script src="../site.js?v=1"></script>
+    <script src="spark.js?v=2"></script>
+</body>
+</html>

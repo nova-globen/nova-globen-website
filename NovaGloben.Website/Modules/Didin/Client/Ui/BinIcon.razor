@@ -1,0 +1,67 @@
+@namespace Didin.Module.Media
+
+@* Outline icons in the design's style: 24x24, 1.8px round strokes in currentColor. Decorative: the
+   control that holds one carries the label. *@
+<svg class="bin-icon @Class" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"
+     fill="@(Filled ? "currentColor" : "none")" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    @switch (Name)
+    {
+        case "home":
+            <path d="M3.5 10.5 12 3.5l8.5 7V20a.5.5 0 0 1-.5.5h-5v-6h-6v6H4a.5.5 0 0 1-.5-.5z" />
+            break;
+        case "heart":
+            <path d="M12 20.3s-7.6-4.6-9.3-9.4C1.5 7.4 3.6 4.2 7 4.2c2.1 0 3.6 1.2 5 2.9 1.4-1.7 2.9-2.9 5-2.9 3.4 0 5.5 3.2 4.3 6.7-1.7 4.8-9.3 9.4-9.3 9.4z" />
+            break;
+        case "trending":
+            <polyline points="3 17 9 11 13 15 21 7" /><polyline points="15 7 21 7 21 13" />
+            break;
+        case "new":
+            <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" />
+            break;
+        case "library":
+            <path d="M4 20V5M8.5 20V5" /><path d="m13 6.2 4-1.1 3.6 13.6-4 1z" /><path d="M3 20.5h18" />
+            break;
+        case "sparkle":
+            <path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9-1.9 5.1-1.9-5.1-5.1-1.9 5.1-1.9z" /><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" />
+            break;
+        case "check":
+            <path d="m5 12.5 4.5 4.5L19 7.5" />
+            break;
+        case "download":
+            <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5" /><path d="M4.5 19.5h15" />
+            break;
+        case "search":
+            <circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.4-4.4" />
+            break;
+        case "filter":
+            <path d="M4 6h16M7 12h10M10 18h4" />
+            break;
+        case "play":
+            <path d="M7 4.8v14.4a.8.8 0 0 0 1.2.7l11.6-7.2a.8.8 0 0 0 0-1.4L8.2 4.1A.8.8 0 0 0 7 4.8z" />
+            break;
+        case "back":
+            <path d="M19 12H5M11 18l-6-6 6-6" />
+            break;
+        case "close":
+            <path d="M6 6l12 12M18 6 6 18" />
+            break;
+        case "cast":
+            <path d="M3.5 8V6a1.5 1.5 0 0 1 1.5-1.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-6" /><path d="M3.5 12a8 8 0 0 1 8 8M3.5 16a4 4 0 0 1 4 4" /><path d="M3.5 20h.01" />
+            break;
+        case "airplay":
+            <path d="M6.5 17.5H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h14A1.5 1.5 0 0 1 20.5 5v11a1.5 1.5 0 0 1-1.5 1.5h-1.5" /><path d="m12 14.5 5 6H7z" />
+            break;
+        case "pause":
+            <path d="M8.5 5v14M15.5 5v14" />
+            break;
+        case "star":
+            <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+            break;
+    }
+</svg>
+
+@code {
+    [Parameter] public string Name { get; set; }
+    [Parameter] public bool Filled { get; set; }
+    [Parameter] public string Class { get; set; }
+}

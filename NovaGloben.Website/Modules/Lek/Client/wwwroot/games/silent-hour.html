@@ -1,0 +1,384 @@
+<title>Silent Hour</title>
+<style>
+/* Layout: a survey-map board on the left, a field-orders panel on the right; stacks on phones. */
+:root{
+  --bg:#e7ebe2; --panel:#dbe1d5; --ink:#1b2925; --muted:#55655e; --line:#b9c2b3;
+  --floor:#f5f6ef; --wall:#3c4a45; --vis:#d99400; --guard:#b0301f; --beret:#1c7548; --spy:#4a3da6; --accent:#0d5d69;
+  --display:"Saira Stencil One","Impact","Arial Narrow",sans-serif;
+  --body:"Saira","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10181b; --panel:#172226; --ink:#e2e9e1; --muted:#8c9d97; --line:#2c3b40;
+  --floor:#1d2a2e; --wall:#55676c; --vis:#ffc233; --guard:#ff6b55; --beret:#4fd08a; --spy:#a99dff; --accent:#5cc4d1;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#10181b; --panel:#172226; --ink:#e2e9e1; --muted:#8c9d97; --line:#2c3b40;
+  --floor:#1d2a2e; --wall:#55676c; --vis:#ffc233; --guard:#ff6b55; --beret:#4fd08a; --spy:#a99dff; --accent:#5cc4d1;
+  color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:960px;margin:0 auto;padding-inline:16px;padding-block:20px 32px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:400;font-size:2.2rem;line-height:1;margin:0;letter-spacing:.04em;text-transform:uppercase}
+.tag{margin:4px 0 0;color:var(--muted)}
+.daybar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#daylabel{font-weight:600;font-variant-numeric:tabular-nums;min-width:11.5em;text-align:center}
+button{font:600 .9rem var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 12px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+kbd{font:500 .72rem var(--body);color:var(--muted);margin-left:4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (min-width:820px){.layout{grid-template-columns:minmax(0,1fr) 320px;align-items:start}}
+.boardcol{display:flex;flex-direction:column;gap:10px;min-width:0}
+#status{min-height:2.9em;padding:8px 12px;border-left:4px solid var(--accent);background:var(--panel);font-weight:500}
+#status.bad{border-color:var(--guard)} #status.good{border-color:var(--beret)}
+#board{width:100%;max-width:560px;aspect-ratio:1;display:block;touch-action:manipulation;cursor:pointer;user-select:none;-webkit-user-select:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:.85rem;margin:0;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;display:inline-block;flex:none}
+.sw.now{background:color-mix(in srgb,var(--vis) 35%,transparent)}
+.sw.close{background:color-mix(in srgb,var(--vis) 70%,transparent)}
+.sw.next{border:2px dashed var(--vis)}
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0}
+.scores div{border-top:2px solid var(--ink);padding-top:6px}
+.scores dt{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.scores dd{margin:0;font-family:var(--display);font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.account{margin:-6px 0 0;font-size:.8rem;color:var(--muted);line-height:1.5}
+.account a{color:inherit}
+.account b{color:var(--ink,inherit)}
+.squad{display:flex;flex-direction:column;gap:8px}
+.op{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;text-align:left;align-items:start;font-weight:400;padding:10px}
+.op[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.op b{display:block;font-weight:700}
+.op span{color:var(--muted);font-size:.85rem}
+.glyph{width:26px;height:26px;display:grid;place-items:center;color:var(--bg);font-weight:700;font-size:.9rem}
+.glyph.b{background:var(--beret);border-radius:5px}
+.glyph.s{background:var(--spy);transform:rotate(45deg) scale(.82)} .glyph.s i{transform:rotate(-45deg);font-style:normal}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions .wide{grid-column:1/-1}
+#result{border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}
+#result h2{margin:0;font-family:var(--display);font-weight:400;font-size:1.3rem;letter-spacing:.04em;text-transform:uppercase}
+#sharetext{width:100%;font:500 .85rem var(--body);background:var(--floor);color:var(--ink);border:1px solid var(--line);padding:8px;resize:none}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{font-weight:600;cursor:pointer}
+details ol{margin:8px 0 0;padding-left:1.2em;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+/* board */
+.floor{fill:var(--floor)} .wall{fill:var(--wall)}
+.vis{fill:var(--vis);opacity:.3} .vis.close{opacity:.65}
+.vnext{fill:none;stroke:var(--vis);stroke-width:.55;stroke-dasharray:1.3 1} .vnext.close{stroke-width:1}
+.route{stroke:var(--guard);stroke-width:.4;stroke-dasharray:.5 1.3;stroke-linecap:round;opacity:.7}
+.guard{fill:var(--guard)} .beret{fill:var(--beret)} .spy{fill:var(--spy)}
+.ut{fill:var(--bg);font:700 4px var(--body);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.sel{fill:none;stroke:var(--ink);stroke-width:.6}
+.dot{fill:var(--ink);opacity:.4}
+.exfil{fill:none;stroke:var(--beret);stroke-width:.6;stroke-dasharray:2 1.1}
+.et{fill:var(--beret);font:700 2.6px var(--body);text-anchor:middle;dominant-baseline:central;letter-spacing:.1em}
+.intel{fill:var(--floor);stroke:var(--ink);stroke-width:.5} .intel-l{stroke:var(--ink);stroke-width:.4}
+.hint{fill:none;stroke:var(--accent);stroke-width:1}
+.tkd{fill:none;stroke:var(--ink);stroke-width:.5;stroke-dasharray:1 .8}
+.cline{stroke:var(--guard);stroke-width:.9;stroke-linecap:round}
+.cring{fill:none;stroke:var(--guard);stroke-width:.9}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Silent Hour</h1>
+      <p class="tag">One raid a day. Get the intel out unseen, in as few turns as you can.</p>
+    </div>
+    <div class="daybar">
+      <button id="prev" aria-label="Previous raid">&lsaquo;</button>
+      <span id="daylabel">Raid</span>
+      <button id="next" aria-label="Next raid">&rsaquo;</button>
+      <button id="today">Today</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="boardcol">
+      <div id="status" role="status" aria-live="polite">Scouting the map…</div>
+      <svg id="board" viewBox="0 0 90 90" role="img" aria-label="Raid map"></svg>
+      <ul class="legend">
+        <li><span class="sw now"></span>Watched now</li>
+        <li><span class="sw close"></span>Close range (catches the Spy too)</li>
+        <li><span class="sw next"></span>Watched after the guards step</li>
+      </ul>
+    </section>
+
+    <aside class="panel">
+      <dl class="scores">
+        <div><dt>Turns</dt><dd id="turns">0</dd></div>
+        <div><dt>Best possible</dt><dd id="par">–</dd></div>
+        <div><dt>Your best</dt><dd id="best">–</dd></div>
+      </dl>
+      <p id="account" class="account">Playing as a guest. <a href="#" data-site="/login" data-return="/silent-hour" target="_top">Sign in</a> to keep your raids, streak and bests on your account.</p>
+
+      <div id="result" hidden>
+        <h2 id="resulthead">Out clean</h2>
+        <textarea id="sharetext" rows="4" readonly aria-label="Result to share"></textarea>
+        <button id="copy" class="primary">Copy result</button>
+      </div>
+
+      <div class="squad">
+        <button class="op" id="opB" aria-pressed="true"><span class="glyph b">B</span><span><b>Beret <kbd>1</kbd></b><span>Seen anywhere in a guard's view. Can take out one guard per raid, from beside or behind.</span></span></button>
+        <button class="op" id="opS" aria-pressed="false"><span class="glyph s"><i>S</i></span><span><b>Spy <kbd>2</kbd></b><span>Disguised: only caught in the square directly in front of a guard. Only he can lift the intel.</span></span></button>
+      </div>
+
+      <div class="actions">
+        <button id="wait">Wait <kbd>Space</kbd></button>
+        <button id="tkd">Take out <kbd>T</kbd></button>
+        <button id="undo">Undo <kbd>Z</kbd></button>
+        <button id="restart">Restart <kbd>R</kbd></button>
+        <button id="hint" class="wide">Show the solver's next move <kbd>H</kbd></button>
+      </div>
+
+      <details open>
+        <summary>How a raid works</summary>
+        <ol>
+          <li>Each turn, move one operative one square (tap a neighbouring square, or use the arrow keys), or wait. Then every guard takes one step along his dotted route.</li>
+          <li>Never step into a tinted square. Never end a turn in a dashed square: it becomes tinted when the guards step.</li>
+          <li>Walk the Spy onto the intel, then stand both operatives on the two OUT squares.</li>
+          <li>The Beret can remove one guard: stand next to him, outside his view, and tap him.</li>
+          <li>Every map is proven solvable. "Best possible" is the shortest route the solver found.</li>
+        </ol>
+      </details>
+    </aside>
+  </main>
+</div>
+
+<script src="site.js?v=1"></script>
+<script>
+//CORE-START
+const W=9,H=9,N=81,DX=[0,1,0,-1],DY=[-1,0,1,0],RANGE=4;
+function rng32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const gcd=(a,b)=>b?gcd(b,a%b):a, lcm=(a,b)=>a/gcd(a,b)*b;
+function dists(wall,from){const d=new Int16Array(N).fill(-1),q=[from];d[from]=0;for(let h=0;h<q.length;h++){const c=q[h],x=c%W,y=c/W|0;for(let k=0;k<4;k++){const nx=x+DX[k],ny=y+DY[k];if(nx<0||ny<0||nx>=W||ny>=H)continue;const n=ny*W+nx;if(wall[n]||d[n]>=0)continue;d[n]=d[c]+1;q.push(n)}}return d}
+function cone(wall,c,d,B,S){let x=c%W,y=c/W|0;for(let k=1;k<=RANGE;k++){x+=DX[d];y+=DY[d];if(x<0||y<0||x>=W||y>=H||wall[y*W+x])break;B[y*W+x]=1;if(k===1)S[y*W+x]=1;if(k>=2)for(const s of[-1,1]){const lx=x+s*DY[d],ly=y+s*DX[d];if(lx>=0&&ly>=0&&lx<W&&ly<H&&!wall[ly*W+lx])B[ly*W+lx]=1}}}
+function build(seed){
+  const r=rng32(seed),ri=n=>Math.floor(r()*n),id=(x,y)=>y*W+x;
+  const fX=ri(2),fY=ri(2),fx=x=>fX?W-1-x:x,fy=y=>fY?H-1-y:y;
+  const starts=[id(fx(0),fy(8)),id(fx(1),fy(8))],exits=[id(fx(8),fy(0)),id(fx(7),fy(0))];
+  const reserved=new Set([...starts,...exits]),wall=new Uint8Array(N);
+  for(let s=7+ri(4);s>0;s--){const hz=ri(2),len=2+ri(3),x=ri(W-(hz?len-1:0)),y=ri(H-(hz?0:len-1));for(let i=0;i<len;i++){const c=id(x+(hz?i:0),y+(hz?0:i));if(!reserved.has(c))wall[c]=1}}
+  const dS=dists(wall,starts[0]);let floor=0;
+  for(let c=0;c<N;c++){if(!wall[c]&&dS[c]<0)wall[c]=1;if(!wall[c])floor++}
+  if(floor<48||dS[starts[1]]<0||dS[exits[0]]<0||dS[exits[1]]<0)return null;
+  const dE=dists(wall,exits[0]);let intel=-1,bs=-1;
+  for(let c=0;c<N;c++){if(wall[c]||reserved.has(c)||dS[c]<4||dE[c]<4)continue;const sc=r();if(sc>bs){bs=sc;intel=c}}
+  if(intel<0)return null;
+  const used=new Set([...reserved,intel]),guards=[];let sentry=0;
+  for(let tries=0;tries<300&&guards.length<3;tries++){
+    const n=[3,4,4,5,5,7,1][ri(7)],x=ri(W),y=ri(H),d=ri(4),path=[];let ok=true;
+    if(n===1&&sentry)continue;
+    for(let i=0;i<(n===1?4:n);i++){const xx=x+DX[d]*i,yy=y+DY[d]*i;if(xx<0||yy<0||xx>=W||yy>=H){ok=false;break}const c=id(xx,yy);if(wall[c]||used.has(c)){ok=false;break}path.push(c)}
+    if(!ok)continue;
+    if(n===1){guards.push({path:[path[0]],dir:d,phase:0});sentry=1;used.add(path[0])}
+    else{guards.push({path,dir:d,phase:ri(2*(n-1))});path.forEach(c=>used.add(c))}
+  }
+  if(guards.length<3)return null;
+  const L={wall,starts,exits,intel,guards,full:7,isExit:new Uint8Array(N)};exits.forEach(c=>L.isExit[c]=1);
+  let T=1;const per=guards.map(g=>g.path.length===1?1:2*(g.path.length-1));per.forEach(p=>T=lcm(T,p));L.T=T;
+  L.gpos=[];L.gdir=[];L.seenB=[];L.seenS=[];
+  guards.forEach((g,gi)=>{const P=per[gi],n=g.path.length,pos=[],dir=[],sb=[],ss=[];
+    for(let t=0;t<T;t++){let c,d;if(n===1){c=g.path[0];d=g.dir}else{const k=(t+g.phase)%P,k2=(k+1)%P,i=k<n?k:P-k,i2=k2<n?k2:P-k2;c=g.path[i];const df=g.path[i2]-c;d=df===-W?0:df===1?1:df===W?2:3}
+      const B=new Uint8Array(N),S=new Uint8Array(N);cone(wall,c,d,B,S);pos.push(c);dir.push(d);sb.push(B);ss.push(S)}
+    L.gpos.push(pos);L.gdir.push(dir);L.seenB.push(sb);L.seenS.push(ss)});
+  for(let t=0;t<T;t++)for(let g=0;g<3;g++)if(L.seenB[g][t][starts[0]]||L.seenB[g][t][starts[1]])return null;
+  const dSp=dists(wall,starts[1]),dI=dists(wall,intel),dB=dists(wall,starts[0]);
+  L.free=dSp[intel]+Math.min(dI[exits[0]]+dB[exits[1]],dI[exits[1]]+dB[exits[0]]);
+  return L;
+}
+// One rule function shared by the game and the solver. Returns 0 ok, 1 illegal, 2 caught.
+let oa,ob,oal,oin,cg,cw,ct;
+function apply(L,a,b,t,alive,intel,act){
+  let na=a,nb=b,nal=alive,nin=intel;
+  if(act<8){const who=act>>2,d=act&3,c=who?b:a,x=c%W+DX[d],y=(c/W|0)+DY[d];
+    if(x<0||y<0||x>=W||y>=H)return 1;const n=y*W+x;if(L.wall[n]||n===(who?a:b))return 1;
+    for(let g=0;g<3;g++)if(alive>>g&1&&L.gpos[g][t]===n)return 1;
+    if(who){nb=n;if(n===L.intel)nin=1}else na=n;
+  }else if(act>8){const g=act-9;if(alive!==L.full)return 1;const p=L.gpos[g][t];
+    if(Math.abs(p%W-a%W)+Math.abs((p/W|0)-(a/W|0))!==1)return 1;nal=alive&~(1<<g)}
+  oa=na;ob=nb;oal=nal;oin=nin;
+  for(let k=0;k<2;k++){const tt=k?(t+1)%L.T:t;
+    for(let g=0;g<3;g++){if(!(nal>>g&1))continue;const p=L.gpos[g][tt];
+      if(p===na||L.seenB[g][tt][na]){cg=g;cw=0;ct=tt;return 2}
+      if(p===nb||L.seenS[g][tt][nb]){cg=g;cw=1;ct=tt;return 2}}}
+  return 0;
+}
+let VIS,PAR,PACT,Q;
+function solve(L,a0,b0,t0,al0,in0){
+  const T=L.T;if(!VIS){VIS=new Uint8Array(N*N*24*16);PAR=new Int32Array(VIS.length);PACT=new Uint8Array(VIS.length);Q=new Int32Array(VIS.length)}
+  VIS.fill(0,0,N*N*T*16);
+  const enc=(a,b,t,al,i)=>(((a*N+b)*T+t)*8+al)*2+i,s0=enc(a0,b0,t0,al0,in0);
+  let qh=0,qt=0;Q[qt++]=s0;VIS[s0]=1;PAR[s0]=-1;
+  while(qh<qt){const s=Q[qh++];let v=s;const i=v&1;v>>=1;const al=v&7;v>>=3;const t=v%T;v=(v/T)|0;const b=v%N,a=(v/N)|0;
+    for(let act=0;act<12;act++){if(apply(L,a,b,t,al,i,act)!==0)continue;
+      const ns=enc(oa,ob,(t+1)%T,oal,oin);if(VIS[ns])continue;VIS[ns]=1;PAR[ns]=s;PACT[ns]=act;
+      if(oin&&L.isExit[oa]&&L.isExit[ob]){const path=[];let c=ns;while(PAR[c]!==-1){path.push(PACT[c]);c=PAR[c]}return path.reverse()}
+      Q[qt++]=ns}}
+  return null;
+}
+function generate(n){
+  let fallback=null;
+  for(let k=0;k<400;k++){const L=build((n*7919+k*104729+12345)|0);if(!L)continue;
+    const sol=solve(L,L.starts[0],L.starts[1],0,7,0);if(!sol)continue;
+    L.par=sol.length;L.attempt=k;
+    if(sol.length>=16&&sol.length<=34&&sol.length-L.free>=3)return L;
+    if(!fallback)fallback=L;if(k>120&&fallback)return fallback}
+  return fallback;
+}
+//CORE-END
+
+const $=id=>document.getElementById(id),board=$('board'),statusEl=$('status');
+const EPOCH=Date.UTC(2026,9,11);
+function todayNum(){const d=new Date();return Math.max(1,Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-EPOCH)/864e5)+1)}
+let num=todayNum(),lvl=null,hist=[],caught=null,sel=0,alarms=0,hints=0,hintCell=-1,bests={},account=null;
+try{bests=JSON.parse(localStorage.getItem(LekSite.key('silent-hour-best'))||'{}')||{}}catch(e){}
+// Signed in on the site? Then the server keeps the raids (api/silenthour); a guest keeps localStorage only.
+function showAccount(){
+  const el=$('account');if(!el)return;
+  if(!account){return}
+  el.innerHTML='<b></b> · <span id="acc-played"></span> raids · streak <span id="acc-streak"></span> · <span id="acc-perfect"></span> perfect';
+  el.querySelector('b').textContent=account.name||'Signed in';
+  $('acc-played').textContent=account.played;$('acc-streak').textContent=account.streak;$('acc-perfect').textContent=account.perfect;
+}
+function applyAccount(data){
+  account=data;
+  for(const k in data.raids||{}){const r=data.raids[k];if(!bests[k]||r.turns<bests[k])bests[k]=r.turns}
+  showAccount();if(lvl){labelDay();render()}
+}
+function labelDay(){
+  const n=num,d=new Date(EPOCH+(n-1)*864e5),t=todayNum(),done=account&&account.raids&&account.raids[n];
+  $('daylabel').textContent='Raid #'+n+' · '+(n>t?'practice':d.toLocaleDateString(undefined,{day:'numeric',month:'short',timeZone:'UTC'}))+(done?' ✓':'');
+}
+fetch(LekSite.url('/api/silenthour/progress'),{credentials:'same-origin',headers:{'Accept':'application/json'}})
+  .then(r=>r.ok?r.json():null).then(d=>{if(d)applyAccount(d)}).catch(()=>{});
+function recordRaid(n,turns,par,takedown){
+  if(!account)return;
+  fetch(LekSite.url('/api/silenthour/day/')+n,{method:'PUT',credentials:'same-origin',
+    headers:{'Content-Type':'application/json','X-Requested-With':'SilentHour'},
+    body:JSON.stringify({turns,par,takedown,alarms,hints})})
+    .then(r=>r.ok?r.json():null).then(d=>{if(d)applyAccount(d)}).catch(()=>{});
+}
+const cur=()=>hist[hist.length-1];
+const won=()=>{const s=cur();return !!(lvl&&s.intel&&lvl.isExit[s.a]&&lvl.isExit[s.b])};
+const DIRN=['up','right','down','left'];
+function say(msg,cls){statusEl.textContent=msg;statusEl.className=cls||''}
+
+function load(n,snap){
+  num=n;lvl=null;say('Scouting the map…');
+  const d=new Date(EPOCH+(n-1)*864e5),t=todayNum();
+  labelDay();
+  $('prev').disabled=n<=1;$('today').disabled=n===t;
+  setTimeout(()=>{
+    lvl=generate(n);
+    if(!lvl){say('No valid map for this number. Try the next raid.','bad');return}
+    hist=[{a:lvl.starts[0],b:lvl.starts[1],t:0,alive:7,intel:0,act:-1}];caught=null;sel=0;alarms=0;hints=0;hintCell=-1;
+    if(snap&&snap.acts){alarms=snap.alarms||0;hints=snap.hints||0;sel=snap.sel||0;for(const a of snap.acts){const s=cur();if(apply(lvl,s.a,s.b,s.t,s.alive,s.intel,a)!==0)break;hist.push({a:oa,b:ob,t:(s.t+1)%lvl.T,alive:oal,intel:oin,act:a})}}
+    $('par').textContent=lvl.par;idle();render();
+  },20);
+}
+function idle(){
+  if(won())return;
+  const s=cur();
+  say((sel?'Spy':'Beret')+' selected. '+(s.intel?'Intel in hand: get both operatives to the OUT squares.':'Walk the Spy onto the intel.'));
+}
+function doAct(act){
+  if(!lvl||caught||won())return;
+  const s=cur(),r=apply(lvl,s.a,s.b,s.t,s.alive,s.intel,act);hintCell=-1;
+  if(r===1){say(act>8?'The Beret has to be next to the guard, and he gets one takedown per raid.':'That square is blocked.','bad');return}
+  if(r===2){caught={a:oa,b:ob,t:ct,alive:oal,intel:oin,g:cg,who:cw,late:ct!==s.t};alarms++;
+    say('Spotted. A guard saw the '+(cw?'Spy':'Beret')+(caught.late?' after the patrols stepped.':' as he moved.')+' Undo and try another way.','bad');render();return}
+  hist.push({a:oa,b:ob,t:(s.t+1)%lvl.T,alive:oal,intel:oin,act});
+  if(won())finish();else idle();
+  render();
+}
+function finish(){
+  const turns=hist.length-1,par=lvl.par;
+  if(!bests[num]||turns<bests[num]){bests[num]=turns;try{localStorage.setItem(LekSite.key('silent-hour-best'),JSON.stringify(bests))}catch(e){}}
+  recordRaid(num,turns,par,cur().alive!==7);
+  const grade=turns<=par?'Perfect raid':turns<=par+3?'Clean raid':'Out alive';
+  say(grade+': out in '+turns+' turns. Best possible is '+par+'.','good');
+  $('resulthead').textContent=grade;
+  const strip=hist.slice(1).map(h=>h.act>8?'🟥':h.act===8?'⬜':h.act>3?'🟪':'🟩').join('');
+  $('sharetext').value='Silent Hour #'+num+'\n'+turns+' turns (best possible '+par+')\n'+(cur().alive===7?'No takedown':'Takedown used')+' · '+alarms+' alarms · '+hints+' hints\n'+strip;
+}
+function undo(){if(!lvl)return;hintCell=-1;if(caught)caught=null;else if(hist.length>1)hist.pop();idle();render()}
+function restart(){if(!lvl)return;hintCell=-1;caught=null;hist=[hist[0]];idle();render()}
+function takeout(){if(!lvl)return;const s=cur();for(let g=0;g<3;g++)if(s.alive>>g&1&&adj(s.a,lvl.gpos[g][s.t])){doAct(9+g);return}doAct(9)}
+const adj=(p,q)=>Math.abs(p%W-q%W)+Math.abs((p/W|0)-(q/W|0))===1;
+function hint(){
+  if(!lvl||won())return;if(caught){caught=null}
+  const s=cur(),p=solve(lvl,s.a,s.b,s.t,s.alive,s.intel);hints++;
+  if(!p){say('There is no way out from this position. Undo a few turns.','bad');render();return}
+  const a=p[0];
+  if(a<8){const c=a>3?s.b:s.a;hintCell=((c/W|0)+DY[a&3])*W+c%W+DX[a&3];sel=a>3?1:0;say('Solver: move the '+(a>3?'Spy':'Beret')+' '+DIRN[a&3]+'. '+p.length+' turns to go from here.')}
+  else if(a===8){hintCell=-1;say('Solver: wait a turn. '+p.length+' turns to go from here.')}
+  else{hintCell=lvl.gpos[a-9][s.t];sel=0;say('Solver: take out that guard. '+p.length+' turns to go from here.')}
+  render();
+}
+
+function render(){
+  if(!lvl)return;
+  const L=lvl,v=caught||cur(),t=v.t,t2=(t+1)%L.T,done=won();let h='';
+  const cx=c=>c%W*10+5,cy=c=>(c/W|0)*10+5;
+  const uB=new Uint8Array(N),uS=new Uint8Array(N),nB=new Uint8Array(N),nS=new Uint8Array(N);
+  for(let g=0;g<3;g++){if(!(v.alive>>g&1))continue;for(let c=0;c<N;c++){uB[c]|=L.seenB[g][t][c];uS[c]|=L.seenS[g][t][c];nB[c]|=L.seenB[g][t2][c];nS[c]|=L.seenS[g][t2][c]}}
+  for(let c=0;c<N;c++){const x=c%W*10,y=(c/W|0)*10;
+    h+='<rect x="'+(x+.3)+'" y="'+(y+.3)+'" width="9.4" height="9.4" rx="1" class="'+(L.wall[c]?'wall':'floor')+'"/>';
+    if(uB[c])h+='<rect x="'+(x+.3)+'" y="'+(y+.3)+'" width="9.4" height="9.4" rx="1" class="vis'+(uS[c]?' close':'')+'"/>';
+    if(!caught&&!done&&nB[c])h+='<rect x="'+(x+1.6)+'" y="'+(y+1.6)+'" width="6.8" height="6.8" class="vnext'+(nS[c]?' close':'')+'"/>'}
+  L.exits.forEach(c=>{h+='<rect x="'+(c%W*10+1)+'" y="'+((c/W|0)*10+1)+'" width="8" height="8" class="exfil"/><text x="'+cx(c)+'" y="'+cy(c)+'" class="et">OUT</text>'});
+  if(!v.intel){const x=cx(L.intel),y=cy(L.intel);h+='<rect x="'+(x-2.2)+'" y="'+(y-2.8)+'" width="4.4" height="5.6" class="intel"/>';for(const o of[-1.2,0,1.2])h+='<line x1="'+(x-1.2)+'" x2="'+(x+1.2)+'" y1="'+(y+o)+'" y2="'+(y+o)+'" class="intel-l"/>'}
+  for(let g=0;g<3;g++){if(!(v.alive>>g&1))continue;const p=L.guards[g].path;if(p.length>1)h+='<line x1="'+cx(p[0])+'" y1="'+cy(p[0])+'" x2="'+cx(p[p.length-1])+'" y2="'+cy(p[p.length-1])+'" class="route"/>'}
+  if(!caught&&!done){const c=sel?v.b:v.a;for(let d=0;d<4;d++){const x=c%W+DX[d],y=(c/W|0)+DY[d];if(x<0||y<0||x>=W||y>=H)continue;const n=y*W+x;if(L.wall[n]||n===v.a||n===v.b)continue;let occ=false;for(let g=0;g<3;g++)if(v.alive>>g&1&&L.gpos[g][t]===n)occ=true;if(!occ)h+='<circle cx="'+cx(n)+'" cy="'+cy(n)+'" r="1" class="dot"/>'}}
+  if(hintCell>=0)h+='<rect x="'+(hintCell%W*10+.8)+'" y="'+((hintCell/W|0)*10+.8)+'" width="8.4" height="8.4" rx="1" class="hint"/>';
+  let canT=false;
+  for(let g=0;g<3;g++){if(!(v.alive>>g&1))continue;const p=L.gpos[g][t],d=L.gdir[g][t],x=cx(p),y=cy(p),ax=DX[d],ay=DY[d];
+    h+='<polygon class="guard" points="'+(x+ax*4.7)+','+(y+ay*4.7)+' '+(x+ax*2.2+ay*2)+','+(y+ay*2.2+ax*2)+' '+(x+ax*2.2-ay*2)+','+(y+ay*2.2-ax*2)+'"/><circle cx="'+x+'" cy="'+y+'" r="2.9" class="guard"/>';
+    if(!caught&&!done&&v.alive===7&&adj(v.a,p)){canT=true;h+='<circle cx="'+x+'" cy="'+y+'" r="4.3" class="tkd"/>'}}
+  if(caught){const p=L.gpos[caught.g][t],o=caught.who?v.b:v.a;h+='<line x1="'+cx(p)+'" y1="'+cy(p)+'" x2="'+cx(o)+'" y2="'+cy(o)+'" class="cline"/><circle cx="'+cx(o)+'" cy="'+cy(o)+'" r="4.4" class="cring"/>'}
+  h+='<rect x="'+(cx(v.a)-3)+'" y="'+(cy(v.a)-3)+'" width="6" height="6" rx="1.2" class="beret"/><text x="'+cx(v.a)+'" y="'+(cy(v.a)+.2)+'" class="ut">B</text>';
+  h+='<rect x="'+(cx(v.b)-2.6)+'" y="'+(cy(v.b)-2.6)+'" width="5.2" height="5.2" class="spy" transform="rotate(45 '+cx(v.b)+' '+cy(v.b)+')"/><text x="'+cx(v.b)+'" y="'+(cy(v.b)+.2)+'" class="ut">S</text>';
+  if(!done){const c=sel?v.b:v.a;h+='<circle cx="'+cx(c)+'" cy="'+cy(c)+'" r="4.5" class="sel"/>'}
+  board.innerHTML=h;
+  $('turns').textContent=hist.length-1;$('best').textContent=bests[num]||'–';
+  $('opB').setAttribute('aria-pressed',sel===0);$('opS').setAttribute('aria-pressed',sel===1);
+  $('tkd').disabled=!canT;$('wait').disabled=!!caught||done;$('undo').disabled=hist.length<2&&!caught;$('hint').disabled=done;
+  $('result').hidden=!done;
+}
+function pick(w){sel=w;hintCell=-1;if(!caught)idle();render()}
+board.addEventListener('click',e=>{
+  if(!lvl||won())return;const r=board.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*W),y=Math.floor((e.clientY-r.top)/r.height*H);
+  if(x<0||y<0||x>=W||y>=H)return;const c=y*W+x,s=cur();
+  if(caught)return;
+  if(c===s.a){pick(0);return}if(c===s.b){pick(1);return}
+  for(let g=0;g<3;g++)if(s.alive>>g&1&&lvl.gpos[g][s.t]===c){doAct(9+g);return}
+  const me=sel?s.b:s.a;
+  if(adj(me,c)){doAct(sel*4+(c===me-W?0:c===me+1?1:c===me+W?2:3));return}
+  const other=sel?s.a:s.b;
+  if(adj(other,c)){sel=1-sel;doAct(sel*4+(c===other-W?0:c===other+1?1:c===other+W?2:3))}
+});
+$('opB').onclick=()=>pick(0);$('opS').onclick=()=>pick(1);
+$('wait').onclick=()=>doAct(8);$('tkd').onclick=takeout;$('undo').onclick=undo;$('restart').onclick=restart;$('hint').onclick=hint;
+$('prev').onclick=()=>load(num-1);$('next').onclick=()=>load(num+1);$('today').onclick=()=>load(todayNum());
+$('copy').onclick=()=>{const ta=$('sharetext');const ok=()=>{$('copy').textContent='Copied'};const sel2=()=>{ta.focus();ta.select();$('copy').textContent='Selected: press Ctrl+C'};
+  try{navigator.clipboard.writeText(ta.value).then(ok,sel2)}catch(e){sel2()}};
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase(),tag=e.target.tagName;
+  if(tag==='TEXTAREA')return;
+  const d={arrowup:0,w:0,arrowright:1,d:1,arrowdown:2,s:2,arrowleft:3,a:3}[k];
+  if(d!==undefined){e.preventDefault();doAct(sel*4+d);return}
+  if(k===' '){if(tag==='BUTTON'||tag==='SUMMARY')return;e.preventDefault();doAct(8)}
+  else if(k==='1')pick(0);else if(k==='2')pick(1);
+  else if(k==='z'||k==='backspace'){e.preventDefault();undo()}
+  else if(k==='r')restart();else if(k==='t')takeout();else if(k==='h')hint();
+});
+function start(data){load(data&&data.num||todayNum(),data)}
+const hot=window.claude&&window.claude.hot;
+if(hot&&hot.snapshot)hot.snapshot(()=>({num,acts:hist.slice(1).map(h=>h.act),alarms,hints,sel}));
+if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data||{});
+</script>

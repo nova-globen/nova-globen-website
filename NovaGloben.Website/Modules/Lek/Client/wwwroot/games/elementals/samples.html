@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elementals art samples</title>
+<style>
+  :root { --bg: #0d0b18; --ink: #f2eef8; --muted: #a39bbd; --line: #2e2850; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Pixelify Sans", system-ui, sans-serif; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 40px; margin: 8px 0 0; letter-spacing: 1px; }
+  h2 { font-size: 24px; margin: 28px 0 10px; }
+  p { color: var(--muted); margin: 4px 0 12px; font-size: 18px; }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; max-width: 100%; height: auto; border: 2px solid var(--line); border-radius: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 16px; }
+  .shot body, body.shot { background: #000; }
+  body.shot .wrap { padding: 0; max-width: none; }
+  body.shot canvas { border: 0; border-radius: 0; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1>Elementals</h1>
+  <p>Art samples, drawn in code at the game's real resolution (640 x 352, 16 px tiles) and scaled up.</p>
+  <h2>The first four</h2>
+  <canvas id="chars" width="640" height="210"></canvas>
+  <h2>Arenas</h2>
+  <div class="grid" id="arenas"></div>
+</div>
+<script src="art.js?v=1"></script>
+<script>
+(() => {
+  const A = window.ElementalsArt;
+  const HALVES = {
+    desert: ["####################","#...................","#...................","#...................","#...................","#...................","#...................","#..............o....","#............=======","#...................","#...................","#....o..............","#...######..........","#...................","#...................","#..........=====....","#...................","#a.a.a.......C......","########.C.#####....","################MMMM","####################","####################"],
+    volcano: ["####################","#...................","#...................","#...................","#...................","#...................","#...................","#.................o.","#...=====......=====","#...................","#...................","#...................","#.........====......","#..o................","#.####..............","#...................","#.............======","#a.a.a..............","#######.............","#######...###LLLLLLL","####################","####################"],
+    antarctica: ["####################","#...................","#...................","#..................o","#.................~~","#...................","#..............###..","#...................","#...................","#...........~~~.....","#...................","#...................","#........###........","#...................","#...................","#.....~~~...........","#...................","#...................","#a.a.a......IIIIIIII","######~~~~~~########","####################","####################"],
+    castle: ["####################","#...................","#...................","#...................","#...................","#...................","#...o...............","#..======...........","#...................","#...................","#...........o.......","#..........#######PP","#...................","#...................","#...................","#.....=====.........","#...................","#...................","#a.a.a..........^^^^","#########PP#########","####################","####################"]
+  };
+  const NAMES = { desert: 'Desert: mud and cactus', volcano: 'Volcano: lava', antarctica: 'South Pole: ice and icicles', castle: 'Castle: spikes and magic pads' };
+  function cellsOf(id) {
+    const rows = HALVES[id].map((r) => r + r.split('').reverse().join('').replace(/a/g, 'b'));
+    const cells = [];
+    for (const r of rows) for (const c of r) cells.push(c);
+    return cells;
+  }
+  function padsOf(cells) {
+    const pads = [], seen = new Set();
+    cells.forEach((c, i) => {
+      if (c !== 'P' || seen.has(i)) return;
+      const pad = [];
+      for (let j = i; cells[j] === 'P' && Math.floor(j / A.COLS) === Math.floor(i / A.COLS); j++) { seen.add(j); pad.push(j); }
+      pads.push(pad);
+    });
+    return pads;
+  }
+
+  // a staged moment per arena: who stands where, doing what
+  const STAGE = {
+    desert: [
+      { id: 'cactus', x: 150, y: 288, facing: 1, aim: -0.3, weapon: 0, swing: 0.45 },
+      { id: 'fire', x: 196, y: 288, facing: -1, aim: Math.PI + 0.2, weapon: 1 },
+      { id: 'thunder', x: 330, y: 240, facing: 1, aim: 0.3, weapon: 1, air: true, vy: -100 },
+      { id: 'ice', x: 470, y: 192, facing: -1, aim: Math.PI - 0.4, weapon: 1 }
+    ],
+    volcano: [
+      { id: 'fire', x: 190, y: 192, facing: 1, aim: 0.1, weapon: 0, swing: 0.25 },
+      { id: 'thunder', x: 222, y: 192, facing: -1, aim: Math.PI, weapon: 0 },
+      { id: 'ice', x: 330, y: 256, facing: 1, aim: -0.2, weapon: 1 },
+      { id: 'cactus', x: 520, y: 288, facing: -1, aim: Math.PI - 0.7, weapon: 1, air: true, vy: 80 }
+    ],
+    antarctica: [
+      { id: 'ice', x: 230, y: 144, facing: 1, aim: 0.5, weapon: 0, swing: 0.6 },
+      { id: 'cactus', x: 300, y: 260, facing: -1, aim: Math.PI, weapon: 0, air: true, vy: 300 },
+      { id: 'thunder', x: 410, y: 144, facing: -1, aim: Math.PI + 0.3, weapon: 1 },
+      { id: 'fire', x: 104, y: 240, facing: 1, aim: -0.5, weapon: 1 }
+    ],
+    castle: [
+      { id: 'thunder', x: 250, y: 176, facing: 1, aim: 0, weapon: 0, swing: 0.5 },
+      { id: 'cactus', x: 284, y: 176, facing: -1, aim: Math.PI, weapon: 0 },
+      { id: 'ice', x: 120, y: 240, facing: 1, aim: -0.3, weapon: 1 },
+      { id: 'fire', x: 470, y: 304, facing: -1, aim: Math.PI - 0.6, weapon: 1 }
+    ]
+  };
+
+  const params = new URLSearchParams(location.search);
+  const shot = params.get('shot');
+  const still = params.has('t');
+  const arenas = {};
+  for (const id of Object.keys(HALVES)) {
+    const cells = cellsOf(id);
+    const c = A.makeCanvas(A.W, A.H);
+    arenas[id] = { cells, pads: padsOf(cells), bg: A.renderBackground(id), tiles: A.renderTiles(id, cells), canvas: c };
+    if (!shot || shot === id) {
+      const holder = document.createElement('div');
+      const title = document.createElement('p');
+      title.textContent = NAMES[id];
+      holder.appendChild(title);
+      holder.appendChild(c);
+      document.getElementById('arenas').appendChild(holder);
+    }
+  }
+  if (shot) {
+    document.body.classList.add('shot');
+    document.querySelectorAll('h1, h2, .wrap > p').forEach((el) => el.remove());
+    if (shot !== 'chars') document.getElementById('chars').remove();
+    else document.getElementById('arenas').remove();
+    document.querySelectorAll('.grid p').forEach((el) => el.remove());
+    const scale = Number(params.get('scale') || 2);
+    document.querySelectorAll('canvas').forEach((cv) => { cv.style.width = cv.width * scale + 'px'; cv.style.maxWidth = 'none'; });
+  }
+
+  const PADS = ['heal', 'speed', 'power', 'haste'];
+  function drawArena(id, t) {
+    const a = arenas[id], g = a.canvas.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(a.bg, 0, 0);
+    A.drawAmbient(g, id, t);
+    g.drawImage(a.tiles, 0, 0);
+    A.drawLiveTiles(g, id, a.cells, t, a.pads.map((cells, i) => ({ cells, effect: PADS[(i + Math.floor(t / 4)) % 4] })));
+    // pots
+    a.cells.forEach(() => { });
+    const halves = HALVES[id];
+    halves.forEach((row, y) => [...row].forEach((c, x) => { if (c === 'o') { pot(g, x * 16 + 8, (y + 1) * 16, id); pot(g, (39 - x) * 16 + 8, (y + 1) * 16, id); } }));
+    // characters
+    const stage = STAGE[id];
+    stage.forEach((s, i) => {
+      const swing = s.swing == null ? undefined : (still ? s.swing : ((t * 1.4 + i * 0.3) % 1.3));
+      A.drawCharacter(g, s.id, s.x, s.y, { facing: s.facing, aim: s.aim, t: t + i, weapon: s.weapon, swing: swing != null && swing <= 1 ? swing : -1, air: s.air, vy: s.vy, run: s.air ? 0 : (i === 2 ? 1 : 0) });
+      nameTag(g, s.x, s.y - 40, A.CHARS[s.id].name, i % 2 ? '#ff5a5a' : '#5ab0ff');
+      A.drawHearts(g, s.x - 16, s.y - 36, 8 - i * 2 + (i === 1 ? 1 : 0), 8);
+    });
+    // effects in flight
+    if (id === 'desert') {
+      A.drawProjectile(g, 'fireball', 260 + (still ? 0 : (t * 120) % 80), 260, 300, 0, t);
+      A.drawProjectile(g, 'shard', 400 - (still ? 0 : (t * 160) % 60), 196, -400, 60, t);
+      A.drawLightning(g, 340, 226, 450, 176, Math.floor(t * 12));
+    } else if (id === 'volcano') {
+      A.drawProjectile(g, 'cactusbomb', 480 - (still ? 30 : (t * 60) % 60), 230, -200, -100, t);
+      A.drawProjectile(g, 'shard', 360 + (still ? 20 : (t * 160) % 60), 246, 400, 0, t);
+    } else if (id === 'antarctica') {
+      for (let k = 0; k < 4; k++) A.drawProjectile(g, 'spine', 300 + Math.cos(k * Math.PI / 2) * 18, 245 + Math.sin(k * Math.PI / 2) * 18, Math.cos(k * Math.PI / 2), Math.sin(k * Math.PI / 2), t);
+      A.drawProjectile(g, 'fireball', 140, 222, 200, -150, t);
+      A.drawLightning(g, 400, 130, 240, 128, Math.floor(t * 12) + 5);
+    } else if (id === 'castle') {
+      A.drawProjectile(g, 'shard', 170, 224, 400, -120, t);
+      A.drawProjectile(g, 'fireball', 420, 280, -300, -120, t);
+      A.glow(g, 268, 160, 30, '#ffd84a', 0.4);
+    }
+    hudMock(g, id);
+  }
+  function pot(g, x, y, theme) {
+    const rows = ['..oooo..', '.obbbbo.', '..obbo..', '.obbbbo.', 'obwbbbbo', 'obbbbbBo', 'obbbbBBo', '.oBBBBo.', '..oooo..'];
+    const pal = theme === 'antarctica' ? { o: '#1b2a3a', b: '#7a9cbf', B: '#4a6a8f', w: '#d6eef9' } : theme === 'volcano' ? { o: '#140a08', b: '#7a3a22', B: '#4a2214', w: '#ffb02e' } : { o: '#3a1f10', b: '#c8763c', B: '#8e4f22', w: '#f2c08a' };
+    const key = 'pot-' + theme;
+    pot[key] = pot[key] || A.compile(rows, pal);
+    g.drawImage(pot[key], x - 4, y - 9);
+  }
+  function nameTag(g, x, y, text, color) {
+    g.font = '8px "Pixelify Sans"';
+    g.textAlign = 'center';
+    g.fillStyle = '#000000aa';
+    const w = g.measureText(text).width + 6;
+    g.fillRect(Math.round(x - w / 2), y - 8, Math.round(w), 10);
+    g.fillStyle = color;
+    g.fillText(text, Math.round(x), y);
+  }
+  function hudMock(g, id) {
+    // top bar: round timer and score
+    g.fillStyle = '#0008';
+    g.fillRect(270, 4, 100, 18);
+    g.font = '12px "Pixelify Sans"';
+    g.textAlign = 'center';
+    g.fillStyle = '#5ab0ff'; g.fillText('1', 286, 17);
+    g.fillStyle = '#ffffff'; g.fillText('1:12', 320, 17);
+    g.fillStyle = '#ff5a5a'; g.fillText('0', 354, 17);
+    // ability bar of the local player
+    const keys = ['R', 'T', 'Y'], cds = [0, 0.4, 0.8];
+    for (let i = 0; i < 3; i++) {
+      const x = 268 + i * 36, y = 318;
+      g.fillStyle = '#0009'; g.fillRect(x, y, 30, 30);
+      g.strokeStyle = '#ffffff44'; g.strokeRect(x + 0.5, y + 0.5, 29, 29);
+      const icon = A.iconOf(A.ABILITY_ICONS[STAGE[id][0].id][i]);
+      g.drawImage(icon, x + 1, y + 1, 28, 28);
+      if (cds[i] > 0) { g.fillStyle = '#000a'; g.fillRect(x + 1, y + 1, 28, 28 * cds[i]); }
+      g.fillStyle = '#ffffff'; g.font = '8px "Pixelify Sans"'; g.textAlign = 'left'; g.fillText(keys[i], x + 2, y + 9);
+    }
+  }
+
+  // character lineup: idle, run, jump, attack for each
+  const lineup = document.getElementById('chars');
+  function drawLineup(t) {
+    const g = lineup.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    const bg = g.createLinearGradient(0, 0, 0, 200);
+    bg.addColorStop(0, '#1d1838'); bg.addColorStop(1, '#0d0b18');
+    g.fillStyle = bg; g.fillRect(0, 0, 640, 200);
+    const ids = ['cactus', 'ice', 'fire', 'thunder'];
+    ids.forEach((id, i) => {
+      const cx = 80 + i * 160;
+      // big idle at 3x via an offscreen canvas
+      g.save(); g.translate(cx, 150); g.scale(3, 3);
+      A.drawCharacter(g, id, 0, 0, { facing: 1, aim: -0.15, t, weapon: 0 });
+      g.restore();
+      for (let k = 0; k < 3; k++) {
+        const icon = A.iconOf(A.ABILITY_ICONS[id][k]);
+        g.drawImage(icon, cx + 34, 40 + k * 32, 28, 28);
+      }
+      g.font = '12px "Pixelify Sans"'; g.textAlign = 'center'; g.fillStyle = A.CHARS[id].color;
+      g.fillText(A.CHARS[id].name, cx, 166);
+      // small poses: run, jump, swing, aim
+      const poses = [
+        { run: 1, t: t * 1.0 },
+        { air: true, vy: -100 },
+        { swing: still ? 0.5 : (t * 1.5) % 1 },
+        { weapon: 1, aim: -0.4 }
+      ];
+      poses.forEach((p, k) => {
+        A.drawCharacter(g, id, cx - 48 + k * 32, 206, Object.assign({ facing: 1, aim: 0, t: t + k, weapon: 0, swing: -1 }, p));
+      });
+    });
+  }
+
+  function frame(ms) {
+    const t = still ? Number(params.get('t')) : ms / 1000;
+    if (!shot || shot === 'chars') drawLineup(t);
+    for (const id of Object.keys(arenas)) if (!shot || shot === id) drawArena(id, t);
+    if (!still) requestAnimationFrame(frame);
+  }
+  Promise.all([document.fonts.load('12px "Pixelify Sans"'), document.fonts.load('8px "Pixelify Sans"')]).catch(() => { }).then(() => requestAnimationFrame(frame));
+})();
+</script>
+</body>
+</html>

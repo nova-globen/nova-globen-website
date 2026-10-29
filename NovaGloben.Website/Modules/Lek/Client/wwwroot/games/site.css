@@ -1,0 +1,20 @@
+/* Lek site styles, linked from every page's head by LekSiteReconciler. */
+.lek-game-frame { width: 100%; height: calc(100vh - 140px); min-height: 420px; }
+.lek-game-frame iframe { width: 100%; height: 100%; border: 0; border-radius: 6px; background: #0f0d1a; display: block; }
+.lek-games { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; padding: 10px 0 30px; }
+.lek-card {
+  display: block; text-decoration: none; color: inherit; border: 1px solid rgba(128,128,128,.35); border-radius: 10px;
+  padding: 18px; background: rgba(128,128,128,.06); transition: transform .1s, box-shadow .1s;
+}
+.lek-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.25); text-decoration: none; }
+.lek-card h3 { margin: 12px 0 6px; }
+.lek-card p { margin: 0; opacity: .8; font-size: .95em; }
+.lek-card-art { font-size: 44px; line-height: 1; height: 90px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+.lek-card-fuse { background: linear-gradient(135deg, #ff5d3b, #ffd23b); }
+.lek-card-silent { background: linear-gradient(135deg, #1b2a3a, #4b6a8a); }
+.lek-card-spark { background: linear-gradient(135deg, #2a1f5e, #7c3bff); }
+.lek-card-elementals { background: linear-gradient(135deg, #2f6e27, #3157b8 50%, #c2410c); font-size: 34px; letter-spacing: 6px; }
+.lek-card-relic { background: radial-gradient(circle at 50% 45%, #ffe9a0 0, #c9902a 18%, #3a2a50 55%, #151022 100%); }
+.lek-card-noir { background: radial-gradient(circle at 50% 40%, #f4e6c4 0, #8a6b3a 14%, #1c2433 52%, #07090e 100%); }
+.lek-card-insidejob { background: linear-gradient(135deg, #0f2a24, #1f6f5c); }
+@media (max-width: 700px) { .lek-game-frame { height: calc(100vh - 110px); min-height: 360px; } }

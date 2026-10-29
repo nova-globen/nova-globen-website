@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Lek as a module of this host: the games' hubs and tick loops, the two signed-in game APIs and the /lek site's setup.
+    Switched per host by module.lek.enabled (off on production). The assembly name ends in .Stomme, which the host's
+    module scan requires.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyName>Lek.Server.Stomme</AssemblyName>
+    <RootNamespace>Lek.Server</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Stomme.Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\Lek.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- the ASP.NET namespaces the games' code was written against (it began as a web project) -->
+    <Using Include="Microsoft.AspNetCore.Builder" />
+    <Using Include="Microsoft.AspNetCore.Hosting" />
+    <Using Include="Microsoft.AspNetCore.Http" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Microsoft.Extensions.Hosting" />
+    <Using Include="Microsoft.Extensions.Logging" />
+    <InternalsVisibleTo Include="Lek.Tests" />
+  </ItemGroup>
+
+</Project>
