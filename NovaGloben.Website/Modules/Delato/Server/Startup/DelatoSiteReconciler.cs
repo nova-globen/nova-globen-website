@@ -224,14 +224,14 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
             logger.LogInformation("Delato: page /{Path} deleted.", page.Path);
         }
 
-        var head = HeadContent(provider.GetService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>());
-        if (site.Name != SiteName || !site.AllowRegistration || site.HeadContent != head)
+        // Stomme's own stylesheet lays out the account forms (10.75.4); a head link an earlier version added is taken off.
+        if (site.Name != SiteName || !site.AllowRegistration || !string.IsNullOrEmpty(site.HeadContent))
         {
             site.Name = SiteName;
             site.AllowRegistration = true;
-            site.HeadContent = head;
+            site.HeadContent = "";
             await provider.GetRequiredService<ISiteRepository>().UpdateSiteAsync(site);
-            logger.LogInformation("Delato: site {SiteId} named, open to registration, its account pages styled.", site.SiteId);
+            logger.LogInformation("Delato: site {SiteId} named and open to registration.", site.SiteId);
         }
 
         var languages = provider.GetRequiredService<ILanguageRepository>();
@@ -318,21 +318,6 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
     }
 
     /// <summary>Signed-in accounts view; the site's Administrators view and edit.</summary>
-    /// <summary>The site's head: the account pages' stylesheet, by its content hash so a new version is fetched at once.</summary>
-    internal const string AccountStylesheet = "_content/Delato.Client.Stomme/account.css";
-
-    internal static string HeadContent(Microsoft.AspNetCore.Hosting.IWebHostEnvironment? environment)
-    {
-        var version = "0";
-        var file = environment?.WebRootFileProvider.GetFileInfo(AccountStylesheet);
-        if (file is { Exists: true })
-        {
-            using var stream = file.CreateReadStream();
-            version = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream))[..12].ToLowerInvariant();
-        }
-        return $"<link rel=\"stylesheet\" href=\"/{AccountStylesheet}?v={version}\" />";
-    }
-
     internal static List<Permission> SignedInOnly() => new()
     {
         new Permission(PermissionNames.View, RoleNames.Registered, true),
