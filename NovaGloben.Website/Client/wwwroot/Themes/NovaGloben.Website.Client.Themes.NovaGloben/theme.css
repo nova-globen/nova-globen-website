@@ -464,6 +464,37 @@ img, svg { max-width: 100%; height: auto; }
 .ng-alert-ok { background: var(--ng-ok-bg); border-color: var(--db-ok); color: var(--ng-ok-text); }
 .ng-alert-error { background: var(--ng-error-bg); border-color: var(--db-bad); color: var(--ng-error-text); }
 
+/* Stomme's own account pages: sign in, forgot password or username, reset password. Their admin markup (db-*, never
+   written by this site, whose content is ng-*) comes straight into the page; on a company page it sits in one centred
+   card in the site's type, with the contact form's control size and focus ring. */
+.ng-module > form:has(> .Stomme-Modules-Admin-Login, > .db-card) {
+    box-sizing: border-box; width: min(100% - 2 * var(--ng-gutter), 28rem); margin: clamp(2rem, 6vw, 4rem) auto;
+    padding: clamp(1.25rem, 4vw, 2rem); font-family: var(--db-sans); font-size: 1rem; color: var(--db-text);
+    background: var(--db-bg-elev); border: 1px solid var(--db-border); border-radius: var(--db-radius); box-shadow: var(--db-shadow-2);
+}
+.ng-main .Stomme-Modules-Admin-Login { width: auto; }
+.ng-main .db-login-field:first-child { margin-top: 0; }
+.ng-main .db-login-field label, .ng-main .db-field-label { font-weight: 600; font-size: .9375rem; color: var(--db-text); }
+.ng-main .app-tooltip img { width: 1rem; height: 1rem; vertical-align: -2px; }
+.ng-main .db-input {
+    min-height: 2.75rem; padding: .625rem .75rem; font: inherit; color: var(--db-text);
+    background: var(--db-bg-elev); border-color: var(--db-border-strong); border-radius: var(--db-radius-sm);
+}
+.ng-main .db-input:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 1px; border-color: var(--ng-focus); box-shadow: none; }
+.ng-main .db-btn { min-height: 2.75rem; padding: .625rem 1rem; font: inherit; font-weight: 600; border-radius: var(--db-radius-sm); }
+.ng-main .db-btn:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 2px; box-shadow: none; }
+.ng-main .db-btn-split, .ng-main .db-btn-block { margin-top: 1rem; }
+.ng-main .db-login-rule { margin: 1.25rem 0 .25rem; }
+.ng-main .db-message { margin: 0 0 1rem; font-size: .9375rem; }
+/* The reset page: the label above its field, the field full width, Show beside it, the two actions side by side. */
+.ng-main .db-card { padding: 0; margin: 0; border: 0; background: none; box-shadow: none; }
+.ng-main .db-card .db-field { grid-template-columns: 1fr auto; gap: .375rem .5rem; padding: 0; margin-top: .75rem; }
+.ng-main .db-card .db-field:first-child { margin-top: 0; }
+.ng-main .db-card .db-field-label { grid-column: 1 / -1; }
+.ng-main fluent-field, .ng-main fluent-text-input { width: 100%; }
+.ng-main .db-form-actions { display: flex; gap: .5rem; margin-top: 1.25rem; }
+.ng-main .db-form-actions > * { flex: 1 1 0; }
+
 /* ============================== Narrow screens ============================== */
 @media (max-width: 899.98px) {
     .ng-products { grid-template-columns: 1fr; }
