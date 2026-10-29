@@ -3,6 +3,7 @@ using Lek.Server.Fuse;
 using Lek.Server.Noir;
 using Lek.Server.RelicRush;
 using Lek.Server.Spark;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.SignalR;
@@ -45,20 +46,26 @@ namespace Lek.Server.Services
     }
 
     /// <summary>
-    /// The Lek hubs' routes answer for the Lek site only. Runs after the host has resolved the site (and taken the site's
-    /// folder off a <c>hubs/</c> path) and before routing, so a request for a Lek hub from any other site - its negotiate
-    /// and its connection alike - gets 404 and never reaches SignalR.
+    /// The Lek hubs' and controllers' routes answer for the Lek site only. Runs after the host has resolved the site (and
+    /// taken the site's folder off a <c>hubs/</c> or <c>api/</c> path) and before routing, so a request for a Lek hub
+    /// (its negotiate and its connection alike) or a Lek API address from any other site gets 404: it never reaches
+    /// SignalR, nor the host's authorization, which would answer 401 or 403 and tell the caller the API exists.
     /// </summary>
     public sealed class LekHubGuard : IServerPipelineStartup
     {
-        public static readonly string[] Routes =
+        public static readonly string[] Routes = new[]
         {
             FuseEndpoints.HubRoute, SparkEndpoints.HubRoute, NoirEndpoints.HubRoute, RelicEndpoints.HubRoute, ElementalsEndpoints.HubRoute,
-        };
+        }.Concat(typeof(LekController).Assembly.GetTypes()
+            .Where(t => typeof(LekController).IsAssignableFrom(t) && !t.IsAbstract)
+            .SelectMany(t => t.GetCustomAttributes<RouteAttribute>())
+            .Select(r => "/" + r.Template.Trim('/')))
+            .Distinct()
+            .ToArray();
 
         public ServerPipelineStage Stage => ServerPipelineStage.BeforeRouting;
 
-        /// <summary>True when the request is for a Lek hub route and the site is not Lek's, or Lek is switched off.</summary>
+        /// <summary>True when the request is for a Lek hub or API route and the site is not Lek's, or Lek is switched off.</summary>
         public static bool Refuses(HttpContext context)
         {
             var path = context.Request.Path;

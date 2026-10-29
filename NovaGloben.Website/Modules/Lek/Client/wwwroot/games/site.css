@@ -17,4 +17,9 @@
 .lek-card-relic { background: radial-gradient(circle at 50% 45%, #ffe9a0 0, #c9902a 18%, #3a2a50 55%, #151022 100%); }
 .lek-card-noir { background: radial-gradient(circle at 50% 40%, #f4e6c4 0, #8a6b3a 14%, #1c2433 52%, #07090e 100%); }
 .lek-card-insidejob { background: linear-gradient(135deg, #0f2a24, #1f6f5c); }
-@media (max-width: 700px) { .lek-game-frame { height: calc(100vh - 110px); min-height: 360px; } }
+/* A phone, upright or on its side (narrow, or too short for the site's header above a game): the game takes the whole
+   screen, as each game is laid out to, with its touch controls in reach. The phone's back button returns to the list. */
+@media (max-width: 700px), (max-height: 500px) {
+  .lek-game-frame { position: fixed; inset: 0; z-index: 2000; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; }
+  .lek-game-frame iframe { border-radius: 0; }
+}

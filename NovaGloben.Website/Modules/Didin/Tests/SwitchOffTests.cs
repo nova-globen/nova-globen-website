@@ -97,4 +97,24 @@ public sealed class SwitchOffTests
     private sealed class OtherController : ControllerBase
     {
     }
+
+    [Theory]
+    [InlineData("x.test", "/api/catalog", false, true)]
+    [InlineData("x.test", "/api/admin/library/scan", false, true)]
+    [InlineData("x.test/didin", "/api/catalog", false, false)]
+    [InlineData("x.test/didin", "/api/catalog", true, true)]
+    [InlineData("x.test", "/api/somethingelse", false, false)]
+    [InlineData("x.test", "/pages/catalog", false, false)]
+    public void Another_sites_request_for_a_Didin_API_address_is_refused_before_authorization(string alias, string path, bool off, bool refused)
+    {
+        DidinApiGuard.Routes.Should().Contain(new[] { "/api/catalog", "/api/admin/library", "/api/stream" });
+        var http = new DefaultHttpContext
+        {
+            RequestServices = new ServiceCollection().AddSingleton(new DidinSwitch(new Config(off ? false : null))).BuildServiceProvider(),
+        };
+        http.Request.Path = path;
+        http.Items[Constants.HttpContextAliasKey] = new Alias { Name = alias, SiteId = 3 };
+
+        DidinApiGuard.Refuses(http).Should().Be(refused);
+    }
 }

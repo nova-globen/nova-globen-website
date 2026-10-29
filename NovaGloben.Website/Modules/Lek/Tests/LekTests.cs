@@ -71,7 +71,7 @@ public sealed class SiteGuardTests
 
         controllers.Should().HaveCount(2).And.AllSatisfy(t => t.Should().BeDerivedFrom<LekController>());
         hubs.Should().HaveCount(5).And.AllSatisfy(t => t.Should().BeDerivedFrom<LekHub>());
-        LekHubGuard.Routes.Should().HaveCount(hubs.Count).And.OnlyHaveUniqueItems();
+        LekHubGuard.Routes.Should().HaveCount(hubs.Count + controllers.Count).And.OnlyHaveUniqueItems();
     }
 }
 
@@ -307,5 +307,20 @@ public sealed class SwitchOffTests
 
     private sealed class OtherController : ControllerBase
     {
+    }
+
+    [Theory]
+    [InlineData("x.test", "/api/insidejob/targets", true)]
+    [InlineData("x.test", "/api/silenthour/progress", true)]
+    [InlineData("x.test/lek", "/api/insidejob/targets", false)]
+    [InlineData("x.test", "/api/catalog", false)]
+    public void Another_sites_request_for_a_Lek_API_address_is_refused_before_authorization(string alias, string path, bool refused)
+    {
+        LekHubGuard.Routes.Should().Contain(new[] { "/api/insidejob", "/api/silenthour", "/hubs/fuse" });
+        var http = new DefaultHttpContext();
+        http.Request.Path = path;
+        http.Items[Constants.HttpContextAliasKey] = new Alias { Name = alias, SiteId = 9 };
+
+        LekHubGuard.Refuses(http).Should().Be(refused);
     }
 }
