@@ -34,6 +34,8 @@ namespace NovaGloben.Website.Sites
             new("fravashi", null, null),
             // Vacha is GPL-3.0-or-later; its licence and privacy statement live in its public repository.
             new("vacha", "https://github.com/nova-globen/vacha/blob/main/LICENSE.txt", "https://github.com/nova-globen/vacha/blob/main/PRIVACY.md", "/vacha", "/tond"),
+            // Didin publishes no licence or privacy statement yet: only its issues address.
+            new("didin", null, null),
         };
 
         private static readonly Dictionary<string, string> Targets = Build();

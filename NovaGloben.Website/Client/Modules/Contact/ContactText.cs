@@ -50,6 +50,7 @@ namespace NovaGloben.Website.Client.Modules.Contact
                 ["stomme"] = "Stomme",
                 ["fravashi"] = "Fravashi",
                 ["vacha"] = "Vacha: a question or an issue",
+                ["didin"] = "Didin",
                 ["general"] = "General question"
             },
             Status = new Dictionary<string, string>
@@ -88,6 +89,7 @@ namespace NovaGloben.Website.Client.Modules.Contact
                 ["stomme"] = "Stomme",
                 ["fravashi"] = "Fravashi",
                 ["vacha"] = "Vacha: en fråga eller ett problem",
+                ["didin"] = "Didin",
                 ["general"] = "Allmän fråga"
             },
             Status = new Dictionary<string, string>

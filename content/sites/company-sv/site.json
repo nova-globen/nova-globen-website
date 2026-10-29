@@ -17,7 +17,7 @@
       "path": "",
       "name": "Hem",
       "title": "Nova Globen AB | Mjukvarukonsulting och produkter från Sverige",
-      "description": "Nova Globen AB planerar, bygger, kopplar ihop och underhåller affärsprogramvara, lägger till praktisk AI där den gör nytta och gör Stomme, Fravashi och Vacha.",
+      "description": "Nova Globen AB planerar, bygger, kopplar ihop och underhåller affärsprogramvara, lägger till praktisk AI där den gör nytta och gör Stomme, Fravashi, Vacha och Didin.",
       "navigation": true,
       "order": 1,
       "sections": [
@@ -78,7 +78,7 @@
       "path": "products",
       "name": "Produkter",
       "title": "Produkter | Nova Globen AB",
-      "description": "Stomme, Fravashi och Vacha: programvaruprodukterna som Nova Globen AB bygger och underhåller.",
+      "description": "Stomme, Fravashi, Vacha och Didin: programvaruprodukterna som Nova Globen AB bygger och underhåller.",
       "navigation": true,
       "order": 3,
       "sections": [ { "name": "products", "content": "pages/products.html" } ]
@@ -91,6 +91,15 @@
       "navigation": false,
       "order": 7,
       "sections": [ { "name": "product", "content": "pages/product-stomme.html" } ]
+    },
+    {
+      "path": "products/didin",
+      "name": "Didin",
+      "title": "Didin: en strömningsapp för filmer och serier | Nova Globen AB",
+      "description": "Didin är en strömningsapp: bläddra och sök i en katalog med filmer och serier och titta i webbläsaren. Ett urval är öppet för alla.",
+      "navigation": false,
+      "order": 10,
+      "sections": [ { "name": "product", "content": "pages/product-didin.html" } ]
     },
     {
       "path": "products/fravashi",

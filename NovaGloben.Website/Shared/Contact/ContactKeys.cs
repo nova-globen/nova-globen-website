@@ -39,12 +39,12 @@ namespace NovaGloben.Website.Contact
         public const string TurnstileSiteKeySetting = "NovaGloben:TurnstileSiteKey";
 
         /// <summary>
-        /// The topics a visitor may pick (the four services, the three products and "general"); anything else is refused. The contact page
+        /// The topics a visitor may pick (the four services, the four products and "general"); anything else is refused. The contact page
         /// preselects one named in its address (<c>/contact?topic=vacha</c>), which is how a product links to the form.
         /// </summary>
         public static readonly string[] Topics =
         {
-            "architecture", "modernization", "integrations", "ai", "stomme", "fravashi", "vacha", "general"
+            "architecture", "modernization", "integrations", "ai", "stomme", "fravashi", "vacha", "didin", "general"
         };
     }
 }

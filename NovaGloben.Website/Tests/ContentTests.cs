@@ -147,6 +147,11 @@ public class ContentTests
         {
             return true;
         }
+        // Didin's folder site, on both hosts (rebranding 4.4); the UAT-only experiments are never linked, so they do not resolve
+        if (path.TrimEnd('/') == "/" + Didin.Server.Services.DidinSite.Folder)
+        {
+            return true;
+        }
         var product = NovaGloben.Website.Sites.ProductLinks.Target(path);
         if (product != null)
         {
