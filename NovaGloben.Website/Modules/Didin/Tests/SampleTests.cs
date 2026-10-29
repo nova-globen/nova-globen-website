@@ -197,7 +197,7 @@ public sealed class SampleTests : IDisposable
     }
 
     private CatalogSeed Seed(string? source) =>
-        new(Config(new() { [CatalogSeed.Key] = source }), _store, _import, NullLogger<CatalogSeed>.Instance);
+        new(Config(new() { [CatalogSeed.Key] = source }), _store, _import, NullLogger<CatalogSeed>.Instance) { RetryDelays = [TimeSpan.Zero, TimeSpan.Zero] };
 
     [Fact]
     public async Task An_empty_catalogue_is_seeded_with_its_titles_files_and_the_posters_there_are()
@@ -251,6 +251,51 @@ public sealed class SampleTests : IDisposable
         (await Seed("http://media.example.test/catalog.json").SeedIfEmptyAsync(Site)).Should().BeNull();
 
         (await _store.AllAsync<TitleDoc>(Site.SiteId, DidinKind.Title)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_catalogue_that_fails_to_arrive_at_first_is_tried_again()
+    {
+        var path = WriteSeed(Package());
+        var tries = 0;
+        var seed = new CatalogSeed(Config(new() { [CatalogSeed.Key] = path }), _store, _import, NullLogger<CatalogSeed>.Instance)
+        {
+            RetryDelays = [TimeSpan.Zero, TimeSpan.Zero],
+            Read = async (source, max, ct) =>
+            {
+                if (source == path && ++tries < 3) throw new HttpRequestException("Name or service not known");
+                return await File.ReadAllBytesAsync(source, ct);
+            },
+        };
+
+        (await seed.SeedIfEmptyAsync(Site)).Should().Contain("2 titles");
+
+        tries.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task A_catalogue_that_never_arrives_leaves_the_catalogue_empty_after_the_last_try()
+    {
+        var tries = 0;
+        var seed = new CatalogSeed(Config(new() { [CatalogSeed.Key] = "https://media.example.test/catalog.json" }), _store, _import, NullLogger<CatalogSeed>.Instance)
+        {
+            RetryDelays = [TimeSpan.Zero, TimeSpan.Zero],
+            Read = (_, _, _) => { tries++; throw new InvalidOperationException("anything at all"); },
+        };
+
+        (await seed.SeedIfEmptyAsync(Site)).Should().BeNull();
+
+        tries.Should().Be(3);
+        (await _store.AllAsync<TitleDoc>(Site.SiteId, DidinKind.Title)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void A_failure_is_described_with_its_causes()
+    {
+        var described = CatalogSeed.Describe(new HttpRequestException("An error occurred while sending the request.",
+            new System.Net.Sockets.SocketException(11001)));
+
+        described.Should().StartWith("HttpRequestException: An error occurred while sending the request.").And.Contain("SocketException");
     }
 
     [Theory]

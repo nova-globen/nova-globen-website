@@ -26,6 +26,15 @@ namespace Didin.Server.Services
 
         private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(60) };
 
+        /// <summary>
+        /// The waits between tries to read the catalogue: a container's network can come up a moment after the app, and a
+        /// seed that failed then would leave the catalogue empty until the next restart.
+        /// </summary>
+        internal TimeSpan[] RetryDelays { get; init; } = [TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)];
+
+        /// <summary>How a catalogue or poster is read (a file or https); replaced in tests.</summary>
+        internal Func<string, int, CancellationToken, Task<byte[]>> Read { get; init; } = ReadAsync;
+
         /// <summary>Imports the seed into an empty catalogue; says what it did, or null when it did nothing.</summary>
         public async Task<string> SeedIfEmptyAsync(DidinSite site, CancellationToken ct = default)
         {
@@ -40,15 +49,27 @@ namespace Didin.Server.Services
                 return null;
             }
 
-            CatalogImportRequest request;
-            try
+            CatalogImportRequest request = null;
+            for (var attempt = 0; ; attempt++)
             {
-                request = JsonSerializer.Deserialize<CatalogImportRequest>(await ReadAsync(source, MaxCatalogBytes, ct), DidinStore.Json);
-            }
-            catch (Exception ex) when (ex is IOException or HttpRequestException or JsonException or InvalidDataException or TaskCanceledException or UnauthorizedAccessException)
-            {
-                logger.LogError("Didin: the seed catalogue {Source} could not be read ({Error}); the catalogue stays empty.", source, ex.GetType().Name);
-                return null;
+                try
+                {
+                    request = JsonSerializer.Deserialize<CatalogImportRequest>(await Read(source, MaxCatalogBytes, ct), DidinStore.Json);
+                    break;
+                }
+                catch (Exception ex) when (!ct.IsCancellationRequested)
+                {
+                    // the cause in words (a status code, a name that did not resolve, a refused connection): the address is
+                    // public and nothing secret is in it. A catalogue that is not JSON is not retried: it will not change.
+                    if (ex is JsonException || attempt >= RetryDelays.Length)
+                    {
+                        logger.LogError("Didin: the seed catalogue {Source} could not be read after {Tries} tries: {Cause}; the catalogue stays empty until the next start.",
+                            source, attempt + 1, Describe(ex));
+                        return null;
+                    }
+                    logger.LogWarning("Didin: the seed catalogue {Source} could not be read ({Cause}); trying again in {Delay}.", source, Describe(ex), RetryDelays[attempt]);
+                }
+                await Task.Delay(RetryDelays[attempt], ct);
             }
             if (request == null)
             {
@@ -70,18 +91,29 @@ namespace Didin.Server.Services
                 var poster = Beside(source, $"posters/{number}.jpg");
                 try
                 {
-                    await import.ImportPosterAsync(site, number, await ReadAsync(poster, MaxPosterBytes, ct), "image/jpeg", ct);
+                    await import.ImportPosterAsync(site, number, await Read(poster, MaxPosterBytes, ct), "image/jpeg", ct);
                     posters++;
                 }
-                catch (Exception ex) when (ex is IOException or HttpRequestException or InvalidDataException or TaskCanceledException or UnauthorizedAccessException)
+                catch (Exception ex) when (!ct.IsCancellationRequested)
                 {
-                    logger.LogWarning("Didin: no poster for title {Number} at {Poster} ({Error}).", number, poster, ex.GetType().Name);
+                    logger.LogWarning("Didin: no poster for title {Number} at {Poster}: {Cause}.", number, poster, Describe(ex));
                 }
             }
 
             var said = $"seeded {result.Titles} titles, {result.Files} files and {posters} posters from {source}";
             logger.LogInformation("Didin: {Said}.", said);
             return said;
+        }
+
+        /// <summary>An exception and its inner causes, in words.</summary>
+        internal static string Describe(Exception ex)
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            for (var e = ex; e != null && parts.Count < 4; e = e.InnerException)
+            {
+                parts.Add($"{e.GetType().Name}: {e.Message}");
+            }
+            return string.Join(" <- ", parts);
         }
 
         /// <summary>An address beside the catalogue's: the same folder, local or https.</summary>
