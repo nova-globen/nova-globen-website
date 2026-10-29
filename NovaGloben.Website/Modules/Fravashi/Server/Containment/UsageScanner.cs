@@ -37,6 +37,24 @@ public sealed partial class UsageScanner
         }
     }
 
+    /// <summary>
+    /// The same figures one by one (a figure never seen is 0), for weighting; null when none was seen at all. Read
+    /// once the answer is over, as <see cref="Tokens"/>.
+    /// </summary>
+    public TokenUsage? Usage
+    {
+        get
+        {
+            Scan(_tail + " ", holdBackTheEnd: false);
+            if (_largest.Count == 0)
+            {
+                return null;
+            }
+            long Of(string name) => _largest.TryGetValue(name, out var value) ? value : 0;
+            return new TokenUsage(Of("input_tokens"), Of("cache_creation_input_tokens"), Of("cache_read_input_tokens"), Of("output_tokens"));
+        }
+    }
+
     /// <summary>Looks at the next bytes of the answer.</summary>
     public void Feed(ReadOnlySpan<byte> bytes)
     {

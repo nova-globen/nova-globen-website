@@ -326,7 +326,17 @@ else
                              @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
                             @if (!string.IsNullOrEmpty(r.PosterUrl))
                             {
-                                <img class="bin-poster @(r.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                @if (r.PosterWide)
+                                {
+                                    <div class="bin-poster-frame">
+                                        <img class="bin-poster-backdrop" src="@Options.AssetUrl(r.PosterUrl)" alt="" aria-hidden="true" loading="lazy" />
+                                        <img class="bin-poster bin-poster-wide" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                }
                             }
                             else
                             {
@@ -350,7 +360,17 @@ else
                              @onkeydown="@(e => { if (e.Key is "Enter" or " ") State.Select(r.Id); })">
                             @if (!string.IsNullOrEmpty(r.PosterUrl))
                             {
-                                <img class="bin-poster @(r.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                @if (r.PosterWide)
+                                {
+                                    <div class="bin-poster-frame">
+                                        <img class="bin-poster-backdrop" src="@Options.AssetUrl(r.PosterUrl)" alt="" aria-hidden="true" loading="lazy" />
+                                        <img class="bin-poster bin-poster-wide" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img class="bin-poster" src="@Options.AssetUrl(r.PosterUrl)" alt="@r.Title" loading="lazy" />
+                                }
                             }
                             else
                             {

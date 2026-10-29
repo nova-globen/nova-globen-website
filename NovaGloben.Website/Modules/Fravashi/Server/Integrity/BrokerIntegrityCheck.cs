@@ -97,6 +97,7 @@ public static class BrokerIntegrityCheck
                 "trusted, and only an oidc provider is asked for roles. Nobody could mint.");
         }
 
+        problems.AddRange(options.TokenWeights.Problems());
         CheckPromptAudit(secrets, options.PromptAudit, problems);
 
         return new BrokerIntegrityResult(problems.Count == 0, problems);

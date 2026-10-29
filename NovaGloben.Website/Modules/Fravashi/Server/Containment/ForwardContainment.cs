@@ -11,7 +11,7 @@ public sealed record ContainmentRefusal(int Status, object Body, string Reason);
 /// charged once the answer has passed. Kept out of the endpoint so it can be tested without a server; the
 /// endpoint does the plumbing and asks this for every decision.
 /// </summary>
-public sealed class ForwardContainment(ModelPolicy models, ITokenBudget budget, Suspensions suspensions)
+public sealed class ForwardContainment(ModelPolicy models, ITokenBudget budget, Suspensions suspensions, TokenWeights? weights = null)
 {
     /// <summary>The one path whose answers GENERATE tokens and are therefore charged.</summary>
     public const string MessagesPath = "/v1/messages";
@@ -99,9 +99,11 @@ public sealed class ForwardContainment(ModelPolicy models, ITokenBudget budget, 
     /// <summary>
     /// Charged AFTER the answer has passed. Only a successful answer to the messages path is charged: a refusal
     /// from the provider generated nothing, and the other paths (counting tokens, listing models) generate
-    /// nothing either, although their answers contain the same field names. Returns what was charged.
+    /// nothing either, although their answers contain the same field names. The budget is charged the answer's
+    /// weighted units (<see cref="TokenWeights"/>); returns them, or null when the usage could not be read (the budget
+    /// then charges its worst case).
     /// </summary>
-    public long? After(string userId, string path, int status, long? tokensRead)
+    public long? After(string userId, string path, int status, TokenUsage? usage)
     {
         var generated = status is >= 200 and < 300
             && string.Equals(path.TrimEnd('/'), MessagesPath, StringComparison.OrdinalIgnoreCase);
@@ -110,7 +112,8 @@ public sealed class ForwardContainment(ModelPolicy models, ITokenBudget budget, 
             return 0;
         }
 
-        budget.Charge(userId, tokensRead);
-        return tokensRead;
+        var units = usage is null ? (long?)null : (weights ?? new TokenWeights()).Units(usage);
+        budget.Charge(userId, units, usage?.Total);
+        return units;
     }
 }

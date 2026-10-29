@@ -718,3 +718,13 @@ main .bin-login-app:hover { text-decoration: underline; }
 .didin .bin-poster.bin-poster-wide { object-fit: contain; }
 /* On the title page, wide art keeps its own shape instead of a letterboxed portrait frame. */
 .didin .bin-details > div:first-child .bin-poster.bin-poster-wide { aspect-ratio: auto; height: auto; object-fit: contain; }
+
+/* Wide art in a portrait card: the image whole, on a blurred and darkened copy of itself filling the frame, so no
+   title is cut and there are no grey bars. The copy is an image of its own, not a CSS url(): nothing from the
+   catalogue is written into a style. */
+.didin .bin-card-media-wide, .didin .bin-poster-frame { position: relative; overflow: hidden; background: #1c181c; }
+.didin .bin-poster-backdrop {
+    position: absolute; inset: -15%; width: 130%; height: 130%; object-fit: cover;
+    filter: blur(20px) brightness(.5) saturate(1.2); pointer-events: none;
+}
+.didin .bin-card-media-wide .bin-poster, .didin .bin-poster-frame .bin-poster { position: relative; background: transparent; }

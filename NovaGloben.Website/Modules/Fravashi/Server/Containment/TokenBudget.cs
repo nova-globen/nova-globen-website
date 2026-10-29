@@ -25,13 +25,20 @@ public interface ITokenBudget
     BudgetDecision Check(string userId);
 
     /// <summary>
-    /// Charges what an answer used. Null means the figure could not be read, and that is charged at the
-    /// configured worst case, never at nothing: a limit that can be slipped by an unreadable answer is no limit.
+    /// Charges what an answer used, in weighted units (<see cref="TokenWeights"/>), with its raw token count for the
+    /// record. Null units means the figure could not be read, and that is charged at the configured worst case, never
+    /// at nothing: a limit that can be slipped by an unreadable answer is no limit.
     /// </summary>
-    void Charge(string userId, long? tokens);
+    void Charge(string userId, long? units, long? rawTokens = null);
 
-    /// <summary>What a user has used in the current window.</summary>
+    /// <summary>The weighted units a user has used in the current window: what the budget is checked against.</summary>
     long UsedBy(string userId);
+
+    /// <summary>The raw tokens behind them, as the provider counted (answers whose usage was unreadable add none).</summary>
+    long RawUsedBy(string userId);
+
+    /// <summary>The organisation's weighted units and raw tokens today.</summary>
+    (long Units, long RawTokens) OrganisationUsed();
 }
 
 /// <summary>
@@ -73,26 +80,35 @@ public sealed class InMemoryTokenBudget : ITokenBudget
     }
 
     /// <inheritdoc />
-    public void Charge(string userId, long? tokens)
+    public void Charge(string userId, long? units, long? rawTokens = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var amount = Math.Max(0, tokens ?? _options.UnreadableUsageCharge);
+        var amount = Math.Max(0, units ?? _options.UnreadableUsageCharge);
+        var raw = Math.Max(0, rawTokens ?? 0);
 
-        Add(userId, amount, _options.QuotaWindow);
-        Add(Organisation, amount, TimeSpan.FromDays(1));
+        Add(userId, amount, raw, _options.QuotaWindow);
+        Add(Organisation, amount, raw, TimeSpan.FromDays(1));
     }
 
     /// <inheritdoc />
-    public long UsedBy(string userId)
+    public long UsedBy(string userId) => Current(userId, _options.QuotaWindow).Units;
+
+    /// <inheritdoc />
+    public long RawUsedBy(string userId) => Current(userId, _options.QuotaWindow).Raw;
+
+    /// <inheritdoc />
+    public (long Units, long RawTokens) OrganisationUsed() => Current(Organisation, TimeSpan.FromDays(1));
+
+    private (long Units, long Raw) Current(string key, TimeSpan length)
     {
-        if (!_windows.TryGetValue(userId, out var window))
+        if (!_windows.TryGetValue(key, out var window))
         {
-            return 0;
+            return (0, 0);
         }
 
         lock (window)
         {
-            return _clock.GetUtcNow() - window.Start >= _options.QuotaWindow ? 0 : window.Used;
+            return _clock.GetUtcNow() - window.Start >= length ? (0, 0) : (window.Used, window.Raw);
         }
     }
 
@@ -110,7 +126,7 @@ public sealed class InMemoryTokenBudget : ITokenBudget
         }
     }
 
-    private void Add(string key, long amount, TimeSpan length)
+    private void Add(string key, long amount, long raw, TimeSpan length)
     {
         var window = _windows.GetOrAdd(key, _ => new Window());
         var now = _clock.GetUtcNow();
@@ -120,10 +136,12 @@ public sealed class InMemoryTokenBudget : ITokenBudget
             {
                 window.Start = now;
                 window.Used = 0;
+                window.Raw = 0;
             }
 
             // Saturating: a worst-case charge added to a large figure must not wrap around into room.
             window.Used = window.Used > long.MaxValue - amount ? long.MaxValue : window.Used + amount;
+            window.Raw = window.Raw > long.MaxValue - raw ? long.MaxValue : window.Raw + raw;
         }
     }
 
@@ -132,5 +150,7 @@ public sealed class InMemoryTokenBudget : ITokenBudget
         public DateTimeOffset Start { get; set; } = DateTimeOffset.MinValue;
 
         public long Used { get; set; }
+
+        public long Raw { get; set; }
     }
 }

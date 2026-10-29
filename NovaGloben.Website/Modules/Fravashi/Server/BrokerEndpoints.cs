@@ -229,7 +229,7 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
             }
             finally
             {
-                var charged = containment.After(claims.Subject, path, (int)upstream.StatusCode, scanner.Tokens);
+                var charged = containment.After(claims.Subject, path, (int)upstream.StatusCode, scanner.Usage);
                 audit.Write(new AuditRecord(clock.GetUtcNow(), "forward", claims.Subject, claims.TokenId, model, 1,
                     AuditRecord.OutcomeAllowed, ((int)upstream.StatusCode).ToString(), charged,
                     inspection.Decision == PromptAuditDecision.NotInspected ? null : inspection.Reason,
@@ -260,15 +260,27 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
                 .Select(s => new { user = s.User, since = s.Suspension.Since, refusals = s.Suspension.Refusals, reason = s.Suspension.Reason })
                 .ToList();
 
+            var organisation = budget.OrganisationUsed();
+            var weights = opts.Value.TokenWeights;
             return Results.Ok(new
             {
                 asOf = clock.GetUtcNow(),
                 suspended,
+                // the budgets count weighted units; the raw tokens behind them, as the provider counted, beside
+                weights = new { input = weights.Input, cacheWrite = weights.CacheWrite, cacheRead = weights.CacheRead, output = weights.Output },
+                organisation = new
+                {
+                    unitsUsed = organisation.Units,
+                    tokensUsed = organisation.RawTokens,
+                    unitsPerDay = opts.Value.OrganisationTokensPerDay,
+                },
                 // A named user's own figures, when one was asked about.
                 user = string.IsNullOrWhiteSpace(request.User) ? null : new
                 {
                     id = request.User,
-                    tokensUsed = budget.UsedBy(request.User!),
+                    unitsUsed = budget.UsedBy(request.User!),
+                    tokensUsed = budget.RawUsedBy(request.User!),
+                    unitsPerWindow = opts.Value.QuotaTokens,
                     refusals = suspensions.RefusalsOf(request.User!),
                     suspendedSince = suspensions.Of(request.User!)?.Since,
                 },

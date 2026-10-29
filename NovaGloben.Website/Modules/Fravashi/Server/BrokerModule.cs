@@ -57,6 +57,7 @@ public sealed class BrokerModule : IServerStartup
         services.AddSingleton(sp => new ModelPolicy(sp.GetRequiredService<IOptions<BrokerServiceOptions>>().Value.AllowedModels));
         services.AddSingleton<ITokenBudget, InMemoryTokenBudget>();
         services.AddSingleton<Suspensions>();
+        services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BrokerServiceOptions>>().Value.TokenWeights);
         services.AddSingleton<ForwardContainment>();
 
         // Prompt inspection: every user prompt is judged before it is forwarded, when its key is configured.

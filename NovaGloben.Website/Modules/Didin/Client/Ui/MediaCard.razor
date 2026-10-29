@@ -6,9 +6,14 @@
 @* A title card: the poster with rounded corners, a frosted panel with the title and "year | genre", and a
    heart that puts the title on My list without opening it. *@
 <div class="bin-card" @onclick="OnClick" title="@Card.Title" tabindex="0" role="button" aria-label="@Card.Title" @onkeydown="OnKey">
-    <div class="bin-card-media">
+    <div class="bin-card-media @(Card.PosterWide ? "bin-card-media-wide" : "")">
         @if (!string.IsNullOrEmpty(Card.PosterUrl))
         {
+            @if (Card.PosterWide)
+            {
+                @* wide art, whole, on a blurred and darkened copy of itself instead of grey bars (the same address: one fetch) *@
+                <img class="bin-poster-backdrop" src="@Options.AssetUrl(Card.PosterUrl)" alt="" aria-hidden="true" loading="lazy" />
+            }
             <img class="bin-poster @(Card.PosterWide ? "bin-poster-wide" : "")" src="@Options.AssetUrl(Card.PosterUrl)" alt="" loading="lazy" />
         }
         else

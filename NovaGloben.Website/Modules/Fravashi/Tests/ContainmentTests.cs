@@ -231,9 +231,9 @@ public sealed class ContainmentTests
         var (budget, _) = Budget(perUser: 100_000);
         var containment = new ForwardContainment(new ModelPolicy([]), budget, Quiet());
 
-        containment.After("alice", "/v1/messages", 200, 700);
-        containment.After("alice", "/v1/messages", 429, 9_999);             // the provider refused: nothing was generated
-        containment.After("alice", "/v1/messages/count_tokens", 200, 9_999); // counts tokens, generates none
+        containment.After("alice", "/v1/messages", 200, Input(700));
+        containment.After("alice", "/v1/messages", 429, Input(9_999));             // the provider refused: nothing was generated
+        containment.After("alice", "/v1/messages/count_tokens", 200, Input(9_999)); // counts tokens, generates none
         containment.After("alice", "/v1/models", 200, null);                // unreadable, and still not a generation
 
         budget.UsedBy("alice").Should().Be(700);
@@ -249,6 +249,8 @@ public sealed class ContainmentTests
 
         budget.UsedBy("alice").Should().Be(500);
     }
+
+    private static TokenUsage Input(long tokens) => new(tokens, 0, 0, 0);
 
     /// <summary>A suspension policy that never suspends, for the tests that are about something else.</summary>
     private static Suspensions Quiet() =>

@@ -50,21 +50,27 @@ public sealed class BrokerServiceOptions
     public TimeSpan QuotaWindow { get; set; } = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// Per-user budget in the provider's own TOKEN figures within <see cref="QuotaWindow"/>: input,
-    /// cache writes, cache reads and output together. Zero means no token limit, which is what a deployment from
+    /// Per-user budget within <see cref="QuotaWindow"/>, in weighted units: the provider's own figures for input,
+    /// cache writes, cache reads and output, each times its <see cref="TokenWeights"/> weight. Zero means no token limit, which is what a deployment from
     /// before this setting keeps until somebody sets one. The request quota above counts requests, and one
     /// request on the dearest model with a very large context costs what a thousand small ones do.
     /// </summary>
     public long QuotaTokens { get; set; }
 
     /// <summary>
-    /// A ceiling on what EVERY user together may use in a day, in tokens. Zero means none. Ten users each inside
+    /// What each kind of token weighs against the budgets: <see cref="QuotaTokens"/> and
+    /// <see cref="OrganisationTokensPerDay"/> count weighted units, not raw tokens. Bound from <c>Broker:TokenWeights</c>.
+    /// </summary>
+    public Containment.TokenWeights TokenWeights { get; set; } = new();
+
+    /// <summary>
+    /// A ceiling on what EVERY user together may use in a day, in weighted units (<see cref="TokenWeights"/>). Zero means none. Ten users each inside
     /// their own budget are ten times the bill, and one leaked grant is a full one until somebody notices.
     /// </summary>
     public long OrganisationTokensPerDay { get; set; }
 
     /// <summary>
-    /// What an answer is charged when its usage could not be read. Never nothing: a budget that can be slipped
+    /// What an answer is charged, in weighted units, when its usage could not be read. Never nothing: a budget that can be slipped
     /// by an unreadable answer is no budget. The default is large on purpose.
     /// </summary>
     public long UnreadableUsageCharge { get; set; } = 200_000;
