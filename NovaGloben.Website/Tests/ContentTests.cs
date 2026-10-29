@@ -120,7 +120,8 @@ public class ContentTests
     {
         foreach (var key in ContentLibrary.Keys())
         {
-            // Any Swedish mobile number, in the national or the international form: the site publishes none.
+            // Any Swedish mobile number, in the national or the international form: the site publishes none (the
+            // company's number is a Stockholm one, +46 8 504 313 12, claim C-11).
             Assert.DoesNotMatch(@"(?<!\d)07[02369][- ]?\d{3}[- ]?\d{2}[- ]?\d{2}(?!\d)|\+46[\s-]?7\d", ContentLibrary.Get(key)!);
         }
     }
@@ -128,7 +129,7 @@ public class ContentTests
     /// <summary>Whether an address in the content resolves on the sites as the repository declares them.</summary>
     private static bool Resolves(string target)
     {
-        if (target.StartsWith("mailto:info@nova-globen.se", StringComparison.Ordinal) || target.StartsWith("https://", StringComparison.Ordinal) || target.StartsWith("http://", StringComparison.Ordinal))
+        if (target.StartsWith("mailto:info@nova-globen.se", StringComparison.Ordinal) || target == "tel:+46850431312" || target.StartsWith("https://", StringComparison.Ordinal) || target.StartsWith("http://", StringComparison.Ordinal))
         {
             return true;
         }

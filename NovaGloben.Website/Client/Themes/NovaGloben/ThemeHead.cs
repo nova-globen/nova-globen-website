@@ -121,6 +121,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             ["url"] = origin + "/",
             ["logo"] = origin + "/assets/logo-full.png",
             ["email"] = "info@nova-globen.se",
+            ["telephone"] = "+46850431312",
             ["vatID"] = "SE559481693501",
             ["identifier"] = new Dictionary<string, string> { ["@type"] = "PropertyValue", ["propertyID"] = "Organisationsnummer", ["value"] = "559481-6935" },
             ["address"] = new Dictionary<string, string>

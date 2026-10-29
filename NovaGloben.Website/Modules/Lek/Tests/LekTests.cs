@@ -118,6 +118,19 @@ public sealed class AssetTests
         LekStaticFiles.IsModel(request).Should().Be(model);
         LekStaticFiles.CacheControl(request).Should().Be(cache);
     }
+
+    [Theory]
+    [InlineData("GET", true)]
+    [InlineData("HEAD", true)]
+    [InlineData("POST", false)]
+    public void A_model_is_answered_to_a_read_and_to_a_head_alike(string method, bool answered)
+    {
+        var request = new DefaultHttpContext().Request;
+        request.Path = "/_content/Lek.Client.Stomme/games/noir/models/pistol.glb";
+        request.Method = method;
+
+        LekStaticFiles.AnswersModel(request).Should().Be(answered);
+    }
 }
 
 /// <summary>The site Lek sets up: open sign-up, confirmed e-mail.</summary>

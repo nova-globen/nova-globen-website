@@ -112,6 +112,8 @@ public class AddressTests
         Assert.Contains("hreflang=\"x-default\" href=\"https://nova-globen.se/\"", head);
         Assert.Contains("\"vatID\":\"SE559481693501\"", head);
         Assert.Contains("559481-6935", head);
+        Assert.Equal("+46850431312", System.Text.Json.JsonDocument.Parse(ThemeHead.Organization("https://nova-globen.se"))
+            .RootElement.GetProperty("telephone").GetString());
         Assert.Contains("og:image\" content=\"https://nova-globen.se/assets/og-image.png\"", head);
         Assert.Contains("application/atom+xml", head);
     }

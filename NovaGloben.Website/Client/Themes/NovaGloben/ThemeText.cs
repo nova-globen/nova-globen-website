@@ -16,6 +16,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
         public string ContactUs { get; private init; }
         public string Tagline { get; private init; }
         public string Country { get; private init; }
+        public string Phone { get; private init; }
         public string OrgNumberLabel { get; private init; }
         public string VatLabel { get; private init; }
         public string ServicesHeading { get; private init; }
@@ -35,6 +36,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             ContactUs = "Contact us",
             Tagline = "Nova Globen: did a bit.",
             Country = "Sweden",
+            Phone = "+46 8 504 313 12",
             OrgNumberLabel = "Org. nr",
             VatLabel = "VAT",
             ServicesHeading = "Services",
@@ -55,6 +57,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             ContactUs = "Kontakta oss",
             Tagline = "Nova Globen: did a bit.", // the company's tagline, a name-pun kept in English
             Country = "Sverige",
+            Phone = "08-504 313 12",
             OrgNumberLabel = "Org. nr",
             VatLabel = "Moms",
             ServicesHeading = "Tjänster",

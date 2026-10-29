@@ -23,3 +23,18 @@
   .lek-game-frame { position: fixed; inset: 0; z-index: 2000; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; }
   .lek-game-frame iframe { border-radius: 0; }
 }
+/* The site's menu lists every game, wider than the header until about 1560px (measured), where it ran under the header's search
+   and buttons and pushed the page sideways. Below that the menu folds into the theme's own toggle, with the theme's
+   own rules for a narrow screen (its app.css, under 768px). */
+@media (max-width: 1599.98px) {
+  .db-nav-toggle { display: inline-flex; }
+  .db-nav-items { display: none; }
+  .db-nav-items.open, .db-nav-checkbox:checked ~ .db-nav-items {
+    display: flex; flex-direction: column; align-items: stretch; position: absolute; top: var(--db-appbar-h, 64px);
+    left: 0; right: 0; z-index: var(--db-z-sticky, 1020); padding: .5rem; gap: .15rem; background: var(--db-bg-elev);
+    border-bottom: 1px solid var(--db-border); box-shadow: var(--db-shadow); max-height: calc(100vh - var(--db-appbar-h, 64px));
+    overflow-y: auto;
+  }
+  .db-nav-items.open .db-nav-list, .db-nav-checkbox:checked ~ .db-nav-items .db-nav-list { flex-direction: column; align-items: stretch; width: 100%; }
+  .db-nav-items.open .db-nav-link, .db-nav-checkbox:checked ~ .db-nav-items .db-nav-link { width: 100%; }
+}
