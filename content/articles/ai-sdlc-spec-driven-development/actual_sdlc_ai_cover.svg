@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">SDLC in the AI Era — Spec-Driven Development</title>
+  <desc id="desc">A true vector SVG illustration of the software development lifecycle in the AI era with a central specification document as the source of truth.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#061022"/>
+      <stop offset="55%" stop-color="#10173a"/>
+      <stop offset="100%" stop-color="#0b1d2d"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="50%" cy="45%" r="40%">
+      <stop offset="0%" stop-color="#835dff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#835dff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="nova" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3f93ff"/>
+      <stop offset="50%" stop-color="#8a5cff"/>
+      <stop offset="100%" stop-color="#2ad7d7"/>
+    </linearGradient>
+    <linearGradient id="bluePanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e2b5d"/>
+      <stop offset="100%" stop-color="#11234a"/>
+    </linearGradient>
+    <linearGradient id="violetPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f2aa2"/>
+      <stop offset="100%" stop-color="#23184e"/>
+    </linearGradient>
+    <linearGradient id="tealPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b4a63"/>
+      <stop offset="100%" stop-color="#102f3c"/>
+    </linearGradient>
+    <style><![CDATA[
+      .title{font:700 46px 'Segoe UI',Inter,Arial,sans-serif; fill:#fff; letter-spacing:-1px}
+      .subtitle{font:700 24px 'Segoe UI',Inter,Arial,sans-serif; fill:url(#nova)}
+      .tag{font:600 12px 'Segoe UI',Inter,Arial,sans-serif; fill:#d7e5ff}
+      .num{font:700 14px 'Segoe UI',Inter,Arial,sans-serif; fill:#cfd9ff}
+      .label{font:700 14px 'Segoe UI',Inter,Arial,sans-serif; fill:#fff}
+      .tiny{font:500 11px 'Segoe UI',Inter,Arial,sans-serif; fill:#d7e3ff}
+      .cardTitle{font:700 14px 'Segoe UI',Inter,Arial,sans-serif; fill:#fff}
+      .cardText{font:500 12px 'Segoe UI',Inter,Arial,sans-serif; fill:#d6dff2}
+      .specTitle{font:700 18px 'Segoe UI',Inter,Arial,sans-serif; fill:#22336e}
+      .specSub{font:700 16px 'Segoe UI',Inter,Arial,sans-serif; fill:#3a57d0}
+      .specText{font:600 12px 'Segoe UI',Inter,Arial,sans-serif; fill:#4b5c89}
+      .callout{font:500 11px 'Segoe UI',Inter,Arial,sans-serif; fill:#e3ecff}
+      .badge{font:600 12px 'Segoe UI',Inter,Arial,sans-serif; fill:#dbe8ff}
+      .small{font:500 13px 'Segoe UI',Inter,Arial,sans-serif; fill:#dbe6fb}
+      .trace{stroke:url(#nova); stroke-width:4; stroke-linecap:round; fill:none}
+      .trace2{stroke:#9586ff; stroke-width:2.5; stroke-linecap:round; fill:none}
+      .trace3{stroke:#77e0e0; stroke-width:2.5; stroke-linecap:round; fill:none}
+    ]]></style>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#aura)"/>
+  <g opacity="0.07" stroke="#8ba8ff" stroke-width="1">
+    <path d="M0 70H1200M0 140H1200M0 210H1200M0 280H1200M0 350H1200M0 420H1200M0 490H1200M0 560H1200"/>
+    <path d="M80 0V630M160 0V630M240 0V630M320 0V630M400 0V630M480 0V630M560 0V630M640 0V630M720 0V630M800 0V630M880 0V630M960 0V630M1040 0V630M1120 0V630"/>
+  </g>
+
+  <text x="42" y="82" class="title">SDLC in the AI Era</text>
+  <text x="42" y="126" class="subtitle">Spec-Driven Development</text>
+  <rect x="42" y="142" width="140" height="3" rx="2" fill="url(#nova)"/>
+
+  <g transform="translate(718 48)">
+    <g>
+      <circle cx="0" cy="0" r="18" fill="none" stroke="#85b6ff" stroke-width="2"/>
+      <circle cx="0" cy="0" r="5" fill="none" stroke="#85b6ff" stroke-width="2"/>
+      <path d="M0 -18V-7M18 0H7M-18 0H-7M12 12l-7-7" stroke="#85b6ff" stroke-width="2" stroke-linecap="round"/>
+      <text x="28" y="-2" class="badge">Single Source</text>
+      <text x="28" y="14" class="badge">of Truth</text>
+    </g>
+    <g transform="translate(165 0)">
+      <path d="M0 -18l12 4v10c0 11-10 18-12 19-2-1-12-8-12-19v-10z" fill="none" stroke="#a8beff" stroke-width="2"/>
+      <path d="M-5 0l4 4 8-9" fill="none" stroke="#a8beff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="30" y="-2" class="badge">End-to-End</text>
+      <text x="30" y="14" class="badge">Traceability</text>
+    </g>
+    <g transform="translate(346 0)">
+      <circle cx="-8" cy="0" r="12" fill="none" stroke="#8cc0ff" stroke-width="2"/>
+      <circle cx="8" cy="0" r="12" fill="none" stroke="#8cc0ff" stroke-width="2"/>
+      <circle cx="0" cy="-10" r="9" fill="none" stroke="#8cc0ff" stroke-width="2"/>
+      <path d="M-8 12v6M8 12v6M0 -1v17" stroke="#8cc0ff" stroke-width="2" stroke-linecap="round"/>
+      <text x="30" y="-2" class="badge">AI + Humans</text>
+      <text x="30" y="14" class="badge">Better Together</text>
+    </g>
+  </g>
+
+  <!-- timeline -->
+  <path d="M50 286H1150" class="trace"/>
+
+  <!-- step panels -->
+  <g>
+    <g transform="translate(50 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#bluePanel)" stroke="#3470d0" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">01</text>
+      <text x="84" y="58" text-anchor="middle" class="label">DISCOVERY</text>
+      <circle cx="84" cy="98" r="18" fill="none" stroke="#90bbff" stroke-width="2"/>
+      <path d="M96 110l10 10" stroke="#90bbff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="77" cy="92" r="4" fill="#3f93ff"/>
+      <circle cx="89" cy="92" r="4" fill="#3f93ff"/>
+      <path d="M70 104c2-5 7-8 13-8s11 3 13 8" fill="none" stroke="#3f93ff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="90" cy="116" r="2" fill="#3f93ff"/>
+      <circle cx="90" cy="286" r="10" fill="#102a54" stroke="#5db6ff" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(205 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#bluePanel)" stroke="#3470d0" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">02</text>
+      <text x="84" y="58" text-anchor="middle" class="label">SPECIFICATION</text>
+      <path d="M70 79h28l11 11v37H70z" fill="none" stroke="#d1e0ff" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M98 79v11h11M78 96h22M78 104h22M78 112h16" fill="none" stroke="#89b3ff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="102" cy="286" r="10" fill="#102a54" stroke="#5db6ff" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(360 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#violetPanel)" stroke="#7c5ae0" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">03</text>
+      <text x="84" y="58" text-anchor="middle" class="label">ARCHITECTURE</text>
+      <rect x="75" y="82" width="18" height="12" fill="none" stroke="#d5c5ff" stroke-width="2"/>
+      <rect x="58" y="108" width="18" height="12" fill="none" stroke="#d5c5ff" stroke-width="2"/>
+      <rect x="92" y="108" width="18" height="12" fill="none" stroke="#d5c5ff" stroke-width="2"/>
+      <path d="M84 94v10M67 108v-4h34v4" fill="none" stroke="#ab92ff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="102" cy="286" r="10" fill="#251750" stroke="#a87dff" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(515 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#violetPanel)" stroke="#7c5ae0" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">04</text>
+      <text x="84" y="58" text-anchor="middle" class="label">IMPLEMENTATION</text>
+      <path d="M70 100l-12 10 12 10M98 100l12 10-12 10M88 94l-8 32" fill="none" stroke="#d8c9ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="102" cy="286" r="10" fill="#251750" stroke="#a87dff" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(670 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#violetPanel)" stroke="#7c5ae0" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">05</text>
+      <text x="84" y="58" text-anchor="middle" class="label">TESTING</text>
+      <rect x="68" y="84" width="34" height="40" rx="4" fill="none" stroke="#cebfff" stroke-width="2"/>
+      <path d="M76 94h14M76 103h14M76 112h9M87 113l4 4 9-10" fill="none" stroke="#9f8aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="102" cy="286" r="10" fill="#251750" stroke="#a87dff" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(825 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#tealPanel)" stroke="#3bb4bf" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">06</text>
+      <text x="84" y="58" text-anchor="middle" class="label">DEPLOYMENT</text>
+      <path d="M84 82c-11 0-20 8-22 19-9 1-16 9-16 18 0 10 8 18 18 18h40c10 0 18-8 18-18 0-10-8-18-18-18h-1c-2-11-11-19-19-19z" fill="none" stroke="#98dbff" stroke-width="2"/>
+      <path d="M84 92v25M75 108l9 9 9-9" fill="none" stroke="#98dbff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="102" cy="286" r="10" fill="#0d2f37" stroke="#5fe3e3" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(980 170)">
+      <path d="M14 0H160l20 40-20 40H14Q0 80 0 66V14Q0 0 14 0Z" fill="url(#tealPanel)" stroke="#3bb4bf" stroke-width="1.5"/>
+      <text x="84" y="24" text-anchor="middle" class="num">07</text>
+      <text x="84" y="58" text-anchor="middle" class="label">OPERATIONS</text>
+      <rect x="66" y="86" width="38" height="32" fill="none" stroke="#9ee7e7" stroke-width="2"/>
+      <path d="M72 118h26M80 124h10" fill="none" stroke="#9ee7e7" stroke-width="2" stroke-linecap="round"/>
+      <path d="M74 109l6-8 7 5 9-14" fill="none" stroke="#5fe3e3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="102" cy="286" r="10" fill="#0d2f37" stroke="#5fe3e3" stroke-width="4"/>
+    </g>
+  </g>
+
+  <!-- central glow -->
+  <circle cx="600" cy="378" r="150" fill="#8a72ff" opacity="0.18"/>
+  <circle cx="600" cy="378" r="102" fill="#8a72ff" opacity="0.10"/>
+
+  <!-- specification document -->
+  <g transform="translate(600 378)">
+    <rect x="-84" y="-92" width="168" height="184" rx="18" fill="#eef2ff" stroke="#b7bfff" stroke-width="4"/>
+    <rect x="-84" y="-92" width="168" height="184" rx="18" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="10"/>
+    <path d="M-44 -48h60" stroke="#4d68e2" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-24 -58l6 7 10-12" fill="none" stroke="#55c6d4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="-44" text-anchor="middle" class="specTitle">SPECIFICATION</text>
+    <text x="0" y="-16" text-anchor="middle" class="specSub">The Source of Truth</text>
+    <g class="specText">
+      <circle cx="-40" cy="10" r="5" fill="#55c6d4"/><path d="M-42 10l2 2 4-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-28" y="14">Requirements</text>
+      <circle cx="-40" cy="34" r="5" fill="#55c6d4"/><path d="M-42 34l2 2 4-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-28" y="38">Constraints</text>
+      <circle cx="-40" cy="58" r="5" fill="#55c6d4"/><path d="M-42 58l2 2 4-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-28" y="62">Interfaces</text>
+      <circle cx="-40" cy="82" r="5" fill="#55c6d4"/><path d="M-42 82l2 2 4-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="-28" y="86">Acceptance Criteria</text>
+    </g>
+  </g>
+
+  <!-- connections -->
+  <path d="M257 286c0 50 0 58 26 58h124" class="trace2"/>
+  <path d="M927 286c0 50 0 58-26 58H793" class="trace3"/>
+  <path d="M518 430H382c-16 0-24 10-24 24v42" class="trace2"/>
+  <path d="M518 396H329c-16 0-24 10-24 24v76" class="trace2"/>
+  <path d="M682 430h136c16 0 24 10 24 24v42" class="trace3"/>
+  <path d="M682 396h189c16 0 24 10 24 24v76" class="trace3"/>
+  <path d="M600 470v40" class="trace2"/>
+  <circle cx="407" cy="392" r="5" fill="#9a87ff"/>
+  <circle cx="358" cy="496" r="5" fill="#9a87ff"/>
+  <circle cx="794" cy="392" r="5" fill="#81e1e1"/>
+  <circle cx="842" cy="496" r="5" fill="#81e1e1"/>
+
+  <!-- people and AI -->
+  <g transform="translate(80 452)">
+    <ellipse cx="0" cy="116" rx="72" ry="18" fill="#020611" opacity="0.45"/>
+    <circle cx="0" cy="22" r="18" fill="#e0b39a"/>
+    <path d="M-22 15c4-16 15-25 28-25 14 0 25 10 25 24 0 3 0 5-1 8-6-8-15-13-28-13-10 0-17 3-24 10-1-2-1-3 0-4z" fill="#101523"/>
+    <rect x="-28" y="44" width="58" height="72" rx="18" fill="#132141"/>
+    <path d="M28 60c22 8 39 25 52 54" fill="none" stroke="#17335f" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-24 60c-15 10-23 23-28 44" fill="none" stroke="#17335f" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-8 116c6 38 6 70 7 96M12 116c5 38 6 70 8 96" fill="none" stroke="#0c1731" stroke-width="18" stroke-linecap="round"/>
+    <g transform="translate(58 90)">
+      <polygon points="0,0 92,18 92,94 0,76" fill="#0e2748" stroke="#2f6dbf" stroke-width="2"/>
+      <path d="M14 30h44M14 42h54M14 54h38" fill="none" stroke="#5db9ff" stroke-width="2" stroke-linecap="round"/>
+      <rect x="56" y="24" width="18" height="16" fill="none" stroke="#84c6ff" stroke-width="2"/>
+    </g>
+  </g>
+
+  <g transform="translate(250 438)">
+    <ellipse cx="0" cy="116" rx="52" ry="16" fill="#020611" opacity="0.45"/>
+    <circle cx="0" cy="28" r="22" fill="#d9e3ff" stroke="#6ea6ff" stroke-width="2"/>
+    <rect x="-20" y="52" width="40" height="46" rx="12" fill="#ccd9ff" stroke="#6ea6ff" stroke-width="2"/>
+    <circle cx="-8" cy="26" r="4" fill="#1ad8ff"/><circle cx="8" cy="26" r="4" fill="#1ad8ff"/>
+    <path d="M-8 36c5 3 11 3 16 0" fill="none" stroke="#1ad8ff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-20 72c-14 4-22 13-30 24M20 72c16 4 24 13 34 26" fill="none" stroke="#8eb2ff" stroke-width="7" stroke-linecap="round"/>
+    <path d="M-8 98v28M8 98v28" fill="none" stroke="#8eb2ff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M52 92c16-8 28-14 37-22" fill="none" stroke="#8eb2ff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="92" cy="66" r="4" fill="#8eb2ff"/>
+    <path d="M92 66l10-10" stroke="#8eb2ff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(914 490)">
+    <ellipse cx="0" cy="62" rx="44" ry="14" fill="#020611" opacity="0.45"/>
+    <circle cx="0" cy="18" r="18" fill="#d9e3ff" stroke="#8a7bff" stroke-width="2"/>
+    <rect x="-16" y="38" width="32" height="36" rx="10" fill="#cfd8ff" stroke="#8a7bff" stroke-width="2"/>
+    <circle cx="-6" cy="16" r="3.5" fill="#3ff1ff"/><circle cx="6" cy="16" r="3.5" fill="#3ff1ff"/>
+    <path d="M-6 24c4 2 8 2 12 0" fill="none" stroke="#3ff1ff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-16 50c-14 4-22 12-28 22M16 50c14 4 22 12 28 22" fill="none" stroke="#9a8cff" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(1072 452)">
+    <ellipse cx="0" cy="116" rx="72" ry="18" fill="#020611" opacity="0.45"/>
+    <circle cx="0" cy="22" r="18" fill="#d9b197"/>
+    <path d="M-23 15c4-16 15-24 28-24 16 0 28 12 28 28 0 2 0 4-1 6-7-8-17-14-31-14-10 0-17 3-24 10-1-2-1-4 0-6z" fill="#141829"/>
+    <rect x="-28" y="44" width="60" height="74" rx="18" fill="#15223f"/>
+    <path d="M-26 58c-20 14-31 31-38 60" fill="none" stroke="#163058" stroke-width="12" stroke-linecap="round"/>
+    <path d="M30 60c16 9 24 22 30 38" fill="none" stroke="#163058" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-8 116c-6 38-7 70-8 96M12 116c-5 38-6 70-8 96" fill="none" stroke="#0d1832" stroke-width="18" stroke-linecap="round"/>
+    <g transform="translate(-94 96)">
+      <polygon points="0,14 92,0 92,80 0,94" fill="#0e2748" stroke="#2f6dbf" stroke-width="2"/>
+      <path d="M14 26h48M14 38h54M14 50h30M14 62h40" fill="none" stroke="#60c0ff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M60 56l6 6 10-14" fill="none" stroke="#8bc9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- speech bubbles -->
+  <g transform="translate(165 348)">
+    <rect x="0" y="0" width="126" height="72" rx="12" fill="#0a1731" fill-opacity="0.92" stroke="#3661b6" stroke-width="1.5"/>
+    <path d="M20 72h18l-12 12z" fill="#0a1731" stroke="#3661b6" stroke-width="1.5"/>
+    <text x="14" y="26" class="callout">I’ll analyse</text>
+    <text x="14" y="44" class="callout">requirements and</text>
+    <text x="14" y="62" class="callout">suggest options.</text>
+  </g>
+  <g transform="translate(956 356)">
+    <rect x="0" y="0" width="126" height="72" rx="12" fill="#0a1731" fill-opacity="0.92" stroke="#2f8f98" stroke-width="1.5"/>
+    <path d="M28 72h18l-12 12z" fill="#0a1731" stroke="#2f8f98" stroke-width="1.5"/>
+    <text x="14" y="26" class="callout">I’ll write tests,</text>
+    <text x="14" y="44" class="callout">review code, and</text>
+    <text x="14" y="62" class="callout">catch issues early.</text>
+  </g>
+
+  <!-- bottom cards -->
+  <g>
+    <g transform="translate(303 504)">
+      <rect x="0" y="0" width="150" height="84" rx="14" fill="#102145" stroke="#2d68c4" stroke-width="1.6"/>
+      <rect x="16" y="19" width="34" height="34" rx="7" fill="none" stroke="#3f93ff" stroke-width="2"/>
+      <path d="M25 38l-6 5 6 5M41 38l6 5-6 5" fill="none" stroke="#3f93ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="62" y="36" class="cardTitle">CODE</text>
+      <text x="62" y="54" class="cardText">Clean. Consistent.</text>
+      <text x="62" y="73" class="cardText">Traceable.</text>
+    </g>
+    <g transform="translate(469 504)">
+      <rect x="0" y="0" width="150" height="84" rx="14" fill="#26194f" stroke="#7558d7" stroke-width="1.6"/>
+      <rect x="16" y="19" width="34" height="34" rx="7" fill="none" stroke="#ae83ff" stroke-width="2"/>
+      <path d="M24 30h18M24 38h18M24 46h12M38 42l4 4 8-9" fill="none" stroke="#ae83ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="62" y="36" class="cardTitle">TESTS</text>
+      <text x="62" y="54" class="cardText">Requirements to</text>
+      <text x="62" y="73" class="cardText">test cases. In sync.</text>
+    </g>
+    <g transform="translate(730 504)">
+      <rect x="0" y="0" width="164" height="84" rx="14" fill="#0d203f" stroke="#449dc0" stroke-width="1.6"/>
+      <path d="M26 52h28c9 0 16-7 16-16s-7-16-16-16c-2-9-10-15-19-15-10 0-18 7-20 17-8 0-15 7-15 15s7 15 15 15h11" fill="none" stroke="#4dbff2" stroke-width="2.4"/>
+      <text x="76" y="30" class="cardTitle">INFRASTRUCTURE</text>
+      <text x="76" y="50" class="cardText">As Code.</text>
+      <text x="76" y="69" class="cardText">Secure. Scalable.</text>
+    </g>
+    <g transform="translate(910 504)">
+      <rect x="0" y="0" width="146" height="84" rx="14" fill="#0d2435" stroke="#44b8ba" stroke-width="1.6"/>
+      <rect x="18" y="19" width="34" height="28" fill="none" stroke="#61e1e1" stroke-width="2"/>
+      <path d="M18 47h34M28 53h14M24 37l6-6 6 5 8-12" fill="none" stroke="#61e1e1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="70" y="32" class="cardTitle">TELEMETRY</text>
+      <text x="70" y="50" class="cardText">Logs. Metrics.</text>
+      <text x="70" y="69" class="cardText">Traces.</text>
+    </g>
+  </g>
+
+  <!-- bottom tagline -->
+  <g transform="translate(352 596)">
+    <rect x="0" y="-22" width="496" height="40" rx="20" fill="#091428" stroke="#334d7a" stroke-width="1.4"/>
+    <path d="M24-2c0-6 5-11 11-11 3 0 6 1 8 4l7 7c2 2 4 5 4 8 0 6-5 11-11 11-3 0-6-1-8-4M16 6l-7-7C7-3 6-6 6-9c0-6 5-11 11-11 3 0 6 1 8 4" fill="none" stroke="#dbe8ff" stroke-width="2" stroke-linecap="round"/>
+    <text x="80" y="8" class="small">One Continuous Line of Traceability.</text>
+    <text x="356" y="8" class="small" fill="url(#nova)">From Idea to Impact.</text>
+  </g>
+</svg>

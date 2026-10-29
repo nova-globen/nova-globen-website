@@ -1,0 +1,213 @@
+@namespace NovaGloben.Website.Client.Modules.Articles
+@inherits ModuleBase
+@using System.Globalization
+@using NovaGloben.Website.Articles
+@inject IArticleService Articles
+
+@* Every link here is a plain link (tags, pages, articles), so the list filters and pages without JavaScript. Dates are
+   English, as the articles are. *@
+@switch (_view)
+{
+    case "article":
+        @if (_article != null)
+        {
+            <article class="ng-article">
+                <header class="ng-container ng-narrow ng-article-head">
+                    <a class="ng-back" href="/blog">&larr; All articles</a>
+                    <p class="ng-article-meta"><time datetime="@_article.PublishedOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@Date(_article.PublishedOn)</time> <span aria-hidden="true">&middot;</span> by Nova Globen AB</p>
+                    <h1 class="ng-article-title">@_article.Title</h1>
+                    @if (_article.Tags.Count > 0)
+                    {
+                        <ul class="ng-tags" aria-label="Topics">
+                            @foreach (var tag in _article.Tags)
+                            {
+                                <li><a class="ng-tag" href="@TagUrl(tag)">@Topic(tag)</a></li>
+                            }
+                        </ul>
+                    }
+                </header>
+                @if (_article.CoverPng.Length > 0)
+                {
+                    <div class="ng-container ng-article-cover">
+                        <picture>
+                            @if (_article.CoverWebp.Length > 0)
+                            {
+                                <source srcset="@CoverSrcset(_article.CoverWebp)" sizes="(min-width: 1148px) 1100px, calc(100vw - 32px)" type="image/webp" />
+                            }
+                            <img src="@_article.CoverPng" alt="" width="1200" height="630" loading="eager" fetchpriority="high" />
+                        </picture>
+                    </div>
+                }
+                <div class="ng-container ng-narrow ng-prose">
+                    @((MarkupString)_article.Html)
+                </div>
+                <footer class="ng-container ng-narrow ng-article-foot">
+                    <a class="ng-btn ng-btn-outline" href="/blog">&larr; Back to all articles</a>
+                </footer>
+            </article>
+        }
+        break;
+
+    case "latest":
+        @if (_latest.Count > 0)
+        {
+            @* A band of its own, continuing the soft section the heading before it opens (home page). *@
+            <div class="ng-band ng-section-soft">
+                <div class="ng-container">
+                    <div class="ng-card-grid">
+                        @foreach (var item in _latest)
+                        {
+                            @Card(item, 3)
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        break;
+
+    default:
+        @if (_page != null)
+        {
+            <div class="ng-container ng-article-list">
+                @if (_page.Tags.Count > 0)
+                {
+                    <nav class="ng-tag-filter" aria-label="Filter by topic">
+                        <ul class="ng-tags">
+                            <li><a class="ng-tag @(_page.Tag.Length == 0 ? "is-current" : "")" href="/blog" aria-current="@(_page.Tag.Length == 0 ? "page" : null)">All</a></li>
+                            @foreach (var tag in _page.Tags)
+                            {
+                                <li><a class="ng-tag @(_page.Tag == tag.Tag ? "is-current" : "")" href="@TagUrl(tag.Tag)" aria-current="@(_page.Tag == tag.Tag ? "page" : null)">@Topic(tag.Tag) <span class="ng-tag-count">@tag.Count</span></a></li>
+                            }
+                        </ul>
+                    </nav>
+                }
+                @if (_page.Tag.Length > 0)
+                {
+                    <p class="ng-list-status" role="status">@_page.Total @(_page.Total == 1 ? "article" : "articles") on <strong>@Topic(_page.Tag)</strong>.</p>
+                }
+                <div class="ng-card-grid">
+                    @foreach (var item in _page.Items)
+                    {
+                        @Card(item, 2)
+                    }
+                </div>
+                @if (_page.PageCount > 1)
+                {
+                    <nav class="ng-pagination" aria-label="Pages">
+                        <ul>
+                            @if (_page.Page > 1)
+                            {
+                                <li><a href="@PageUrl(_page.Page - 1)" rel="prev">&larr; Newer</a></li>
+                            }
+                            @for (var p = 1; p <= _page.PageCount; p++)
+                            {
+                                var number = p;
+                                <li><a href="@PageUrl(number)" aria-current="@(number == _page.Page ? "page" : null)" class="@(number == _page.Page ? "is-current" : "")">@number</a></li>
+                            }
+                            @if (_page.Page < _page.PageCount)
+                            {
+                                <li><a href="@PageUrl(_page.Page + 1)" rel="next">Older &rarr;</a></li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+        }
+        break;
+}
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+    private string _view = "list";
+    private ArticleDetail _article;
+    private List<ArticleSummary> _latest = new();
+    private ArticleListPage _page;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var settings = ModuleState.Settings ?? new Dictionary<string, string>();
+        _view = settings.TryGetValue(WebsiteKeys.ArticlesView, out var view) && view.Length > 0 ? view : "list";
+        var count = settings.TryGetValue(WebsiteKeys.ArticlesCount, out var countText) && int.TryParse(countText, out var parsed) && parsed > 0 ? parsed : 12;
+
+        switch (_view)
+        {
+            case "article":
+                _article = await Articles.GetAsync(settings.TryGetValue(WebsiteKeys.ArticleSlug, out var slug) ? slug : "");
+                break;
+            case "latest":
+                _latest = await Articles.LatestAsync(count);
+                break;
+            default:
+                var page = PageState.QueryString.TryGetValue("page", out var pageText) && int.TryParse(pageText, out var pageNumber) ? pageNumber : 1;
+                var tag = PageState.QueryString.TryGetValue("tag", out var tagText) ? tagText : "";
+                _page = await Articles.ListAsync(page, count, tag);
+                break;
+        }
+    }
+
+    private RenderFragment Card(ArticleSummary item, int level) => @<article class="ng-card ng-article-card">
+        @if (item.CoverPng.Length > 0)
+        {
+            <a class="ng-card-media" href="@ArticleUrl(item)" tabindex="-1" aria-hidden="true">
+                <picture>
+                    @if (item.CoverWebp.Length > 0)
+                    {
+                        <source srcset="@CoverSrcset(item.CoverWebp)" sizes="(min-width: 1100px) 360px, (min-width: 700px) 50vw, 100vw" type="image/webp" />
+                    }
+                    <img src="@item.CoverPng" alt="" width="600" height="315" loading="lazy" />
+                </picture>
+            </a>
+        }
+        <div class="ng-card-body">
+            <p class="ng-card-meta"><time datetime="@item.PublishedOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@Date(item.PublishedOn)</time></p>
+            @if (level == 2)
+            {
+                <h2 class="ng-card-title"><a href="@ArticleUrl(item)">@item.Title</a></h2>
+            }
+            else
+            {
+                <h3 class="ng-card-title"><a href="@ArticleUrl(item)">@item.Title</a></h3>
+            }
+            @if (item.Summary.Length > 0)
+            {
+                <p class="ng-card-text">@item.Summary</p>
+            }
+        </div>
+    </article>;
+
+    /// <summary>
+    /// The cover's WebP candidates: the 800-pixel variant next to it (scripts/content/cover-variants.ps1; a content test
+    /// requires one for every cover.webp) and the 1200-pixel cover itself. A phone takes the small one.
+    /// </summary>
+    public static string CoverSrcset(string webp) =>
+        webp.EndsWith("/cover.webp", StringComparison.Ordinal)
+            ? $"{webp[..^"cover.webp".Length]}cover-800.webp 800w, {webp} 1200w"
+            : webp;
+
+    /// <summary>The blog's topics (each article's front-matter tags), with the label a reader sees.</summary>
+    private static readonly Dictionary<string, string> Topics = new(StringComparer.Ordinal)
+    {
+        ["architecture"] = "Architecture", ["microservices"] = "Microservices", ["apis"] = "APIs", ["data"] = "Data",
+        ["reliability"] = "Reliability", ["performance"] = "Performance", ["security"] = "Security", ["azure"] = "Azure",
+        ["delivery"] = "Delivery", ["ai"] = "AI"
+    };
+
+    public static string Topic(string tag) =>
+        Topics.TryGetValue(tag, out var label) ? label : tag.Length > 0 ? char.ToUpperInvariant(tag[0]) + tag[1..] : tag;
+
+    private static string Date(DateTime date) => date.ToString("d MMMM yyyy", CultureInfo.InvariantCulture);
+
+    private static string ArticleUrl(ArticleSummary item) => "/blog/" + item.Slug;
+
+    private static string TagUrl(string tag) => "/blog?tag=" + Uri.EscapeDataString(tag);
+
+    private string PageUrl(int page)
+    {
+        var tag = _page?.Tag ?? "";
+        var query = new List<string>();
+        if (tag.Length > 0) query.Add("tag=" + Uri.EscapeDataString(tag));
+        if (page > 1) query.Add("page=" + page.ToString(CultureInfo.InvariantCulture));
+        return "/blog" + (query.Count > 0 ? "?" + string.Join("&", query) : "");
+    }
+}

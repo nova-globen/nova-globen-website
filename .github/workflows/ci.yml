@@ -1,0 +1,42 @@
+name: ci
+
+# The gate on every change to main and every pull request: the names check (no internal host, no old product name in the
+# published tree), then scripts/gate.ps1 - the build, the tests, the licence, content and contrast checks. release.yml
+# calls it before it builds an image, so a tag never ships what this job would refuse. It runs in the public repository
+# only; the private development repository runs the same gate before every commit (its pre-commit hook).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    if: github.repository == 'nova-globen/nova-globen-website'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Names
+        shell: pwsh
+        run: ./scripts/check-names.ps1
+      - name: Install wasm-tools
+        run: dotnet workload install wasm-tools
+      - name: Gate
+        shell: pwsh
+        run: ./scripts/gate.ps1

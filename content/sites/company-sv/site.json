@@ -1,0 +1,198 @@
+{
+  // The Swedish company site, nova-globen.se/sv/: the same pages as the English site at the same
+  // paths, except the articles, which are English only, as today.
+  "key": "company-sv",
+  "name": "Nova Globen AB (svenska)",
+  "culture": "sv",
+  "folder": "sv",
+  "articles": false,
+  "settings": {
+    "NovaGloben:CounterpartBase": "/",
+    "NovaGloben:CtaPath": "contact",
+    "NovaGloben:ServicesPath": "services",
+    "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies"
+  },
+  "pages": [
+    {
+      "path": "",
+      "name": "Hem",
+      "title": "Nova Globen AB | Mjukvarukonsulting och produkter från Sverige",
+      "description": "Nova Globen AB designar, bygger och underhåller programvara med .NET, Microsoft Azure och praktisk AI, och gör tre produkter: Stomme, Fravashi och Vacha.",
+      "navigation": true,
+      "order": 1,
+      "sections": [
+        { "name": "home/hero", "content": "pages/home-hero.html" },
+        { "name": "home/services", "content": "pages/home-services.html" },
+        { "name": "home/process", "content": "pages/home-process.html" },
+        { "name": "home/why", "content": "pages/home-why.html" },
+        { "name": "home/insights", "content": "pages/home-insights.html" },
+        { "name": "home/contact", "content": "pages/home-contact.html" }
+      ]
+    },
+    {
+      "path": "services",
+      "name": "Tjänster",
+      "title": "Tjänster | Nova Globen AB",
+      "description": "Lösningsarkitektur och implementation, modernisering och underhåll, integrationer och automatisering samt AI i verksamheten.",
+      "navigation": true,
+      "order": 2,
+      "sections": [ { "name": "services", "content": "pages/services.html" } ]
+    },
+    {
+      "path": "services/architecture",
+      "name": "Lösningsarkitektur och implementation",
+      "title": "Lösningsarkitektur och implementation | Nova Globen AB",
+      "description": "Vi designar och bygger affärsapplikationer på .NET och Microsoft Azure, från arkitekturen till programvara i drift.",
+      "navigation": true,
+      "order": 1,
+      "sections": [ { "name": "service", "content": "pages/service-architecture.html" } ]
+    },
+    {
+      "path": "services/modernization",
+      "name": "Modernisering och underhåll",
+      "title": "Modernisering och underhåll | Nova Globen AB",
+      "description": "Vi förbättrar äldre system, minskar teknisk skuld och håller affärsprogram i gott skick över tid.",
+      "navigation": true,
+      "order": 2,
+      "sections": [ { "name": "service", "content": "pages/service-modernization.html" } ]
+    },
+    {
+      "path": "services/integrations",
+      "name": "Integrationer och automatisering",
+      "title": "Integrationer och automatisering | Nova Globen AB",
+      "description": "Vi kopplar samman system, automatiserar arbetsflöden och bygger tillförlitligt datautbyte mellan plattformar.",
+      "navigation": true,
+      "order": 3,
+      "sections": [ { "name": "service", "content": "pages/service-integrations.html" } ]
+    },
+    {
+      "path": "services/ai",
+      "name": "AI i verksamheten",
+      "title": "AI i verksamheten | Nova Globen AB",
+      "description": "Vi hjälper team att ta till sig praktisk AI: LLM-funktioner, Retrieval-Augmented Generation och AI-agenter i programvaruleveransen.",
+      "navigation": true,
+      "order": 4,
+      "sections": [ { "name": "service", "content": "pages/service-ai.html" } ]
+    },
+    {
+      "path": "products",
+      "name": "Produkter",
+      "title": "Produkter | Nova Globen AB",
+      "description": "Stomme, Fravashi och Vacha: programvaruprodukterna som Nova Globen AB bygger och underhåller.",
+      "navigation": true,
+      "order": 3,
+      "sections": [ { "name": "products", "content": "pages/products.html" } ]
+    },
+    {
+      "path": "products/stomme",
+      "name": "Stomme",
+      "title": "Stomme: en applikationsplattform för .NET | Nova Globen AB",
+      "description": "Stomme ger en affärsapplikation allt den behöver från start: webbplatser och organisationer, inloggning, innehåll, datalagring, automatisering, AI och integrationer.",
+      "navigation": false,
+      "order": 7,
+      "sections": [ { "name": "product", "content": "pages/product-stomme.html" } ]
+    },
+    {
+      "path": "products/fravashi",
+      "name": "Fravashi",
+      "title": "Fravashi: AI-kodagenter under din granskning | Nova Globen AB",
+      "description": "Fravashi är en studio i din egen miljö där AI-kodagenter arbetar med din programvara, och där en människa godkänner det agenterna ändrar.",
+      "navigation": false,
+      "order": 8,
+      "sections": [ { "name": "product", "content": "pages/product-fravashi.html" } ]
+    },
+    {
+      "path": "products/vacha",
+      "name": "Vacha",
+      "title": "Nova Globen Vacha: en text- och kodredigerare för Windows",
+      "description": "Vacha, som hette Tond fram till 1.0.0, öppnar en fil som Anteckningar gör och redigerar den som en kodredigerare.",
+      "navigation": false,
+      "order": 9,
+      "sections": [ { "name": "product", "content": "pages/product-vacha.html" } ]
+    },
+    {
+      "path": "products/vacha/download",
+      "name": "Ladda ned Vacha",
+      "title": "Ladda ned Vacha | Nova Globen AB",
+      "description": "Ladda ned Vacha 1.1.1 för Windows från Microsoft Store: gratis, under GNU GPL.",
+      "navigation": false,
+      "order": 1,
+      "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]
+    },
+    {
+      "path": "products/vacha/pricing",
+      "name": "Vacha: pris och support",
+      "title": "Vacha: pris och support | Nova Globen AB",
+      "description": "Vacha är fri programvara med öppen källkod för alla under GNU GPL, version 3 eller senare; företag kan köpa ett supportavtal.",
+      "navigation": false,
+      "order": 2,
+      "sections": [ { "name": "product", "content": "pages/product-vacha-pricing.html" } ]
+    },
+    {
+      "path": "insights",
+      "name": "Insikter",
+      "title": "Insikter | Nova Globen AB",
+      "description": "Tekniska artiklar på engelska.",
+      "navigation": true,
+      "order": 4,
+      "url": "/blog",
+      "settings": { "NovaGloben:Counterpart": "none" },
+      "sections": []
+    },
+    {
+      "path": "about",
+      "name": "Om oss",
+      "title": "Om Nova Globen AB",
+      "description": "Nova Globen AB är ett mjukvarukonsultbolag med säte i Bromma, Sverige.",
+      "navigation": true,
+      "order": 5,
+      "sections": [ { "name": "about", "content": "pages/about.html" } ]
+    },
+    {
+      "path": "contact",
+      "name": "Kontakt",
+      "title": "Kontakt | Nova Globen AB",
+      "description": "Berätta vad du vill bygga, förbättra eller automatisera. Mejla info@nova-globen.se.",
+      "navigation": true,
+      "order": 6,
+      "sections": [ { "name": "contact", "content": "pages/contact.html" }, { "name": "contact/form", "contact": "form" } ]
+    },
+    {
+      "path": "privacy",
+      "name": "Integritetspolicy",
+      "title": "Integritetspolicy | Nova Globen AB",
+      "description": "Hur Nova Globen AB behandlar personuppgifter på denna webbplats och i sina tjänster.",
+      "navigation": false,
+      "order": 10,
+      "sections": [ { "name": "privacy", "content": "pages/privacy.html" } ]
+    },
+    {
+      "path": "terms",
+      "name": "Villkor",
+      "title": "Villkor | Nova Globen AB",
+      "description": "Villkoren för användning av denna webbplats och för Nova Globen AB:s tjänster.",
+      "navigation": false,
+      "order": 11,
+      "sections": [ { "name": "terms", "content": "pages/terms.html" } ]
+    },
+    {
+      "path": "cookies",
+      "name": "Kakor",
+      "title": "Kakor | Nova Globen AB",
+      "description": "Vilka kakor (cookies) webbplatsen sätter, vad de används till och hur länge de finns kvar.",
+      "navigation": false,
+      "order": 12,
+      "sections": [ { "name": "cookies", "content": "pages/cookies.html" } ]
+    },
+    {
+      "path": "404",
+      "name": "Sidan hittades inte",
+      "title": "Sidan hittades inte | Nova Globen AB",
+      "description": "",
+      "navigation": false,
+      "order": 99,
+      "settings": { "NovaGloben:NoIndex": "true", "NovaGloben:Counterpart": "none" },
+      "sections": [ { "name": "not-found", "content": "pages/404.html" } ]
+    }
+  ]
+}

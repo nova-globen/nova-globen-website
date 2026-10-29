@@ -1,0 +1,180 @@
+@namespace NovaGloben.Website.Client.Themes.NovaGloben
+@inherits ThemeBase
+@inject ISettingService SettingService
+
+@* The Nova Globen shell. Everything here renders in static server-side rendering and works without
+   JavaScript: the menu's narrow-screen toggle is the stock control's checkbox fallback, and every link is a plain link.
+   Links are rendered only to pages that exist on the site, so the shell never points anywhere empty. Content classes
+   use the ng- prefix, never db-*. *@
+
+<a class="ng-skip-link" href="#ng-main">@_text.SkipToContent</a>
+
+<div class="ng-shell">
+    <header class="ng-header">
+        <div class="ng-container ng-header-inner">
+            <a class="ng-logo" href="@_homeUrl" aria-label="@($"{_brandName} - {_text.Home}")">
+                <picture>
+                    <source srcset="@_assetPath/logo-full-dark.svg" media="(prefers-color-scheme: dark)" />
+                    <img src="@_assetPath/logo-full.svg" alt="@_brandName" width="150" height="27" />
+                </picture>
+            </a>
+            <nav class="ng-nav" aria-label="@_text.MainNavigation">
+                <NgMenu ToggleLabel="@_text.MenuLabel" />
+            </nav>
+            <div class="ng-header-actions">
+                @if (_counterpartUrl != null)
+                {
+                    <a class="ng-lang" href="@_counterpartUrl" hreflang="@_text.OtherLanguageCode" lang="@_text.OtherLanguageCode" aria-label="@_text.SwitchLanguageLabel">@_text.OtherLanguageCode.ToUpperInvariant()</a>
+                }
+                @if (_ctaPage != null)
+                {
+                    <a class="ng-btn ng-btn-primary" href="@NavigateUrl(_ctaPage.Path)">@_ctaLabel</a>
+                }
+                @* For signed-in editors only: a visitor's language link is the one above, and Stomme's own language
+                   dropdown inside the control panel is an unnamed icon button (axe button-name, critical). *@
+                @if (PageState.User != null)
+                {
+                    <ControlPanel LanguageDropdownAlignment="right" />
+                }
+            </div>
+        </div>
+    </header>
+
+    <main id="ng-main" class="ng-main" tabindex="-1">
+        <Pane Name="@PaneNames.Default" />
+        <Pane Name="Top Full Width" />
+        <Pane Name="Bottom Full Width" />
+    </main>
+
+    <footer class="ng-footer" aria-label="@_text.SiteFooter">
+        <div class="ng-container">
+            <div class="ng-footer-grid">
+                <div class="ng-footer-company">
+                    <a class="ng-footer-logo" href="@_homeUrl" aria-label="@($"{_brandName} - {_text.Home}")">
+                        <img src="@_assetPath/logo-full.svg" alt="@_brandName" width="130" height="24" />
+                    </a>
+                    <p class="ng-footer-tagline" lang="en">@_text.Tagline</p>
+                    <address class="ng-footer-address">
+                        Nova Globen AB<br />
+                        Mössebergsvägen 20, LGH 1002<br />
+                        167 43 Bromma, @_text.Country<br />
+                        @_text.OrgNumberLabel: 559481-6935<br />
+                        @_text.VatLabel: SE559481693501<br />
+                        <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>
+                    </address>
+                </div>
+
+                @if (_servicesPage != null && _servicePages.Count > 0)
+                {
+                    <div class="ng-footer-col">
+                        <h2 class="ng-footer-heading">@_servicesPage.Name</h2>
+                        <ul class="ng-footer-links">
+                            @foreach (var item in _servicePages)
+                            {
+                                <li><a href="@NavigateUrl(item.Path)">@item.Name</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (_footerPages.Count > 0 || _counterpartUrl != null)
+                {
+                    <div class="ng-footer-col">
+                        <h2 class="ng-footer-heading">@_text.CompanyHeading</h2>
+                        <ul class="ng-footer-links">
+                            @foreach (var item in _footerPages)
+                            {
+                                <li><a href="@NavigateUrl(item.Path)">@item.Name</a></li>
+                            }
+                            @if (_counterpartUrl != null)
+                            {
+                                <li><a href="@_counterpartUrl" hreflang="@_text.OtherLanguageCode" lang="@_text.OtherLanguageCode">@_text.OtherLanguageName</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+
+            <div class="ng-footer-bottom">
+                <p>&copy; @DateTime.UtcNow.Year Nova Globen AB. @_text.AllRightsReserved</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    public override string Name => "Nova Globen";
+
+    public override string Panes => PaneNames.Default + ",Top Full Width,Bottom Full Width";
+
+    // Root-relative on purpose: the theme's files are served at /Themes/{namespace}/ whichever alias (/ or /sv/) is asking.
+    private string _assetPath => "/Themes/" + GetType().Namespace;
+    private ThemeText _text = ThemeText.English;
+    private string _brandName = "Nova Globen AB";
+    private string _homeUrl = "/";
+    private string _counterpartUrl;
+    private Page _ctaPage;
+    private string _ctaLabel;
+    private Page _servicesPage;
+    private List<Page> _servicePages = new();
+    private List<Page> _footerPages = new();
+    private int _headFor = -1;
+
+    /// <summary>
+    /// The origin the visitor used. Behind the edge the request reaches the app over plain HTTP, so every host except
+    /// localhost is named with https - the only scheme the sites are served on (HSTS covers every subdomain).
+    /// </summary>
+    private string Origin()
+    {
+        var uri = PageState.Uri;
+        var scheme = uri.Host is "localhost" or "127.0.0.1" ? uri.Scheme : "https";
+        return scheme + "://" + uri.Authority;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var settings = SettingService.MergeSettings(PageState.Site.Settings, PageState.Page.Settings);
+        var options = ThemeOptions.From(key => SettingService.GetSetting(settings, key, null));
+
+        _text = ThemeText.For(PageState.Site.CultureCode);
+        // A site's root keeps its slash ("/", "/sv/"): it is the canonical form of a home page, as on the old site.
+        _homeUrl = string.IsNullOrEmpty(PageState.Alias.Path) ? "/" : "/" + PageState.Alias.Path + "/";
+        _counterpartUrl = options.CounterpartUrl(PageState.Page.Path);
+
+        if (_headFor != PageState.Page.PageId)
+        {
+            _headFor = PageState.Page.PageId;
+            AddHeadContent(ThemeHead.Build(new ThemeHead.Input(
+                Origin: Origin(),
+                CanonicalPath: string.IsNullOrEmpty(PageState.Page.Path) ? _homeUrl : NavigateUrl(PageState.Page.Path),
+                Title: string.IsNullOrEmpty(PageState.Page.Title) ? PageState.Page.Name : PageState.Page.Title,
+                Description: SettingService.GetSetting(settings, WebsiteKeys.Description, ""),
+                Language: _text == ThemeText.Swedish ? "sv" : "en",
+                CounterpartPath: _counterpartUrl,
+                CounterpartLanguage: _text.OtherLanguageCode,
+                OgType: SettingService.GetSetting(settings, WebsiteKeys.OgType, "website"),
+                OgImagePath: SettingService.GetSetting(settings, WebsiteKeys.OgImage, ""),
+                JsonLd: SettingService.GetSetting(settings, WebsiteKeys.JsonLd, ""),
+                IsHome: string.IsNullOrEmpty(PageState.Page.Path),
+                NoIndex: SettingService.GetSetting(settings, WebsiteKeys.NoIndex, "") == "true",
+                HasArticleFeed: string.IsNullOrEmpty(PageState.Alias.Path) && PageState.Pages.Any(p => p.Path == "blog"))));
+        }
+
+        var visible = PageState.Pages
+            .Where(p => !p.IsDeleted && UserSecurity.IsAuthorized(PageState.User, PermissionNames.View, p.PermissionList))
+            .ToList();
+
+        _ctaPage = visible.FirstOrDefault(p => p.Path == options.CtaPath);
+        _ctaLabel = string.IsNullOrEmpty(options.CtaLabel) ? _text.ContactUs : options.CtaLabel;
+
+        _servicesPage = visible.FirstOrDefault(p => p.Path == options.ServicesPath);
+        _servicePages = _servicesPage == null
+            ? new List<Page>()
+            : visible.Where(p => p.ParentId == _servicesPage.PageId).OrderBy(p => p.Order).ToList();
+
+        _footerPages = options.FooterPaths
+            .Select(path => visible.FirstOrDefault(p => p.Path == path))
+            .Where(p => p != null)
+            .ToList();
+    }
+}

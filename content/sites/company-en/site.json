@@ -1,0 +1,202 @@
+{
+  // The English company site, nova-globen.se. The site reconciliation (SiteReconciler) makes the
+  // site match this file on every boot. Every claim in the pages below is verified.
+  "key": "company-en",
+  "name": "Nova Globen AB",
+  "culture": "en",
+  "folder": "",
+  "articles": true,
+  "settings": {
+    "NovaGloben:CounterpartBase": "/sv/",
+    "NovaGloben:CtaPath": "contact",
+    "NovaGloben:ServicesPath": "services",
+    "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies"
+  },
+  "pages": [
+    {
+      "path": "",
+      "name": "Home",
+      "title": "Nova Globen AB | Software consulting and products from Sweden",
+      "description": "Nova Globen AB designs, builds and maintains software with .NET, Microsoft Azure and practical AI, and makes three products: Stomme, Fravashi and Vacha.",
+      "navigation": true,
+      "order": 1,
+      "sections": [
+        { "name": "home/hero", "content": "pages/home-hero.html" },
+        { "name": "home/services", "content": "pages/home-services.html" },
+        { "name": "home/process", "content": "pages/home-process.html" },
+        { "name": "home/why", "content": "pages/home-why.html" },
+        { "name": "home/insights", "content": "pages/home-insights.html" },
+        { "name": "home/insights-latest", "articles": "latest", "count": 3 },
+        { "name": "home/insights-more", "content": "pages/home-insights-more.html" },
+        { "name": "home/contact", "content": "pages/home-contact.html" }
+      ]
+    },
+    {
+      "path": "services",
+      "name": "Services",
+      "title": "Services | Nova Globen AB",
+      "description": "Solution architecture and implementation, modernization and maintenance, integrations and automation, and AI enablement.",
+      "navigation": true,
+      "order": 2,
+      "sections": [ { "name": "services", "content": "pages/services.html" } ]
+    },
+    {
+      "path": "services/architecture",
+      "name": "Solution architecture and implementation",
+      "title": "Solution architecture and implementation | Nova Globen AB",
+      "description": "We design and build business applications on .NET and Microsoft Azure, from the architecture to software that runs in production.",
+      "navigation": true,
+      "order": 1,
+      "sections": [ { "name": "service", "content": "pages/service-architecture.html" } ]
+    },
+    {
+      "path": "services/modernization",
+      "name": "Modernization and maintenance",
+      "title": "Modernization and maintenance | Nova Globen AB",
+      "description": "We improve legacy systems, reduce technical debt, and keep business software running well over time.",
+      "navigation": true,
+      "order": 2,
+      "sections": [ { "name": "service", "content": "pages/service-modernization.html" } ]
+    },
+    {
+      "path": "services/integrations",
+      "name": "Integrations and automation",
+      "title": "Integrations and automation | Nova Globen AB",
+      "description": "We connect systems, automate workflows, and build reliable data exchange between platforms.",
+      "navigation": true,
+      "order": 3,
+      "sections": [ { "name": "service", "content": "pages/service-integrations.html" } ]
+    },
+    {
+      "path": "services/ai",
+      "name": "AI enablement",
+      "title": "AI enablement | Nova Globen AB",
+      "description": "We help teams adopt practical AI: LLM-assisted features, Retrieval-Augmented Generation, and AI agents in software delivery.",
+      "navigation": true,
+      "order": 4,
+      "sections": [ { "name": "service", "content": "pages/service-ai.html" } ]
+    },
+    {
+      "path": "products",
+      "name": "Products",
+      "title": "Products | Nova Globen AB",
+      "description": "Stomme, Fravashi and Vacha: the software products Nova Globen AB builds and maintains.",
+      "navigation": true,
+      "order": 3,
+      "sections": [ { "name": "products", "content": "pages/products.html" } ]
+    },
+    {
+      "path": "products/stomme",
+      "name": "Stomme",
+      "title": "Stomme: a .NET application platform | Nova Globen AB",
+      "description": "Stomme gives a business application everything it needs from the start: sites and tenants, sign-in, content, data storage, automation, AI and integrations.",
+      "navigation": false,
+      "order": 7,
+      "sections": [ { "name": "product", "content": "pages/product-stomme.html" } ]
+    },
+    {
+      "path": "products/fravashi",
+      "name": "Fravashi",
+      "title": "Fravashi: AI coding agents under your review | Nova Globen AB",
+      "description": "Fravashi is a self-hosted studio where AI coding agents work on your software, with a person approving what they change.",
+      "navigation": false,
+      "order": 8,
+      "sections": [ { "name": "product", "content": "pages/product-fravashi.html" } ]
+    },
+    {
+      "path": "products/vacha",
+      "name": "Vacha",
+      "title": "Nova Globen Vacha: a text and code editor for Windows",
+      "description": "Vacha, called Tond up to 1.0.0, opens a file the way Notepad does and edits it the way a code editor does.",
+      "navigation": false,
+      "order": 9,
+      "sections": [ { "name": "product", "content": "pages/product-vacha.html" } ]
+    },
+    {
+      "path": "products/vacha/download",
+      "name": "Download Vacha",
+      "title": "Download Vacha | Nova Globen AB",
+      "description": "Download Vacha 1.1.1 for Windows from the Microsoft Store: free, under the GNU GPL.",
+      "navigation": false,
+      "order": 1,
+      "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]
+    },
+    {
+      "path": "products/vacha/pricing",
+      "name": "Vacha: price and support",
+      "title": "Vacha: price and support | Nova Globen AB",
+      "description": "Vacha is free for everyone under the GNU GPL, version 3 or later; companies can buy a support agreement.",
+      "navigation": false,
+      "order": 2,
+      "sections": [ { "name": "product", "content": "pages/product-vacha-pricing.html" } ]
+    },
+    {
+      "path": "blog",
+      "name": "Insights",
+      "title": "Insights: technical articles | Nova Globen AB",
+      "description": "Practical articles on .NET, Azure, microservices and software engineering from Nova Globen AB.",
+      "navigation": true,
+      "order": 4,
+      "settings": { "NovaGloben:Counterpart": "none" },
+      "sections": [
+        { "name": "blog/head", "content": "pages/blog-head.html" },
+        { "name": "blog/list", "articles": "list", "count": 12 }
+      ]
+    },
+    {
+      "path": "about",
+      "name": "About",
+      "title": "About Nova Globen AB",
+      "description": "Nova Globen AB is a software consulting company based in Bromma, Sweden.",
+      "navigation": true,
+      "order": 5,
+      "sections": [ { "name": "about", "content": "pages/about.html" } ]
+    },
+    {
+      "path": "contact",
+      "name": "Contact",
+      "title": "Contact | Nova Globen AB",
+      "description": "Tell us what you want to build, improve or automate. Email info@nova-globen.se.",
+      "navigation": true,
+      "order": 6,
+      "sections": [ { "name": "contact", "content": "pages/contact.html" }, { "name": "contact/form", "contact": "form" } ]
+    },
+    {
+      "path": "privacy",
+      "name": "Privacy Policy",
+      "title": "Privacy policy | Nova Globen AB",
+      "description": "How Nova Globen AB processes personal data on this website and in its services.",
+      "navigation": false,
+      "order": 10,
+      "sections": [ { "name": "privacy", "content": "pages/privacy.html" } ]
+    },
+    {
+      "path": "terms",
+      "name": "Terms",
+      "title": "Terms of service | Nova Globen AB",
+      "description": "The terms that apply to the use of this website and to Nova Globen AB's services.",
+      "navigation": false,
+      "order": 11,
+      "sections": [ { "name": "terms", "content": "pages/terms.html" } ]
+    },
+    {
+      "path": "cookies",
+      "name": "Cookies",
+      "title": "Cookies | Nova Globen AB",
+      "description": "The cookies this website sets, what each is for and how long it lasts.",
+      "navigation": false,
+      "order": 12,
+      "sections": [ { "name": "cookies", "content": "pages/cookies.html" } ]
+    },
+    {
+      "path": "404",
+      "name": "Page not found",
+      "title": "Page not found | Nova Globen AB",
+      "description": "",
+      "navigation": false,
+      "order": 99,
+      "settings": { "NovaGloben:NoIndex": "true", "NovaGloben:Counterpart": "none" },
+      "sections": [ { "name": "not-found", "content": "pages/404.html" } ]
+    }
+  ]
+}

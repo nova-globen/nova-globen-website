@@ -1,0 +1,14 @@
+@namespace NovaGloben.Website.Client.Themes.NovaGloben
+@inherits ContainerBase
+
+@* A plain container: a section of a page lays out its own band and headings (the ng-section classes in theme.css), so
+   the container adds no box and shows no title. A module's title is its management name ("home/hero"), which the
+   site's reconciliation uses to match it, not a heading for visitors. *@
+<div class="ng-module">
+    <ModuleActions />
+    <ModuleInstance />
+</div>
+
+@code {
+    public override string Name => "Nova Globen Container";
+}

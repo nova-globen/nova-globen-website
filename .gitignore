@@ -1,0 +1,28 @@
+# Secrets — never commit these
+.env
+.env.local
+.env.*.local
+.secrets.local
+api/local.settings.json
+
+# Node (no longer used — kept in case tools are run locally)
+node_modules/
+
+# .NET build output
+api/bin/
+api/obj/
+tools/**/bin/
+tools/**/obj/
+
+# VS / IDE
+.vs/
+.vscode/settings.json
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

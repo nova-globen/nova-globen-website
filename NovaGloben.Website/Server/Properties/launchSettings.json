@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+    "profiles": {
+      "http": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+        "applicationUrl": "http://localhost:43497",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "Contact__TurnstileSiteKey": "1x00000000000000000000AA",
+          "Contact__TurnstileSecret": "1x0000000000000000000000000000000AA",
+          "Contact__RateLimit__Count": "100",
+          "Contact__RateLimit__SiteWidePerHour": "1000",
+          "Website__Smtp__Host": "127.0.0.1",
+          "Website__Smtp__Port": "2525",
+          "Website__Smtp__Ssl": "None",
+          "Website__Smtp__Sender": "website@nova-globen.test"
+        }
+      },
+      "https": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+        "applicationUrl": "https://localhost:44365;http://localhost:43497",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      }
+    }
+  }

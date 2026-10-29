@@ -1,0 +1,23 @@
+@namespace NovaGloben.Website.Client.Modules.PageContent
+@inherits ModuleBase
+@using NovaGloben.Website.Content
+
+@* The section's HTML is the repository's own (content/sites/<site>/pages/*.html, reviewed with the code), so it is
+   written as markup, unescaped. A key that names no file renders nothing - the content gate and the site tests make
+   sure every key a manifest uses exists. *@
+@if (_html != null)
+{
+    @((MarkupString)_html)
+}
+
+@code {
+    public override string RenderMode => RenderModes.Static;
+
+    private string _html;
+
+    protected override void OnParametersSet()
+    {
+        var key = ModuleState.Settings != null && ModuleState.Settings.TryGetValue(WebsiteKeys.ContentKey, out var value) ? value : null;
+        _html = ContentLibrary.Get(key);
+    }
+}

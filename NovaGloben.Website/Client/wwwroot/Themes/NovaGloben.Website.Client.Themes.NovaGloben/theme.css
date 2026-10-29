@@ -1,0 +1,495 @@
+/* Nova Globen theme.
+
+   The brand colour is the teal #007A87, on ink #0E1726 and
+   slate, set in Inter, mapped onto Stomme's --db-* tokens. Buttons take --db-accent / --db-on-accent and nothing
+   overrides them. The site follows the visitor's system setting: the light palette is :root, the dark palette the
+   :root inside @media (prefers-color-scheme: dark). Every text/background pair is measured in BOTH palettes by
+   scripts/check-contrast.ps1, which the gate runs. Content classes use the ng- prefix, never db-*. */
+
+/* ============================== Inter, self-hosted (SIL OFL 1.1, fonts/inter/OFL.txt) ============================== */
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter/inter-latin-wght-normal.woff2") format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter/inter-latin-ext-wght-normal.woff2") format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: "Inter";
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter/inter-latin-wght-italic.woff2") format("woff2-variations");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: "Inter";
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter/inter-latin-ext-wght-italic.woff2") format("woff2-variations");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ============================== Tokens ============================== */
+/* Every colour is a plain #RRGGBB so scripts/check-contrast.ps1 can read and measure it. */
+:root {
+    color-scheme: light;
+
+    /* Stomme's tokens: the theme's colour is the accent; buttons read it and nothing overrides it. */
+    --db-accent:        #007A87;  /* brand teal: white on it 5.08:1 */
+    --db-accent-2:      #006570;  /* hover */
+    --db-accent-3:      #00525B;  /* pressed */
+    --db-on-accent:     #FFFFFF;
+
+    --db-bg:            #FFFFFF;
+    --db-bg-elev:       #FFFFFF;  /* cards, the header, form fields */
+    --db-bg-elev-2:     #F6F8F9;  /* soft sections */
+    --db-bg-elev-3:     #ECF1F3;  /* badges, inline code, icon wells */
+    --db-border:        #E1E7EB;
+    --db-border-strong: #84929F;  /* form field borders: 3:1 on white */
+    --db-text:          #0E1726;
+    --db-text-2:        #3A4656;
+    --db-muted:         #586577;
+
+    --db-ok:            #0F766E;
+    --db-warn:          #B45309;
+    --db-bad:           #B91C1C;
+    --db-info:          #1D4ED8;
+
+    --db-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --db-radius:    12px;
+    --db-radius-sm: 6px;
+    --db-radius-xs: 4px;
+    --db-shadow:    0 1px 3px rgba(15, 23, 42, .08), 0 4px 12px rgba(15, 23, 42, .04);
+    --db-shadow-2:  0 4px 20px rgba(15, 23, 42, .10);
+    --db-shadow-3:  0 12px 32px rgba(15, 23, 42, .14);
+
+    /* The theme's own. */
+    --ng-brand:         #007A87;  /* rules, icons and marks that carry no text */
+    --ng-accent-soft:   #E3F3F5;  /* tinted wells behind accent icons */
+    --ng-link:          #007A87;
+    --ng-link-hover:    #00525B;
+    --ng-focus:         #007A87;  /* 3:1 or more on every surface */
+    --ng-footer-bg:     #0E1726;
+    --ng-footer-text:   #C3CCD6;
+    --ng-footer-head:   #FFFFFF;
+    --ng-footer-link:   #E1E7EB;
+    --ng-footer-focus:  #4FC3CF;
+    --ng-footer-line:   #1F2A3A;
+    --ng-code-bg:        #F6F8FA;
+    --ng-code-text:      #1F2328;
+    --ng-code-keyword:   #8B1E7A;
+    --ng-code-comment:   #5A6472;
+    --ng-code-string:    #0A5C36;
+    --ng-code-type:      #6639BA;
+    --ng-code-number:    #0550AE;
+    --ng-code-attribute: #953800;
+    --ng-ok-bg:          #ECFDF5;
+    --ng-ok-text:        #064E3B;
+    --ng-error-bg:       #FEF2F2;
+    --ng-error-text:     #7F1D1D;
+    --ng-max-w:         1120px;
+    --ng-gutter:        1.5rem;
+    --ng-header-h:      68px;
+    --ng-t:             0.15s ease;
+}
+
+/* The dark palette: the same tokens, for a visitor whose system is set to dark. The accent turns light, so the text on
+   an accent fill turns dark. Every pair here is measured too. */
+@media (prefers-color-scheme: dark) {
+:root {
+    color-scheme: dark;
+
+    --db-accent:        #4FC3CF;
+    --db-accent-2:      #73D0DA;
+    --db-accent-3:      #97DDE5;
+    --db-on-accent:     #04191D;
+
+    --db-bg:            #0B1218;
+    --db-bg-elev:       #111A22;
+    --db-bg-elev-2:     #0F171E;
+    --db-bg-elev-3:     #1A2631;
+    --db-border:        #22303D;
+    --db-border-strong: #66788A;
+    --db-text:          #E6EDF2;
+    --db-text-2:        #B7C3CD;
+    --db-muted:         #93A1AE;
+
+    --db-ok:            #4CC9B0;
+    --db-warn:          #E6A85C;
+    --db-bad:           #F38B87;
+    --db-info:          #86AEFF;
+
+    --ng-brand:         #4FC3CF;
+    --ng-accent-soft:   #12313A;
+    --ng-link:          #5CCAD5;
+    --ng-link-hover:    #97DDE5;
+    --ng-focus:         #5CCAD5;
+    --ng-footer-bg:     #070C11;
+    --ng-footer-text:   #B7C3CD;
+    --ng-footer-head:   #FFFFFF;
+    --ng-footer-link:   #E1E7EB;
+    --ng-footer-focus:  #5CCAD5;
+    --ng-footer-line:   #18222D;
+    --ng-code-bg:        #0F171E;
+    --ng-code-text:      #E6EDF2;
+    --ng-code-keyword:   #FF8F87;
+    --ng-code-comment:   #93A1AE;
+    --ng-code-string:    #A8D8FF;
+    --ng-code-type:      #D5B0FF;
+    --ng-code-number:    #85C3FF;
+    --ng-code-attribute: #FFB070;
+    --ng-ok-bg:          #0E2A25;
+    --ng-ok-text:        #B6F2DF;
+    --ng-error-bg:       #2D1516;
+    --ng-error-text:     #FFD0CE;
+}
+}
+
+/* ============================== Base ============================== */
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+html body {
+    font-family: var(--db-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--db-text);
+    background: var(--db-bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { color: var(--db-text); line-height: 1.15; letter-spacing: -0.022em; text-wrap: balance; }
+h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 700; }
+h2 { font-size: clamp(1.625rem, 3.2vw, 2.25rem); font-weight: 700; }
+h3 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
+p  { margin: 0 0 1rem; }
+
+/* Plain links only: anything styled as a button (Stomme's db-btn, the theme's ng-btn) keeps its --db-on-accent text.
+   :where() keeps these at the weight of a bare element selector, so every button rule outranks them. */
+:where(.ng-main, .ng-footer-address) a:where(:not([class*="btn"])) { color: var(--ng-link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+:where(.ng-main, .ng-footer-address) a:where(:not([class*="btn"])):hover { color: var(--ng-link-hover); }
+
+:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 2px; border-radius: 2px; }
+
+img, svg { max-width: 100%; height: auto; }
+
+/* ============================== Layout ============================== */
+.ng-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.ng-main { flex: 1 0 auto; }
+.ng-main:focus { outline: none; }
+.ng-container { max-width: var(--ng-max-w); margin-inline: auto; padding-inline: var(--ng-gutter); }
+
+.ng-skip-link {
+    position: absolute; top: -100%; left: 1rem; z-index: 2000;
+    padding: .5rem 1rem; border-radius: var(--db-radius-sm);
+    background: var(--db-accent); color: var(--db-on-accent); font-weight: 600; text-decoration: none;
+}
+.ng-skip-link:focus { top: 1rem; color: var(--db-on-accent); }
+
+/* ============================== Header ============================== */
+.ng-header {
+    position: sticky; top: 0; z-index: var(--db-z-sticky, 1020);
+    background: var(--db-bg);
+    border-bottom: 1px solid var(--db-border);
+}
+.ng-header-inner { display: flex; align-items: center; gap: 1.25rem; min-height: var(--ng-header-h); }
+.ng-logo { display: inline-flex; flex: 0 0 auto; }
+.ng-logo img { display: block; width: 150px; height: auto; }
+
+.ng-nav { flex: 1 1 auto; display: flex; justify-content: flex-end; min-width: 0; }
+.ng-nav .db-nav-link { color: var(--db-text-2); font-size: .9375rem; font-weight: 500; border-radius: var(--db-radius-sm); }
+.ng-nav .db-nav-link:hover { color: var(--db-text); background: var(--db-bg-elev-2); }
+.ng-nav .db-nav-link.active { color: var(--db-accent); }
+.ng-nav .db-nav-link:focus-visible,
+.ng-nav .db-nav-checkbox:focus-visible + .db-nav-toggle { box-shadow: none; outline: 3px solid var(--ng-focus); outline-offset: 2px; }
+
+.ng-header-actions { display: flex; align-items: center; gap: .75rem; flex: 0 0 auto; }
+.ng-lang {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.25rem;
+    padding: .25rem .625rem; border: 1px solid var(--db-border); border-radius: var(--db-radius-sm);
+    background: transparent; color: var(--db-text-2); font-size: .8125rem; font-weight: 600; letter-spacing: .04em; text-decoration: none;
+}
+.ng-lang:hover { background: var(--db-bg-elev-2); color: var(--db-text); }
+
+/* ============================== Buttons ============================== */
+/* The theme's buttons take --db-accent / --db-on-accent, exactly as Stomme's own db-btn does. */
+.ng-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: 2.75rem; padding: .625rem 1.25rem;
+    border: 1px solid transparent; border-radius: 8px;
+    font-size: .9375rem; font-weight: 600; line-height: 1.4; text-decoration: none; cursor: pointer;
+    transition: background var(--ng-t), color var(--ng-t), border-color var(--ng-t);
+}
+.ng-btn-primary { background: var(--db-accent); border-color: var(--db-accent); color: var(--db-on-accent); text-decoration: none; }
+.ng-btn-primary:hover { background: var(--db-accent-2); border-color: var(--db-accent-2); color: var(--db-on-accent); }
+.ng-btn-primary:active { background: var(--db-accent-3); border-color: var(--db-accent-3); }
+.ng-btn-outline { background: transparent; border-color: var(--db-border-strong); color: var(--db-text); text-decoration: none; }
+.ng-btn-outline:hover { border-color: var(--db-accent); color: var(--db-accent); }
+
+/* ============================== Module container ============================== */
+.ng-module-title { margin: 2.5rem 0 1rem; }
+
+/* ============================== Footer ============================== */
+.ng-footer { background: var(--ng-footer-bg); color: var(--ng-footer-text); padding-block: 3.5rem 2rem; font-size: .9375rem; }
+.ng-footer :focus-visible { outline-color: var(--ng-footer-focus); }
+.ng-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem; margin-bottom: 2.5rem; }
+.ng-footer-logo { display: inline-block; margin-bottom: 1rem; }
+.ng-footer-logo img { display: block; width: 130px; height: auto; filter: brightness(0) invert(1); }
+.ng-footer-tagline { color: var(--ng-footer-text); line-height: 1.6; margin-bottom: 1rem; max-width: 32ch; }
+.ng-footer-address { font-style: normal; font-size: .875rem; line-height: 1.7; color: var(--ng-footer-text); }
+.ng-footer .ng-footer-address a { color: var(--ng-footer-link); }
+.ng-footer .ng-footer-address a:hover { color: var(--ng-footer-focus); }
+.ng-footer-heading {
+    font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ng-footer-head); margin: 0 0 .875rem;
+}
+.ng-footer-links { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.ng-footer-links a { color: var(--ng-footer-link); text-decoration: none; }
+.ng-footer-links a:hover { color: var(--ng-footer-focus); text-decoration: underline; text-underline-offset: 3px; }
+.ng-footer-bottom { border-top: 1px solid var(--ng-footer-line); padding-top: 1.5rem; font-size: .875rem; color: var(--ng-footer-text); }
+.ng-footer-bottom p { margin: 0; }
+
+/* ============================== Page content (the repository's sections) ============================== */
+.ng-section { padding-block: 5rem; }
+.ng-section-tight { padding-block: 2.5rem 4rem; }
+.ng-section-soft { background: var(--db-bg-elev-2); border-block: 1px solid var(--db-border); }
+.ng-section-joined { padding-bottom: 1.5rem; border-bottom: 0; }
+.ng-band.ng-section-soft { border-top: 0; }  /* the latest articles continue the joined section above them */
+.ng-band { padding-block: .5rem 1rem; }
+.ng-section-tail { padding-block: 1rem 5rem; }
+.ng-section-head { margin-bottom: 2.5rem; max-width: 46rem; }
+.ng-section-head p:last-child { margin-bottom: 0; }
+.ng-center { text-align: center; margin-inline: auto; }
+.ng-section-head.ng-center { margin-inline: auto; }
+.ng-narrow { max-width: 50rem; }
+.ng-eyebrow {
+    display: inline-block; margin: 0 0 .75rem;
+    font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--db-accent);
+}
+.ng-lead { font-size: 1.1875rem; line-height: 1.65; color: var(--db-text-2); }
+.ng-muted { color: var(--db-muted); }
+.ng-accent { color: var(--db-accent); }
+.ng-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+
+/* The home page's top: one statement, two actions, then the products as a band. */
+.ng-hero { padding-block: 6rem 4rem; text-align: center; }
+.ng-hero h1 { max-width: 18ch; margin: 0 auto 1.25rem; }
+.ng-hero .ng-lead { max-width: 44rem; margin-inline: auto; }
+.ng-hero .ng-actions { justify-content: center; }
+.ng-hero-note { margin: 1.5rem 0 0; font-size: .875rem; color: var(--db-muted); }
+
+.ng-products { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.ng-product {
+    position: relative; display: flex; gap: 1rem; align-items: flex-start; height: 100%; padding: 1.25rem 1.375rem;
+    background: var(--db-bg-elev); border: 1px solid var(--db-border); border-radius: var(--db-radius);
+    transition: border-color var(--ng-t);
+}
+.ng-product:hover { border-color: var(--db-accent); }
+.ng-product-mark { flex: 0 0 auto; width: 2.75rem; height: auto; }
+.ng-product h3 { font-size: 1.0625rem; margin: .125rem 0 .25rem; }
+.ng-product h3 a { color: var(--db-text); text-decoration: none; }
+.ng-product h3 a::after { content: ""; position: absolute; inset: 0; border-radius: var(--db-radius); }
+.ng-product p { margin: 0; font-size: .9375rem; color: var(--db-text-2); }
+.ng-signoff { margin: 2rem 0 0; text-align: center; font-size: .9375rem; font-weight: 500; letter-spacing: .01em; color: var(--db-muted); }
+.ng-signoff-start { margin: -.25rem 0 1rem; text-align: left; }  /* under a page heading */
+.ng-product-status { display: inline-block; margin-top: .5rem; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--db-muted); }
+
+/* A product's own page. */
+.ng-product-head { display: flex; gap: 1.75rem; align-items: center; padding-block: 4rem 2rem; }
+.ng-product-head img { flex: 0 0 auto; width: 5.5rem; height: auto; }
+.ng-product-head h1 { margin-bottom: .5rem; }
+.ng-product-head .ng-lead { margin: 0; max-width: 46rem; }
+
+.ng-page-head { padding-block: 4rem 1rem; }
+.ng-page-head h1 { margin-bottom: 1rem; }
+.ng-breadcrumb { margin-bottom: .75rem; font-size: .9375rem; }
+.ng-breadcrumb a::before { content: "\2190\00a0"; }
+
+.ng-badges { list-style: none; display: flex; flex-wrap: wrap; gap: .375rem; margin: 1rem 0 0; padding: 0; }
+.ng-badge {
+    padding: .1875rem .625rem; border-radius: 999px;
+    background: var(--db-bg-elev-3); color: var(--db-text-2); font-size: .8125rem; font-weight: 500;
+}
+.ng-badge-accent { background: var(--ng-accent-soft); color: var(--db-text); }
+.ng-badges-large .ng-badge { font-size: .9375rem; padding: .375rem .875rem; }
+
+.ng-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: 1.25rem; }
+.ng-card-grid-2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); }
+.ng-card-list { list-style: none; margin: 0; padding: 0; }
+.ng-card {
+    display: flex; flex-direction: column; padding: 1.75rem; background: var(--db-bg-elev);
+    border: 1px solid var(--db-border); border-radius: var(--db-radius);
+}
+.ng-card-title { font-size: 1.125rem; margin: 0 0 .5rem; }
+.ng-card-title a { color: var(--db-text); text-decoration: none; }
+.ng-card-title a:hover { color: var(--db-accent); text-decoration: underline; text-underline-offset: 3px; }
+.ng-card-text { color: var(--db-text-2); margin: 0; }
+.ng-card-meta { font-size: .875rem; color: var(--db-muted); margin: 0 0 .375rem; }
+.ng-card-more { margin-top: auto; padding-top: 1.25rem; font-weight: 600; }
+.ng-icon {
+    width: 2.5rem; height: 2.5rem; margin-bottom: 1.25rem; padding: .5rem; border-radius: 10px;
+    background: var(--ng-accent-soft); stroke: var(--ng-brand); stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.ng-steps { list-style: none; counter-reset: ng-step; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 2rem; margin: 0; padding: 0; }
+.ng-steps li { counter-increment: ng-step; border-top: 1px solid var(--db-border); padding-top: 1.25rem; }
+.ng-steps li::before {
+    content: "0" counter(ng-step); display: block; margin-bottom: .75rem;
+    font-size: .8125rem; font-weight: 600; letter-spacing: .08em; color: var(--db-accent);
+}
+.ng-steps h3 { margin-bottom: .5rem; }
+.ng-steps p { color: var(--db-text-2); }
+.ng-steps-compact { margin-top: 1.5rem; }
+
+.ng-feature {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem;
+    padding: 2rem; background: var(--db-bg-elev); border: 1px solid var(--db-border); border-radius: var(--db-radius);
+}
+.ng-feature > div:first-child { flex: 1 1 28rem; }
+.ng-feature h3 { font-size: 1.375rem; margin-bottom: .75rem; }
+
+.ng-split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.ng-contact-card { padding: 1.75rem; background: var(--db-bg-elev); border: 1px solid var(--db-border); border-radius: var(--db-radius); }
+.ng-big-link { font-size: 1.375rem; font-weight: 600; }
+.ng-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.ng-cta h2 { margin-bottom: .5rem; }
+.ng-cta p { margin: 0; color: var(--db-text-2); }
+
+.ng-facts { display: grid; grid-template-columns: max-content 1fr; gap: .5rem 1.5rem; margin: 0 0 1.5rem; }
+.ng-facts dt { font-weight: 600; color: var(--db-text); }
+.ng-facts dd { margin: 0; color: var(--db-text-2); }
+.ng-link-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.ng-check-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .875rem; }
+.ng-check-list li { position: relative; padding-left: 1.75rem; color: var(--db-text-2); }
+.ng-check-list li::before {
+    content: ""; position: absolute; left: 0; top: .45em; width: .75rem; height: .75rem;
+    border-radius: 3px; background: var(--ng-brand);
+}
+.ng-check-list strong { color: var(--db-text); }
+
+/* Long-form text: legal pages, articles. */
+.ng-prose { font-size: 1.0625rem; line-height: 1.75; }
+.ng-prose > * + * { margin-top: 1rem; }
+.ng-prose h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: .75rem; }
+.ng-prose h3 { font-size: 1.1875rem; margin-top: 1.75rem; margin-bottom: .5rem; }
+.ng-prose h4 { font-size: 1.0625rem; margin-top: 1.5rem; }
+.ng-prose > :first-child { margin-top: 0; }
+.ng-prose ul, .ng-prose ol { padding-left: 1.5rem; }
+.ng-prose li + li { margin-top: .375rem; }
+.ng-prose blockquote { margin: 1.5rem 0; padding: .5rem 1.25rem; border-left: 3px solid var(--ng-brand); color: var(--db-text-2); background: var(--db-bg-elev-2); }
+.ng-prose table { width: 100%; border-collapse: collapse; font-size: .9375rem; display: block; overflow-x: auto; }
+.ng-prose th, .ng-prose td { text-align: left; vertical-align: top; padding: .625rem .75rem; border-bottom: 1px solid var(--db-border); }
+.ng-prose th { background: var(--db-bg-elev-2); color: var(--db-text); }
+.ng-prose img { border-radius: var(--db-radius-sm); }
+.ng-prose code { font-family: var(--db-mono); font-size: .9em; padding: .1em .35em; border-radius: var(--db-radius-xs); background: var(--db-bg-elev-3); color: var(--db-text); overflow-wrap: anywhere; }
+.ng-prose { overflow-wrap: break-word; }
+.ng-prose hr { border: 0; border-top: 1px solid var(--db-border); margin: 2rem 0; }
+
+/* Code blocks: highlighted on the server (ArticleRenderer, ColorCode's CSS classes). Every token colour is measured
+   on --ng-code-bg by scripts/check-contrast.ps1, in both palettes. A block takes focus so a wide one scrolls with the
+   keyboard. */
+.ng-code {
+    margin: 1.5rem 0; padding: 1rem 1.25rem; overflow-x: auto; border: 1px solid var(--db-border); border-radius: var(--db-radius-sm);
+    background: var(--ng-code-bg); color: var(--ng-code-text); font-size: .875rem; line-height: 1.6;
+}
+.ng-code code { padding: 0; background: none; font-size: inherit; color: inherit; }
+.ng-code .keyword, .ng-code .preprocessorKeyword, .ng-code .sqlSystemFunction { color: var(--ng-code-keyword); }
+.ng-code .comment, .ng-code .xmlDocComment, .ng-code .xmlDocTag, .ng-code .htmlComment { color: var(--ng-code-comment); font-style: italic; }
+.ng-code .string, .ng-code .stringCSharpVerbatim, .ng-code .htmlAttributeValue, .ng-code .xmlAttributeValue { color: var(--ng-code-string); }
+.ng-code .className, .ng-code .type, .ng-code .typeVariable, .ng-code .htmlElementName, .ng-code .xmlName { color: var(--ng-code-type); }
+.ng-code .number, .ng-code .constant { color: var(--ng-code-number); }
+.ng-code .htmlAttributeName, .ng-code .xmlAttribute { color: var(--ng-code-attribute); }
+
+/* Articles. */
+.ng-article-head { padding-top: 3rem; }
+.ng-back { display: inline-block; margin-bottom: 1.5rem; font-weight: 600; }
+.ng-article-meta { color: var(--db-muted); font-size: .9375rem; margin-bottom: .75rem; }
+.ng-article-title { margin-bottom: 1rem; }
+.ng-article-cover { margin-block: 1.5rem 2rem; }
+.ng-article-cover img { display: block; width: 100%; max-width: 1100px; height: auto; border-radius: var(--db-radius); }
+.ng-article-foot { padding-block: 2rem 4rem; }
+.ng-article-card { padding: 0; overflow: hidden; }
+.ng-article-card .ng-card-body { padding: 1.25rem 1.5rem 1.5rem; }
+.ng-article-card .ng-card-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; }
+.ng-card-media img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; }
+.ng-article-list { padding-bottom: 4rem; }
+
+/* The blog's topics: one quiet row of filters. */
+.ng-tags { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; }
+:where(.ng-main) a.ng-tag, .ng-tag {
+    display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .875rem; min-height: 2.25rem;
+    border: 1px solid var(--db-border); border-radius: 999px; background: transparent;
+    color: var(--db-text-2); font-size: .875rem; font-weight: 500; text-decoration: none;
+}
+:where(.ng-main) a.ng-tag:hover { border-color: var(--db-accent); color: var(--db-text); }
+:where(.ng-main) a.ng-tag.is-current, .ng-tag.is-current { background: var(--db-text); border-color: var(--db-text); color: var(--db-bg); }
+.ng-tag-count { color: var(--db-muted); font-weight: 400; }
+.ng-tag.is-current .ng-tag-count { color: inherit; }
+.ng-tag-filter { margin-bottom: 2rem; }
+.ng-list-status { color: var(--db-text-2); }
+.ng-pagination ul { list-style: none; display: flex; flex-wrap: wrap; gap: .375rem; margin: 2.5rem 0 0; padding: 0; justify-content: center; }
+.ng-pagination a {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding: 0 .75rem;
+    border: 1px solid var(--db-border); border-radius: var(--db-radius-sm); text-decoration: none;
+}
+.ng-pagination a.is-current { background: var(--db-accent); border-color: var(--db-accent); color: var(--db-on-accent); }
+
+/* Forms (the contact form). Field borders are --db-border-strong (3:1), the focus ring --ng-focus. */
+.ng-form { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
+.ng-field { display: grid; gap: .375rem; }
+.ng-field label { font-weight: 600; color: var(--db-text); }
+.ng-field input, .ng-field select, .ng-field textarea {
+    width: 100%; min-height: 2.75rem; padding: .625rem .75rem; font: inherit; color: var(--db-text);
+    background: var(--db-bg-elev); border: 1px solid var(--db-border-strong); border-radius: var(--db-radius-sm);
+}
+.ng-field textarea { resize: vertical; min-height: 9rem; }
+.ng-field input:focus-visible, .ng-field select:focus-visible, .ng-field textarea:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 1px; border-color: var(--ng-focus); }
+.ng-field-hint { font-size: .9375rem; color: var(--db-text-2); margin: 0; }
+.ng-form .ng-btn { justify-self: start; }
+.ng-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.ng-alert { margin: 1.25rem 0; padding: 1rem 1.25rem; border-radius: var(--db-radius-sm); border: 1px solid; }
+.ng-alert p { margin: 0; }
+.ng-alert:focus { outline: 3px solid var(--ng-focus); outline-offset: 2px; }
+.ng-alert-ok { background: var(--ng-ok-bg); border-color: var(--db-ok); color: var(--ng-ok-text); }
+.ng-alert-error { background: var(--ng-error-bg); border-color: var(--db-bad); color: var(--ng-error-text); }
+
+/* ============================== Narrow screens ============================== */
+@media (max-width: 899.98px) {
+    .ng-products { grid-template-columns: 1fr; }
+}
+@media (max-width: 767.98px) {
+    .ng-hero { padding-block: 3.5rem 2.5rem; }
+    .ng-split { grid-template-columns: 1fr; gap: 2rem; }
+    .ng-section { padding-block: 3.5rem; }
+    .ng-feature { padding: 1.5rem; }
+    .ng-product-head { flex-direction: column; align-items: flex-start; gap: 1.25rem; padding-block: 3rem 1.5rem; }
+    .ng-product-head img { width: 4rem; }
+    .ng-facts { grid-template-columns: 1fr; gap: .125rem; }
+    .ng-facts dd { margin-bottom: .625rem; }
+    :root { --ng-gutter: 1rem; --ng-header-h: 60px; }
+    .ng-header-inner { gap: .5rem; }
+    .ng-logo img { width: 120px; }
+    .ng-nav { order: 3; flex: 0 0 auto; }
+    .ng-header-actions { margin-left: auto; gap: .5rem; }
+    .ng-header-actions .ng-btn { min-height: 2.5rem; padding: .5rem .875rem; font-size: .875rem; }
+    /* The open menu is a full-width panel under the sticky header. */
+    .ng-nav .db-nav-items.open,
+    .ng-nav .db-nav-checkbox:checked ~ .db-nav-items {
+        left: 0; right: 0; background: var(--db-bg-elev); border-bottom: 1px solid var(--db-border); box-shadow: var(--db-shadow-2);
+    }
+    .ng-footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+@media (max-width: 379.98px) {
+    .ng-header-actions .ng-btn { display: none; }
+}

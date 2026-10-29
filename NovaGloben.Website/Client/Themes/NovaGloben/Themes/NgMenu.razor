@@ -1,0 +1,55 @@
+@namespace NovaGloben.Website.Client.Themes.NovaGloben
+@inherits MenuBase
+@attribute [Stomme.Shared.StommeIgnore]
+
+@* The theme's main menu. It is the stock horizontal menu's scriptless form (a checkbox and its label open the menu
+   below the breakpoint, so it works without JavaScript and in static rendering), with one change: the checkbox itself
+   carries the accessible name. In the stock control only the <label> has one, and axe reports the checkbox as an
+   unlabelled form field (critical). It reuses the stock db-nav classes so Stomme's menu layout applies; the theme only
+   skins them. Submenus open on hover and focus, as the stock control's do. *@
+@if (MenuPages.Any())
+{
+    <div class="db-nav db-nav-horizontal">
+        <input type="checkbox" class="db-nav-checkbox" id="ng-menu-toggle" aria-controls="ng-menu" aria-label="@ToggleLabel" />
+        <label class="db-nav-toggle" for="ng-menu-toggle" title="@ToggleLabel">
+            <span class="db-nav-toggle-icon" aria-hidden="true"></span>
+        </label>
+        <div class="db-nav-items" id="ng-menu">
+            <ul class="db-nav-list">
+                @foreach (var item in TopLevel())
+                {
+                    var children = ChildrenOf(item);
+                    <li class="db-nav-item @(children.Count > 0 ? "db-nav-has-sub" : "")">
+                        <a class="db-nav-link @(IsCurrent(item) ? "active" : "")" href="@GetUrl(item)" aria-current="@(IsCurrent(item) ? "page" : null)">
+                            @item.Name
+                            @if (children.Count > 0)
+                            {
+                                <span class="db-nav-caret" aria-hidden="true"></span>
+                            }
+                        </a>
+                        @if (children.Count > 0)
+                        {
+                            <div class="db-nav-sub">
+                                @foreach (var child in children)
+                                {
+                                    <a class="db-nav-sub-link @(IsCurrent(child) ? "active" : "")" href="@GetUrl(child)" aria-current="@(IsCurrent(child) ? "page" : null)">@child.Name</a>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string ToggleLabel { get; set; } = "Menu";
+
+    private IEnumerable<Page> TopLevel() => MenuPages.Where(p => p.ParentId == null).OrderBy(p => p.Order);
+
+    private List<Page> ChildrenOf(Page parent) => MenuPages.Where(p => p.ParentId == parent.PageId).OrderBy(p => p.Order).ToList();
+
+    private bool IsCurrent(Page page) => page.PageId == PageState.Page.PageId;
+}

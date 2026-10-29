@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyName>NovaGloben.Website.Shared.Stomme</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stomme.Shared" />
+  </ItemGroup>
+
+  <!-- The sites' page content and manifests (content/sites/ in the repository), compiled in: the repository is the source
+       of truth, and a build carries exactly the content of its commit. Read by ContentLibrary. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\content\sites\**\*.*" LogicalName="content/sites/$([System.String]::Copy('%(RecursiveDir)').Replace('\','/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

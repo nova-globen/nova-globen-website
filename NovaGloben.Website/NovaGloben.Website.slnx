@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Server\NovaGloben.Website.Server.csproj" DefaultStartup="true" />
+  <Project Path="Client\NovaGloben.Website.Client.csproj" />
+  <Project Path="Shared\NovaGloben.Website.Shared.csproj" />
+  <Project Path="Tests\NovaGloben.Website.Tests.csproj" />
+</Solution>
