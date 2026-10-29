@@ -24,5 +24,29 @@ public class MintSubjectTests
         var response = new MintResponse("tok", "jti-1", DateTimeOffset.UtcNow.AddHours(1));
 
         response.Subject.Should().BeNull();
+        response.AllowedModels.Should().BeNull();
+    }
+
+    [Fact]
+    public void The_response_names_the_configured_models_as_given()
+    {
+        var policy = new Fravashi.Broker.Containment.ModelPolicy([" claude-haiku-5-5* ", "", "claude-sonnet-4-5-20250929"]);
+        var json = System.Text.Json.JsonSerializer.Serialize(
+            new MintResponse("tok", "jti-1", DateTimeOffset.UnixEpoch, "oidc:a", policy.Advertised),
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+
+        json.Should().Contain("\"allowedModels\":[\"claude-haiku-5-5*\",\"claude-sonnet-4-5-20250929\"]");
+    }
+
+    [Fact]
+    public void An_unrestricted_broker_answers_an_empty_list()
+    {
+        var policy = new Fravashi.Broker.Containment.ModelPolicy([]);
+        var json = System.Text.Json.JsonSerializer.Serialize(
+            new MintResponse("tok", "jti-1", DateTimeOffset.UnixEpoch, "oidc:a", policy.Advertised),
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+
+        policy.IsRestricted.Should().BeFalse();
+        json.Should().Contain("\"allowedModels\":[]");
     }
 }

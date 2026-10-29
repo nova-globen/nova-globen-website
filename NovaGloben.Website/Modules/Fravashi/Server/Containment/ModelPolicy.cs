@@ -29,6 +29,7 @@ public sealed class ModelPolicy
             .Select(entry => entry?.Trim() ?? string.Empty)
             .Where(entry => entry.Length > 0)
             .ToArray();
+        Advertised = entries;
 
         _exact = [.. entries.Where(entry => !entry.EndsWith('*'))];
         _prefixes = [.. entries.Where(entry => entry.EndsWith('*')).Select(entry => entry[..^1])];
@@ -36,6 +37,12 @@ public sealed class ModelPolicy
 
     /// <summary>True when at least one model is named, so requests are held against the list.</summary>
     public bool IsRestricted => _exact.Length > 0 || _prefixes.Length > 0;
+
+    /// <summary>
+    /// The list as configured, in its order (trimmed, blanks dropped): what a client is told it may ask for, so it
+    /// offers only these. An entry ending in <c>*</c> is a prefix; an empty list means any model.
+    /// </summary>
+    public IReadOnlyList<string> Advertised { get; }
 
     /// <summary>Holds a request's model against the list.</summary>
     public ModelDecision Check(string? model)

@@ -9,9 +9,12 @@ public sealed record MintRequest(string? UserId, string? IdentityProof, string? 
 /// Mint response: the minted token, its id (<c>jti</c>), its expiry, and the canonical subject the broker
 /// attributed it to. The token value is returned once, to the client. <see cref="Subject"/> is the IdP-DERIVED
 /// id (e.g. <c>oidc:{sub}</c>), never the client's claim, so the client can show who it is actually signed in as
-/// instead of echoing its own guess.
+/// instead of echoing its own guess. <see cref="AllowedModels"/> is the broker's model list as configured: the
+/// models a client may offer, an entry ending in <c>*</c> being a prefix and an empty list meaning any model; it is
+/// read at every mint, so changing the list needs no client release.
 /// </summary>
-public sealed record MintResponse(string Token, string TokenId, DateTimeOffset ExpiresAt, string? Subject = null);
+public sealed record MintResponse(
+    string Token, string TokenId, DateTimeOffset ExpiresAt, string? Subject = null, IReadOnlyList<string>? AllowedModels = null);
 
 /// <summary>
 /// Revoke request (self-service). With <c>AllMyTokens</c> the caller revokes every token they hold; otherwise

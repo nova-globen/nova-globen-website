@@ -95,7 +95,8 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
             var (token, claims) = tokens.Mint(validated.CanonicalId, scope, opts.Value.TokenTtl);
             audit.Write(new AuditRecord(clock.GetUtcNow(), "mint", claims.Subject, claims.TokenId, null, null,
                 AuditRecord.OutcomeAllowed, "minted"));
-            return Results.Ok(new MintResponse(token, claims.TokenId, claims.ExpiresAt, claims.Subject));
+            var models = http.RequestServices.GetRequiredService<ModelPolicy>().Advertised;
+            return Results.Ok(new MintResponse(token, claims.TokenId, claims.ExpiresAt, claims.Subject, models));
         });
 
         // Revoke (self-service). Requires a valid bearer token.
