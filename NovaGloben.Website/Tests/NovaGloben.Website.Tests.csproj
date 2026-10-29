@@ -19,4 +19,11 @@
     <ProjectReference Include="..\Server\NovaGloben.Website.Server.csproj" />
   </ItemGroup>
 
+  <!-- The server runs on the ASP.NET Core shared framework; so do its tests. With it, restore leaves out the packages
+       the framework already provides, as it does for the server - without it, the SAML library's old dependency chain
+       (System.Security.Cryptography.Xml 4.7.1 down to System.Drawing.Common 4.7.0) came back in the tests alone. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>
