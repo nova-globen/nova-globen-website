@@ -32,6 +32,10 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
         /// <summary>The Latin upright Inter file theme.css names first; the preload must name the same URL to be used.</summary>
         public const string FontPath = "/Themes/NovaGloben.Website.Client.Themes.NovaGloben/fonts/inter/inter-latin-wght-normal.woff2";
 
+        /// <summary>The site icons, at the root addresses browsers and crawlers also ask for unprompted (SiteIcons serves them).</summary>
+        public const string IconSvgPath = "/favicon.svg";
+        public const string AppleTouchIconPath = "/apple-touch-icon.png";
+
         public static string Build(Input input)
         {
             var head = new StringBuilder();
@@ -40,6 +44,13 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             // The text font, fetched with the page instead of after the stylesheet, so the text does not reflow when it
             // arrives (Lighthouse measured the swap as layout shift). Only the Latin upright file every page uses.
             head.Append($"<link rel=\"preload\" href=\"{FontPath}\" as=\"font\" type=\"font/woff2\" crossorigin />\n");
+
+            // The company's mark as the tab and home-screen icon. Stomme's own favicon link names favicon.ico, which
+            // SiteIcons answers with the mark too; the SVG follows the visitor's colour scheme.
+            head.Append($"<link rel=\"icon\" href=\"{IconSvgPath}\" type=\"image/svg+xml\" />\n");
+            head.Append($"<link rel=\"apple-touch-icon\" href=\"{AppleTouchIconPath}\" />\n");
+            head.Append("<meta name=\"theme-color\" content=\"#FFFFFF\" media=\"(prefers-color-scheme: light)\" />\n");
+            head.Append("<meta name=\"theme-color\" content=\"#0B1218\" media=\"(prefers-color-scheme: dark)\" />\n");
 
             if (input.Description.Length > 0)
             {
