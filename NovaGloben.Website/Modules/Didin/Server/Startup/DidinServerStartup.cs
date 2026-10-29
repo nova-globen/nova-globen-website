@@ -12,6 +12,10 @@ namespace Didin.Server.Startup
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            // whether this host switched the module off: its reconciler, guards and middleware stand down then
+            services.AddSingleton<Didin.Server.Services.DidinSwitch>();
+            services.AddSingleton<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.Mvc.MvcOptions>, Didin.Server.Services.DidinControllersOff>();
+
             services.TryAddSingleton(System.TimeProvider.System);
 
             // Every document of every kind, on whichever store the installation chose; tenant-owned, site-scoped.

@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace Didin.Server.Controllers
 {
     /// <summary>
-    /// Refuses, with 404, every request not resolved to the Didin site. The host maps a module's controllers for every
+    /// Refuses, with 404, every request not resolved to the Didin site, and every request at all on a host that switched
+    /// Didin off (<see cref="DidinSwitch"/>). The host maps a module's controllers for every
     /// site of the installation and strips a folder site's folder from "api/..." addresses, so without this a request to
     /// another site's /api/catalog would reach Didin. A resource filter: it runs before anything is bound or read.
     /// </summary>
@@ -17,7 +18,8 @@ namespace Didin.Server.Controllers
 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
-            if (DidinSite.From(context.HttpContext) is { } site)
+            var off = context.HttpContext.RequestServices?.GetService(typeof(DidinSwitch)) is DidinSwitch { IsOff: true };
+            if (!off && DidinSite.From(context.HttpContext) is { } site)
             {
                 context.HttpContext.Items[ItemKey] = site;
             }

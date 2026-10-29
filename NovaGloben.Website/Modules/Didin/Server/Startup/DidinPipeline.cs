@@ -19,7 +19,12 @@ namespace Didin.Server.Startup
     {
         public ServerPipelineStage Stage => ServerPipelineStage.BeforeJwt;
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) =>
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (app.ApplicationServices.GetService(typeof(DidinSwitch)) is DidinSwitch { IsOff: true })
+            {
+                return;
+            }
             app.UseWhenSitePath(DidinSite.Folder, didin => didin.Use((context, next) =>
             {
                 QueryToken.Move(context.Request);
@@ -30,6 +35,7 @@ namespace Didin.Server.Startup
                 }
                 return next(context);
             }));
+        }
     }
 
     /// <summary>

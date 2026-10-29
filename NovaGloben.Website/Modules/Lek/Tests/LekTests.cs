@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using Lek.Server.Services;
 using Lek.Server.Startup;
 using Microsoft.AspNetCore.Http;
@@ -228,5 +231,81 @@ public sealed class MailBudgetTests
         request.Path = path;
 
         LekMailBudget.Sends(request).Should().Be(sends);
+    }
+}
+
+/// <summary>A host that switched Lek off (module.lek.enabled=false) shows nothing of it: no site, no API, no hub.</summary>
+public sealed class SwitchOffTests
+{
+    private sealed class Config(bool? lek) : Stomme.FeatureManagement.Application.IFeatureConfigurationSource
+    {
+        public bool? GetConfiguredState(string key) => key == "module.lek.enabled" ? lek : null;
+    }
+
+    private static DefaultHttpContext Http(bool off, string path = "/")
+    {
+        var http = new DefaultHttpContext
+        {
+            RequestServices = new Microsoft.Extensions.DependencyInjection.ServiceCollection()
+                .AddSingleton(new LekSwitch(new Config(off ? false : null)))
+                .BuildServiceProvider(),
+        };
+        http.Items[Constants.HttpContextAliasKey] = new Alias { Name = "x.test/lek", SiteId = 4 };
+        http.Request.Path = path;
+        return http;
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(null, false)]
+    public void The_switch_is_read_as_the_host_reads_it(bool? configured, bool off)
+    {
+        new LekSwitch(new Config(configured)).IsOff.Should().Be(off);
+    }
+
+    [Theory]
+    [InlineData(false, true, false, LekSiteReconciler.Step.Wire)]
+    [InlineData(true, true, false, LekSiteReconciler.Step.Nothing)]
+    [InlineData(false, false, true, LekSiteReconciler.Step.Ensure)]
+    [InlineData(true, false, true, LekSiteReconciler.Step.Hide)]
+    [InlineData(true, false, false, LekSiteReconciler.Step.Nothing)]
+    public void Switched_off_the_reconciler_creates_and_wires_nothing_and_hides_the_site(bool off, bool ours, bool root, LekSiteReconciler.Step step)
+    {
+        LekSiteReconciler.Decide(off, ours, root).Should().Be(step);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void Switched_off_the_controllers_and_hubs_answer_404_even_on_the_Lek_site(bool off, bool refused)
+    {
+        var context = new ResourceExecutingContext(new ActionContext(Http(off), new RouteData(), new ActionDescriptor()),
+            new List<IFilterMetadata>(), new List<IValueProviderFactory>());
+        new LekSiteOnlyAttribute().OnResourceExecuting(context);
+
+        (context.Result is NotFoundResult).Should().Be(refused);
+        LekHubGuard.Refuses(Http(off, "/hubs/fuse/negotiate")).Should().Be(refused);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Switched_off_its_controllers_leave_the_application_model_and_no_other_does(bool off)
+    {
+        var options = new MvcOptions();
+        new LekControllersOff(new LekSwitch(off)).Configure(options);
+        var application = new ApplicationModel();
+        application.Controllers.Add(new ControllerModel(typeof(Lek.Server.Controllers.InsideJobController).GetTypeInfo(), new List<object>()));
+        application.Controllers.Add(new ControllerModel(typeof(OtherController).GetTypeInfo(), new List<object>()));
+
+        foreach (var convention in options.Conventions.OfType<IApplicationModelConvention>()) convention.Apply(application);
+
+        application.Controllers.Select(c => c.ControllerType.AsType()).Should()
+            .BeEquivalentTo(off ? new[] { typeof(OtherController) } : new[] { typeof(Lek.Server.Controllers.InsideJobController), typeof(OtherController) });
+    }
+
+    private sealed class OtherController : ControllerBase
+    {
     }
 }

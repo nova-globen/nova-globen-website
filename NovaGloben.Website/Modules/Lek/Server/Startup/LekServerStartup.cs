@@ -13,6 +13,10 @@ namespace Lek.Server.Startup
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            // whether this host switched the module off: its reconciler, guards and middleware stand down then
+            services.AddSingleton<Lek.Server.Services.LekSwitch>();
+            services.AddSingleton<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.Mvc.MvcOptions>, Lek.Server.Services.LekControllersOff>();
+
             services.TryAddSingleton(TimeProvider.System);
             services.AddSingleton<FuseWorld>();
             services.AddSingleton<FuseStats>();

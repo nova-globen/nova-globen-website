@@ -20,10 +20,14 @@ namespace Lek.Server.Services
     {
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
-            if (LekSite.From(context.HttpContext) == null) context.Result = new NotFoundResult();
+            if (IsOff(context.HttpContext) || LekSite.From(context.HttpContext) == null) context.Result = new NotFoundResult();
         }
 
         public void OnResourceExecuted(ResourceExecutedContext context) { }
+
+        /// <summary>True on a host that switched Lek off: nothing of Lek answers there.</summary>
+        internal static bool IsOff(HttpContext context) =>
+            context.RequestServices?.GetService(typeof(LekSwitch)) is LekSwitch { IsOff: true };
     }
 
     /// <summary>Every Lek controller derives from this: the Lek site only.</summary>
@@ -54,11 +58,12 @@ namespace Lek.Server.Services
 
         public ServerPipelineStage Stage => ServerPipelineStage.BeforeRouting;
 
-        /// <summary>True when the request is for a Lek hub route and the site is not Lek's.</summary>
+        /// <summary>True when the request is for a Lek hub route and the site is not Lek's, or Lek is switched off.</summary>
         public static bool Refuses(HttpContext context)
         {
             var path = context.Request.Path;
-            return Routes.Any(route => path.StartsWithSegments(route, StringComparison.OrdinalIgnoreCase)) && LekSite.From(context) == null;
+            return Routes.Any(route => path.StartsWithSegments(route, StringComparison.OrdinalIgnoreCase))
+                && (LekSiteOnlyAttribute.IsOff(context) || LekSite.From(context) == null);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) =>

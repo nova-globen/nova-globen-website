@@ -51,24 +51,69 @@ namespace Lek.Server.Startup
             // the host's scope for this site: its tenant and site are set
             var settings = services.GetRequiredService<ISettingRepository>();
             var site = context.Site;
+            var off = services.GetService<LekSwitch>()?.IsOff == true;
 
-            if (await settings.GetSettingValueAsync(EntityNames.Site, site.SiteId, SiteKeySetting, "") == SiteKey)
+            var ours = await settings.GetSettingValueAsync(EntityNames.Site, site.SiteId, SiteKeySetting, "") == SiteKey;
+            List<Site> live = null;
+            var isRoot = false;
+            if (!ours && string.IsNullOrEmpty(context.Alias.Path?.Trim('/')))
             {
-                await WireAsync(services, site);
-                return;
+                live = (await services.GetRequiredService<ISiteRepository>().GetSitesAsync()).Where(s => !s.IsDeleted).ToList();
+                isRoot = live.Min(s => s.SiteId) == site.SiteId;
             }
 
-            if (!string.IsNullOrEmpty(context.Alias.Path?.Trim('/')))
+            switch (Decide(off, ours, isRoot))
             {
-                return;
+                case Step.Wire:
+                    await WireAsync(services, site);
+                    break;
+                case Step.Ensure:
+                    await EnsureSiteAsync(context, live);
+                    break;
+                case Step.Hide:
+                    await HideAsync(live);
+                    break;
             }
-            var live = (await services.GetRequiredService<ISiteRepository>().GetSitesAsync()).Where(s => !s.IsDeleted).ToList();
-            if (live.Min(s => s.SiteId) != site.SiteId)
-            {
-                return;
-            }
-            await EnsureSiteAsync(context, live);
         }
+
+        public enum Step { Nothing, Wire, Ensure, Hide }
+
+        /// <summary>
+        /// What a pass does. On the Lek site: wire it, unless the module is switched off. On the host's root site:
+        /// create the Lek site or give it back its aliases, or, switched off, take its aliases away. Elsewhere: nothing.
+        /// Switched off, nothing is ever created or wired.
+        /// </summary>
+        internal static Step Decide(bool switchedOff, bool isOurSite, bool isRootSite) =>
+            isOurSite ? (switchedOff ? Step.Nothing : Step.Wire)
+            : isRootSite ? (switchedOff ? Step.Hide : Step.Ensure)
+            : Step.Nothing;
+
+        /// <summary>
+        /// A switched-off module's site answers nowhere: its aliases are removed, so a request to its folder resolves to
+        /// the root site, which has no such page (404). The site, its pages, users and data stay; switching the module
+        /// back on gives the site its aliases again on the next boot (<see cref="EnsureSiteAsync"/>).
+        /// </summary>
+        private async Task HideAsync(List<Site> live)
+        {
+            var settings = services.GetRequiredService<ISettingRepository>();
+            var aliases = services.GetRequiredService<IAliasRepository>();
+            foreach (var candidate in live)
+            {
+                if (await settings.GetSettingValueAsync(EntityNames.Site, candidate.SiteId, SiteKeySetting, "") != SiteKey)
+                {
+                    continue;
+                }
+                foreach (var alias in AliasesOf(candidate.SiteId, await aliases.GetAliasesAsync()))
+                {
+                    await aliases.DeleteAliasAsync(alias.AliasId);
+                    logger.LogInformation("Lek: switched off on this host, so alias {Alias} of site {SiteId} is removed; the site and its data stay.",
+                        alias.Name, candidate.SiteId);
+                }
+            }
+        }
+
+        internal static List<Alias> AliasesOf(int siteId, IEnumerable<Alias> aliases) =>
+            aliases.Where(a => a.SiteId == siteId).ToList();
 
         /// <summary>Creates the Lek site when it is missing, gives it every root alias + its folder, and wires it.</summary>
         private async Task EnsureSiteAsync(SiteContentReconciliationContext context, List<Site> live)
