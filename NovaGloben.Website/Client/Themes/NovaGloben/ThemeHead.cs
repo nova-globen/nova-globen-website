@@ -127,8 +127,6 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             ["address"] = new Dictionary<string, string>
             {
                 ["@type"] = "PostalAddress",
-                ["streetAddress"] = "Mössebergsvägen 20, LGH 1002",
-                ["postalCode"] = "167 43",
                 ["addressLocality"] = "Bromma",
                 ["addressCountry"] = "SE"
             }

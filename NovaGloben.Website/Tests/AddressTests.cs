@@ -114,6 +114,12 @@ public class AddressTests
         Assert.Contains("559481-6935", head);
         Assert.Equal("+46850431312", System.Text.Json.JsonDocument.Parse(ThemeHead.Organization("https://nova-globen.se"))
             .RootElement.GetProperty("telephone").GetString());
+        // the full postal address is on the contact and legal pages only; the company data names the place
+        var address = System.Text.Json.JsonDocument.Parse(ThemeHead.Organization("https://nova-globen.se")).RootElement.GetProperty("address");
+        Assert.Equal("Bromma", address.GetProperty("addressLocality").GetString());
+        Assert.Equal("SE", address.GetProperty("addressCountry").GetString());
+        Assert.False(address.TryGetProperty("streetAddress", out _));
+        Assert.False(address.TryGetProperty("postalCode", out _));
         Assert.Contains("og:image\" content=\"https://nova-globen.se/assets/og-image.png\"", head);
         Assert.Contains("application/atom+xml", head);
     }
