@@ -1,0 +1,69 @@
+@namespace Delato.Module.Ledger
+@inherits ModuleBase
+@inject DelatoClient Api
+@inject IStringLocalizer<DelatoText> T
+
+@* The ledger: the caller's groups, one group at a time, and - for the site's Host or Administrators - the import. *@
+<div class="delato" dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")" lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+    <div class="delato-top">
+        <LanguageSwitch />
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="delato-error" role="alert">
+            <span>@_error</span>
+            <button type="button" class="delato-link" @onclick="() => _error = null">@T["Close"]</button>
+        </div>
+    }
+
+    @if (_context is null)
+    {
+        <p class="delato-muted">@T["Loading"]</p>
+    }
+    else if (_groupId is int groupId)
+    {
+        <GroupView Context="_context" GroupId="groupId" OnBack="BackToGroups" />
+    }
+    else
+    {
+        <GroupList Context="_context" OnOpen="Open" />
+        @if (_context.IsAdministrator)
+        {
+            <ImportPanel Context="_context" />
+        }
+    }
+</div>
+
+@code {
+    private LedgerContext? _context;
+    private int? _groupId;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = PageState.User;
+        var context = new LedgerContext
+        {
+            Api = Api,
+            T = T,
+            // comfort only: the server's role check on the import is the authority
+            IsAdministrator = user is not null && (UserSecurity.IsAuthorized(user, RoleNames.Host) || UserSecurity.IsAuthorized(user, RoleNames.Admin)),
+            ShowError = message => { _error = message; StateHasChanged(); },
+        };
+        await context.TryAsync(async () => context.Currencies = await Api.CurrenciesAsync());
+        _context = context;
+    }
+
+    private void Open(int groupId)
+    {
+        _error = null;
+        _groupId = groupId;
+    }
+
+    private void BackToGroups()
+    {
+        _error = null;
+        _groupId = null;
+    }
+}

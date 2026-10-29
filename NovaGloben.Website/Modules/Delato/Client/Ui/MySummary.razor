@@ -1,0 +1,49 @@
+@inherits LedgerPart
+@* Across the caller's groups, in USD: the total, and per group whom to pay and who pays the caller. *@
+@if (_summary is { Groups.Count: > 0 } summary)
+{
+    <section class="delato-section delato-summary">
+        <h2>@T["MySummary"]</h2>
+        <p>
+            @T["TotalBalance"]:
+            <span class="@GroupList.BalanceClass(summary.TotalNetUsd)"><Amount Value="summary.TotalNetUsd" /></span>
+            <span class="delato-muted">@T[StateKey(summary.TotalNetUsd)]</span>
+        </p>
+        @if (summary.Groups.All(g => g.IShouldPay.Count == 0 && g.IShouldReceive.Count == 0))
+        {
+            <p class="delato-muted">@T["AllSettled"]</p>
+        }
+        else
+        {
+            <ul class="delato-list">
+                @foreach (var g in summary.Groups.Where(g => g.IShouldPay.Count + g.IShouldReceive.Count > 0))
+                {
+                    <li class="delato-summary-group">
+                        <button type="button" class="delato-link" @onclick="() => OnOpen.InvokeAsync(g.GroupId)">@g.GroupName</button>
+                        <ul>
+                            @foreach (var pay in g.IShouldPay)
+                            {
+                                <li class="delato-owes">@string.Format(T["PayTo"], pay.ToName) <Amount Value="pay.AmountUsd" /></li>
+                            }
+                            @foreach (var receive in g.IShouldReceive)
+                            {
+                                <li class="delato-owed">@string.Format(T["ReceiveFrom"], receive.FromName) <Amount Value="receive.AmountUsd" /></li>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}
+
+@code {
+    [Parameter] public EventCallback<int> OnOpen { get; set; }
+
+    private MySummaryDto? _summary;
+
+    protected override async Task OnInitializedAsync() =>
+        await Context.TryAsync(async () => _summary = await Context.Api.MySummaryAsync());
+
+    internal static string StateKey(decimal net) => net > 0 ? "IsOwed" : net < 0 ? "Owes" : "SettledUp";
+}

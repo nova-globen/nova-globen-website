@@ -1,0 +1,7 @@
+@* An amount in its currency, kept left-to-right inside right-to-left text. *@
+<bdi class="delato-amount" dir="ltr">@MoneyText.Format(Value, Currency)</bdi>
+
+@code {
+    [Parameter, EditorRequired] public decimal Value { get; set; }
+    [Parameter] public string Currency { get; set; } = "USD";
+}

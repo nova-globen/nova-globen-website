@@ -59,6 +59,7 @@
     <ProjectReference Include="..\Modules\Fravashi\Server\Fravashi.Broker.Server.csproj" />
     <ProjectReference Include="..\Modules\Didin\Server\Didin.Server.csproj" />
     <ProjectReference Include="..\Modules\Lek\Server\Lek.Server.csproj" />
+    <ProjectReference Include="..\Modules\Delato\Server\Delato.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,71 @@
+@inherits LedgerPart
+@using System.Text.Json
+@* The one-time import, for the site's Host or Administrators: pick the export file; the page reads it (1 MB at most)
+   and posts it as JSON. Nothing keeps the file. The server checks the role and the whole payload; a second import
+   creates nothing. *@
+<section class="delato-section delato-import">
+    <h2>@T["ImportTitle"]</h2>
+    <p class="delato-muted">@T["ImportHelp"]</p>
+    <div class="delato-field">
+        <label for="@Id("file")">@T["ImportChoose"]</label>
+        <InputFile id="@Id("file")" accept=".json,application/json" OnChange="ReadAsync" disabled="@_busy" />
+    </div>
+
+    @if (_lines is not null)
+    {
+        <table class="delato-table">
+            <thead><tr><th></th><th>@T["ImportCarried"]</th><th>@T["ImportCreated"]</th><th>@T["ImportSkipped"]</th></tr></thead>
+            <tbody>
+                @foreach (var line in _lines)
+                {
+                    <tr><th>@T["Import" + line.Kind]</th><td>@line.Carried</td><td>@line.Created</td><td>@line.Skipped</td></tr>
+                }
+            </tbody>
+        </table>
+        <p class="delato-note">@T["ImportDeleteFile"]</p>
+    }
+</section>
+
+@code {
+    private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
+    private List<ImportLine>? _lines;
+    private bool _busy;
+
+    private async Task ReadAsync(InputFileChangeEventArgs e)
+    {
+        _lines = null;
+        if (e.File.Size > ImportSummary.MaxBytes)
+        {
+            Context.ShowError(T["ImportTooLarge"]);
+            return;
+        }
+        _busy = true;
+        try
+        {
+            ImportRequest? request;
+            try
+            {
+                await using var stream = e.File.OpenReadStream(ImportSummary.MaxBytes);
+                request = await JsonSerializer.DeserializeAsync<ImportRequest>(stream, Web);
+            }
+            catch (JsonException)
+            {
+                request = null;
+            }
+            if (request is null)
+            {
+                Context.ShowError(T["ImportNotJson"]);
+                return;
+            }
+            ImportResult? result = null;
+            if (await Context.TryAsync(async () => result = await Context.Api.ImportAsync(request)) && result is not null)
+            {
+                _lines = ImportSummary.Lines(result);
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

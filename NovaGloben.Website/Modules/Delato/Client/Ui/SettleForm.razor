@@ -1,0 +1,89 @@
+@inherits LedgerPart
+@* Record a payment between two members, in any currency (with the rate "1 USD = ? XXX" outside USD); it counts in USD. *@
+<form class="delato-form" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+    <h3>@T["RecordPayment"]</h3>
+    <div class="delato-grid">
+        <div class="delato-field">
+            <label for="@Id("from")">@T["SettleFrom"]</label>
+            <select id="@Id("from")" @bind="Draft.FromMemberId">
+                @foreach (var m in Group.Members)
+                {
+                    <option value="@m.Id">@m.Name</option>
+                }
+            </select>
+        </div>
+        <div class="delato-field">
+            <label for="@Id("to")">@T["SettleTo"]</label>
+            <select id="@Id("to")" @bind="Draft.ToMemberId">
+                @foreach (var m in Group.Members)
+                {
+                    <option value="@m.Id">@m.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="delato-grid">
+        <div class="delato-field">
+            <label for="@Id("amount")">@T["Amount"]</label>
+            <input id="@Id("amount")" inputmode="decimal" dir="ltr" @bind="Draft.AmountText" @bind:event="oninput" required />
+        </div>
+        <div class="delato-field">
+            <label for="@Id("currency")">@T["Currency"]</label>
+            <select id="@Id("currency")" @bind="Draft.Currency">
+                @foreach (var c in Context.Currencies)
+                {
+                    <option value="@c.Code">@c.Code - @Context.CurrencyName(c.Code)</option>
+                }
+            </select>
+        </div>
+        <div class="delato-field">
+            <label for="@Id("date")">@T["Date"]</label>
+            <input id="@Id("date")" type="date" @bind="Draft.Date" @bind:format="yyyy-MM-dd" required />
+        </div>
+    </div>
+    @if (Draft.IsForeign)
+    {
+        <div class="delato-field">
+            <label for="@Id("rate")">@string.Format(T["RatePrompt"], Draft.Currency)</label>
+            <input id="@Id("rate")" inputmode="decimal" dir="ltr" @bind="Draft.PerUsdText" @bind:event="oninput" required />
+        </div>
+        @if (Draft.AmountUsd is { } usd)
+        {
+            <p class="delato-muted">@T["PreviewTitle"]: <Amount Value="usd" /></p>
+        }
+    }
+
+    @if (_tried && Draft.Problems() is { Count: > 0 } problems)
+    {
+        <ul class="delato-problems" role="alert">
+            @foreach (var p in problems)
+            {
+                <li>@string.Format(T[p.Key], p.Args)</li>
+            }
+        </ul>
+    }
+
+    <div class="delato-actions">
+        <button type="submit" class="delato-button" disabled="@_busy">@T["Save"]</button>
+        <button type="button" class="delato-link" @onclick="() => OnDone.InvokeAsync(false)">@T["Cancel"]</button>
+    </div>
+</form>
+
+@code {
+    [Parameter, EditorRequired] public GroupDetailDto Group { get; set; } = default!;
+    [Parameter, EditorRequired] public SettlementDraft Draft { get; set; } = default!;
+    [Parameter] public EventCallback<bool> OnDone { get; set; }
+
+    private bool _tried;
+    private bool _busy;
+
+    private async Task SaveAsync()
+    {
+        _tried = true;
+        if (Draft.Problems().Count > 0) return;
+        _busy = true;
+        var saved = await Context.TryAsync(() => Context.Api.AddSettlementAsync(Group.Id, Draft.ToRequest()));
+        _busy = false;
+        if (saved) await OnDone.InvokeAsync(true);
+    }
+}

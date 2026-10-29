@@ -1,0 +1,135 @@
+@inherits LedgerPart
+@* One group: its expenses, its balances (USD: who owes whom, settle-up, recorded payments) and its members, couples
+   and subgroups. *@
+<section class="delato-section">
+    <div class="delato-head">
+        <button type="button" class="delato-link" @onclick="OnBack">@T["Back"]</button>
+        <h2>@(_group?.Name ?? T["Loading"])</h2>
+    </div>
+
+    @if (_group is not null)
+    {
+        <div class="delato-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected="@(_tab == Tab.Expenses)" class="@TabClass(Tab.Expenses)" @onclick="() => Show(Tab.Expenses)">@T["TabExpenses"]</button>
+            <button type="button" role="tab" aria-selected="@(_tab == Tab.Balances)" class="@TabClass(Tab.Balances)" @onclick="() => Show(Tab.Balances)">@T["TabBalances"]</button>
+            <button type="button" role="tab" aria-selected="@(_tab == Tab.Members)" class="@TabClass(Tab.Members)" @onclick="() => Show(Tab.Members)">@T["TabMembers"]</button>
+        </div>
+
+        @if (_editing is not null)
+        {
+            <ExpenseEditor Context="Context" Group="_group" Draft="_editing.Value.Draft" ExpenseId="_editing.Value.Id"
+                           OnDone="EditorDoneAsync" />
+        }
+        else if (_tab == Tab.Expenses)
+        {
+            <div class="delato-actions">
+                <button type="button" class="delato-button" @onclick="StartNew" disabled="@(_group.Members.Count == 0)">@T["AddExpense"]</button>
+            </div>
+            @if (_expenses is null)
+            {
+                <p class="delato-muted">@T["Loading"]</p>
+            }
+            else if (_expenses.Count == 0)
+            {
+                <p class="delato-muted">@T["NoExpenses"]</p>
+            }
+            else
+            {
+                <ul class="delato-list">
+                    @foreach (var e in _expenses)
+                    {
+                        <li class="delato-expense">
+                            <button type="button" class="delato-row" @onclick="() => StartEdit(e)">
+                                <span class="delato-row-title">@e.Description</span>
+                                <span class="delato-muted"><bdi dir="ltr">@e.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</bdi> · @string.Format(T["PaidBy"], MemberName(e.PayerMemberId))</span>
+                                <span>
+                                    <Amount Value="e.AmountOriginal" Currency="@e.CurrencyCode" />
+                                    @if (e.CurrencyCode != "USD")
+                                    {
+                                        <span class="delato-muted"> = <Amount Value="e.AmountUsd" /></span>
+                                    }
+                                </span>
+                                <span class="delato-muted">@T["Split" + e.SplitMode]</span>
+                            </button>
+                            @if (_confirmDelete == e.Id)
+                            {
+                                <span class="delato-confirm">
+                                    @string.Format(T["DeleteExpenseConfirm"], e.Description)
+                                    <button type="button" class="delato-link delato-danger" @onclick="() => DeleteExpenseAsync(e)">@T["Delete"]</button>
+                                    <button type="button" class="delato-link" @onclick="() => _confirmDelete = null">@T["Cancel"]</button>
+                                </span>
+                            }
+                            else
+                            {
+                                <button type="button" class="delato-link delato-danger" @onclick="() => _confirmDelete = e.Id">@T["Delete"]</button>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        }
+        else if (_tab == Tab.Balances)
+        {
+            <BalancesPanel Context="Context" Group="_group" />
+        }
+        else
+        {
+            <MembersPanel Context="Context" Group="_group" OnChanged="ReloadAsync" />
+        }
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public int GroupId { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private enum Tab { Expenses, Balances, Members }
+
+    private GroupDetailDto? _group;
+    private List<ExpenseDto>? _expenses;
+    private Tab _tab = Tab.Expenses;
+    private (ExpenseDraft Draft, int? Id)? _editing;
+    private int? _confirmDelete;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync() =>
+        await Context.TryAsync(async () =>
+        {
+            _group = await Context.Api.GroupAsync(GroupId);
+            _expenses = await Context.Api.ExpensesAsync(GroupId);
+        });
+
+    private void Show(Tab tab)
+    {
+        _tab = tab;
+        _editing = null;
+    }
+
+    private string TabClass(Tab tab) => tab == _tab ? "delato-tab delato-tab-on" : "delato-tab";
+
+    private string MemberName(int id) => _group?.Members.FirstOrDefault(m => m.Id == id)?.Name ?? string.Format(T["UnknownMember"], id);
+
+    private void StartNew()
+    {
+        var me = _group!.Members.FirstOrDefault(m => m.IsMe)?.Id;
+        _editing = (ExpenseDraft.For(_group, DateOnly.FromDateTime(DateTime.Today), me), null);
+    }
+
+    private void StartEdit(ExpenseDto expense) => _editing = (ExpenseDraft.From(_group!, expense), expense.Id);
+
+    private async Task EditorDoneAsync(bool changed)
+    {
+        _editing = null;
+        if (changed) await ReloadAsync();
+    }
+
+    private async Task DeleteExpenseAsync(ExpenseDto expense)
+    {
+        _confirmDelete = null;
+        if (await Context.TryAsync(() => Context.Api.DeleteExpenseAsync(GroupId, expense.Id)))
+        {
+            await ReloadAsync();
+        }
+    }
+}

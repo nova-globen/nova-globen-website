@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    The names check: no file of the published tree names an internal host or an old product name. Exits 1 on any hit and lists each.
+    The names check: no file of the published tree names an internal host, an old product name or the app Delato replaced. Exits 1 on any hit and lists each.
 .DESCRIPTION
     Reads every file git would publish: the tracked files, less those .gitattributes marks export-ignore. The old names
     are matched at the start of a word, case-insensitively, so ordinary words that merely contain the letters (an
@@ -14,6 +14,9 @@ $old = 'di' + 'da'
 $Patterns = [ordered]@{
     'uat-host'  = '(?i)' + $old + 'bit\.com'
     'old-names' = '(?i)\b' + $old
+    # The app Delato replaced, as a word or an identifier's first part, but not as the start of a longer lowercase
+    # word ("parent" passes). Case-sensitive on purpose: -match alone ignores case.
+    'old-app'   = '(?-i)\b([Pp]' + 'are(?![a-z])|PA' + 'RE\b)'
 }
 
 Push-Location $root

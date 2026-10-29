@@ -1,0 +1,67 @@
+@inherits LedgerPart
+@* My summary across every group (USD), then the caller's groups with their member count and the caller's balance in
+   each, and a new group. *@
+<MySummary Context="Context" OnOpen="OnOpen" />
+
+<section class="delato-section">
+    <h2>@T["Groups"]</h2>
+
+    @if (_groups is null)
+    {
+        <p class="delato-muted">@T["Loading"]</p>
+    }
+    else if (_groups.Count == 0)
+    {
+        <p class="delato-muted">@T["NoGroups"]</p>
+    }
+    else
+    {
+        <ul class="delato-list">
+            @foreach (var g in _groups)
+            {
+                <li>
+                    <button type="button" class="delato-row" @onclick="() => OnOpen.InvokeAsync(g.Id)">
+                        <span class="delato-row-title">@g.Name</span>
+                        <span class="delato-muted">@string.Format(T["MemberCount"], g.MemberCount)</span>
+                        <span class="@BalanceClass(g.MyNetBalanceUsd)"><Amount Value="g.MyNetBalanceUsd" /></span>
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+
+    <form class="delato-inline-form" @onsubmit="CreateAsync" @onsubmit:preventDefault>
+        <div class="delato-field">
+            <label for="@Id("name")">@T["GroupName"]</label>
+            <input id="@Id("name")" @bind="_newName" @bind:event="oninput" maxlength="200" required />
+        </div>
+        <button type="submit" class="delato-button" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))">@T["NewGroup"]</button>
+    </form>
+</section>
+
+@code {
+    [Parameter] public EventCallback<int> OnOpen { get; set; }
+
+    private List<GroupSummaryDto>? _groups;
+    private string _newName = "";
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() => await Context.TryAsync(async () => _groups = await Context.Api.GroupsAsync());
+
+    private async Task CreateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newName)) return;
+        _busy = true;
+        GroupDto? created = null;
+        if (await Context.TryAsync(async () => created = await Context.Api.CreateGroupAsync(_newName.Trim())) && created is not null)
+        {
+            _newName = "";
+            await OnOpen.InvokeAsync(created.Id);
+        }
+        _busy = false;
+    }
+
+    internal static string BalanceClass(decimal net) => net > 0 ? "delato-owed" : net < 0 ? "delato-owes" : "delato-muted";
+}

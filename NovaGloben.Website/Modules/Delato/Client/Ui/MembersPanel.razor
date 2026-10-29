@@ -1,0 +1,131 @@
+@inherits LedgerPart
+@* The group's members (a name and an optional e-mail, by which an account claims the member) and its couples and
+   subgroups. *@
+<div class="delato-panel">
+    <h3>@T["Members"]</h3>
+    @if (Group.Members.Count == 0)
+    {
+        <p class="delato-muted">@T["NoMembers"]</p>
+    }
+    <ul class="delato-list">
+        @foreach (var m in Group.Members)
+        {
+            <li class="delato-member">
+                <span class="delato-row-title">@m.Name</span>
+                @if (m.Email is not null)
+                {
+                    <bdi class="delato-muted" dir="ltr">@m.Email</bdi>
+                }
+                @if (m.IsMe)
+                {
+                    <span class="delato-tag">@T["You"]</span>
+                }
+                else if (m.UserId is not null)
+                {
+                    <span class="delato-tag">@T["LinkedAccount"]</span>
+                }
+                <button type="button" class="delato-link delato-danger" @onclick="() => DeleteMemberAsync(m)">@T["Delete"]</button>
+            </li>
+        }
+    </ul>
+
+    <form class="delato-inline-form" @onsubmit="AddMemberAsync" @onsubmit:preventDefault>
+        <div class="delato-field">
+            <label for="@Id("name")">@T["Name"]</label>
+            <input id="@Id("name")" @bind="_name" @bind:event="oninput" maxlength="200" required />
+        </div>
+        <div class="delato-field">
+            <label for="@Id("email")">@T["EmailOptional"]</label>
+            <input id="@Id("email")" type="email" dir="ltr" @bind="_email" @bind:event="oninput" maxlength="320" />
+        </div>
+        <button type="submit" class="delato-button" disabled="@(_busy || string.IsNullOrWhiteSpace(_name))">@T["AddMember"]</button>
+    </form>
+
+    <h3>@T["Entities"]</h3>
+    @if (Group.Entities.Count == 0)
+    {
+        <p class="delato-muted">@T["NoEntities"]</p>
+    }
+    <ul class="delato-list">
+        @foreach (var e in Group.Entities)
+        {
+            <li class="delato-member">
+                <span class="delato-row-title">@e.Name</span>
+                <span class="delato-tag">@T["Kind" + e.Kind]</span>
+                <span class="delato-muted">@string.Join(T["ListSeparator"], e.MemberIds.Select(id => Group.Members.FirstOrDefault(m => m.Id == id)?.Name ?? string.Format(T["UnknownMember"], id)))</span>
+                <button type="button" class="delato-link delato-danger" @onclick="() => DeleteEntityAsync(e)">@T["Delete"]</button>
+            </li>
+        }
+    </ul>
+
+    <form class="delato-form" @onsubmit="AddEntityAsync" @onsubmit:preventDefault>
+        <h4>@T["NewEntity"]</h4>
+        <div class="delato-grid">
+            <div class="delato-field">
+                <label for="@Id("entity-name")">@T["Name"]</label>
+                <input id="@Id("entity-name")" @bind="_entityName" @bind:event="oninput" maxlength="200" required />
+            </div>
+            <div class="delato-field">
+                <label for="@Id("entity-kind")">@T["Kind"]</label>
+                <select id="@Id("entity-kind")" @bind="_entityKind">
+                    <option value="Couple">@T["KindCouple"]</option>
+                    <option value="Subgroup">@T["KindSubgroup"]</option>
+                </select>
+            </div>
+        </div>
+        <fieldset class="delato-targets">
+            <legend>@T["Members"]</legend>
+            @foreach (var m in Group.Members)
+            {
+                <span class="delato-option">
+                    <input type="checkbox" id="@Id("in-" + m.Id)" checked="@_entityMembers.Contains(m.Id)" @onchange="e => Toggle(m.Id, (bool)e.Value!)" />
+                    <label for="@Id("in-" + m.Id)">@m.Name</label>
+                </span>
+            }
+        </fieldset>
+        @if (_entityKind == "Couple" && _entityMembers.Count != 2 && _entityMembers.Count > 0)
+        {
+            <p class="delato-problems">@T["CoupleNeedsTwo"]</p>
+        }
+        <button type="submit" class="delato-button" disabled="@(_busy || string.IsNullOrWhiteSpace(_entityName) || _entityMembers.Count < 2)">@T["Create"]</button>
+    </form>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public GroupDetailDto Group { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private string _name = "";
+    private string _email = "";
+    private string _entityName = "";
+    private string _entityKind = "Couple";
+    private readonly HashSet<int> _entityMembers = [];
+    private bool _busy;
+
+    private void Toggle(int memberId, bool on)
+    {
+        if (on) _entityMembers.Add(memberId); else _entityMembers.Remove(memberId);
+    }
+
+    private async Task RunAsync(Func<Task> call, Action? after = null)
+    {
+        _busy = true;
+        if (await Context.TryAsync(call))
+        {
+            after?.Invoke();
+            await OnChanged.InvokeAsync();
+        }
+        _busy = false;
+    }
+
+    private Task AddMemberAsync() =>
+        RunAsync(() => Context.Api.AddMemberAsync(Group.Id, _name.Trim(), _email.Trim()), () => { _name = ""; _email = ""; });
+
+    private Task DeleteMemberAsync(MemberDto member) => RunAsync(() => Context.Api.DeleteMemberAsync(Group.Id, member.Id));
+
+    private Task AddEntityAsync() =>
+        RunAsync(() => Context.Api.AddEntityAsync(Group.Id, _entityName.Trim(), _entityKind, _entityMembers.OrderBy(x => x).ToList()),
+            () => { _entityName = ""; _entityMembers.Clear(); });
+
+    private Task DeleteEntityAsync(EntityDto entity) => RunAsync(() => Context.Api.DeleteEntityAsync(Group.Id, entity.Id));
+}

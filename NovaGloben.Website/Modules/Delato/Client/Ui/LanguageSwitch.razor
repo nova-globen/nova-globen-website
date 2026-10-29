@@ -1,0 +1,33 @@
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@* The page's language: two links, each written in its own language. Choosing one sets the standard culture cookie, as
+   Stomme's own language selector does, and reloads the page. It sits at the inline end of the module's header, so it
+   mirrors in Persian. *@
+<nav class="delato-languages" aria-label="Language / زبان">
+    @foreach (var language in Languages.Choices)
+    {
+        @if (language.Code == _current)
+        {
+            <span class="delato-language delato-language-on" lang="@language.Code" aria-current="true">@language.Name</span>
+        }
+        else
+        {
+            <a class="delato-language" href="#" lang="@language.Code" hreflang="@language.Code"
+               @onclick="() => ChooseAsync(language.Code)" @onclick:preventDefault="true">@language.Name</a>
+        }
+    }
+</nav>
+
+@code {
+    private string _current = "en";
+
+    protected override void OnInitialized() => _current = Languages.Current(CultureInfo.CurrentUICulture);
+
+    private async Task ChooseAsync(string code)
+    {
+        if (code == _current) return;
+        var secure = Navigation.Uri.StartsWith("https:", StringComparison.OrdinalIgnoreCase);
+        await new Stomme.UI.Interop(JSRuntime).SetCookie(Languages.CookieName, Languages.CookieValue(code), Languages.CookieDays, secure, "Lax");
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}

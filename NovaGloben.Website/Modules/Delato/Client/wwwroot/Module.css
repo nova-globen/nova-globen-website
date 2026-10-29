@@ -1,0 +1,69 @@
+/* Delato's ledger. Logical properties only (inline/block, start/end), so the same rules lay out English and Persian.
+   Colours follow the theme's text and background; light and dark come from the theme. */
+.delato { max-inline-size: 60rem; margin-inline: auto; padding-inline: 1rem; line-height: 1.5; }
+.delato h2 { font-size: 1.4rem; margin-block: 0.5rem; }
+.delato h3 { font-size: 1.15rem; margin-block: 1rem 0.5rem; }
+.delato h4 { font-size: 1rem; margin-block: 0.75rem 0.25rem; }
+.delato-section { margin-block-end: 2rem; }
+.delato-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.delato-muted { opacity: 0.72; }
+.delato-owed { color: #1a7f37; }
+.delato-owes { color: #c62828; }
+@media (prefers-color-scheme: dark) { .delato-owed { color: #57d17a; } .delato-owes { color: #ff8a80; } }
+.delato-amount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.delato-list { list-style: none; padding-inline-start: 0; margin-block: 0.5rem; }
+.delato-list > li { border-block-end: 1px solid rgba(127, 127, 127, 0.25); }
+.delato-row { display: grid; grid-template-columns: 1fr auto; gap: 0.15rem 1rem; inline-size: 100%; padding-block: 0.6rem;
+    padding-inline: 0.25rem; background: none; border: 0; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.delato-row:hover, .delato-row:focus-visible { background: rgba(127, 127, 127, 0.08); }
+.delato-row-title { font-weight: 600; }
+.delato-expense, .delato-member, .delato-balance { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding-block: 0.4rem; }
+.delato-expense .delato-row { flex: 1 1 18rem; }
+.delato-tag { font-size: 0.85rem; padding-inline: 0.5rem; border: 1px solid currentColor; border-radius: 1rem; opacity: 0.8; }
+.delato-tabs { display: flex; gap: 0.5rem; border-block-end: 1px solid rgba(127, 127, 127, 0.35); margin-block: 0.75rem; }
+.delato-tab { background: none; border: 0; border-block-end: 3px solid transparent; padding-block: 0.4rem; padding-inline: 0.75rem;
+    color: inherit; font: inherit; cursor: pointer; }
+.delato-tab-on { border-block-end-color: currentColor; font-weight: 600; }
+.delato-form, .delato-inline-form { display: flex; flex-direction: column; gap: 0.75rem; margin-block: 1rem; }
+.delato-inline-form { flex-direction: row; flex-wrap: wrap; align-items: flex-end; }
+.delato-field { display: flex; flex-direction: column; gap: 0.2rem; }
+.delato-option { display: inline-flex; align-items: center; gap: 0.4rem; }
+.delato-visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.delato input:not([type=checkbox]):not([type=radio]), .delato select { padding-block: 0.4rem; padding-inline: 0.5rem; font: inherit;
+    min-inline-size: 10rem; }
+.delato-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.75rem; }
+.delato-choice, .delato-targets { border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 0.4rem; padding-block: 0.5rem;
+    padding-inline: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
+.delato-target { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; inline-size: 100%; }
+.delato-value { inline-size: 8rem; min-inline-size: 0 !important; }
+.delato-preview { padding-block: 0.5rem; padding-inline: 0.75rem; border-inline-start: 3px solid rgba(127, 127, 127, 0.5); }
+.delato-preview ul { margin-block: 0.25rem; padding-inline-start: 1.25rem; }
+.delato-problems { color: #c62828; margin-block: 0; }
+@media (prefers-color-scheme: dark) { .delato-problems { color: #ff8a80; } }
+.delato-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-block: 0.5rem; }
+.delato-button { padding-block: 0.45rem; padding-inline: 1rem; font: inherit; cursor: pointer; border-radius: 0.4rem;
+    border: 1px solid currentColor; background: transparent; color: inherit; }
+.delato-button:disabled { opacity: 0.5; cursor: default; }
+.delato-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.delato-danger { color: #c62828; }
+@media (prefers-color-scheme: dark) { .delato-danger { color: #ff8a80; } }
+.delato-confirm { display: inline-flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.delato-error { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.6rem; padding-inline: 0.9rem;
+    margin-block: 0.75rem; border: 1px solid #c62828; border-radius: 0.4rem; }
+.delato-table { border-collapse: collapse; margin-block: 0.75rem; }
+.delato-table th, .delato-table td { padding-block: 0.3rem; padding-inline: 0.75rem; text-align: start;
+    border-block-end: 1px solid rgba(127, 127, 127, 0.3); }
+.delato-note { padding-block: 0.5rem; padding-inline: 0.75rem; border-inline-start: 3px solid currentColor; }
+@media (max-width: 40rem) {
+    .delato { padding-inline: 0.5rem; }
+    .delato-row { grid-template-columns: 1fr; }
+    .delato-inline-form { flex-direction: column; align-items: stretch; }
+}
+.delato-balance { justify-content: space-between; border-block-end: 1px solid rgba(127, 127, 127, 0.15); }
+.delato-summary-group ul { list-style: none; padding-inline-start: 1rem; margin-block: 0.25rem; }
+.delato-details { margin-block: 1rem; }
+.delato-details summary { cursor: pointer; font-weight: 600; }
+.delato-top { display: flex; justify-content: flex-end; margin-block: 0.5rem; }
+.delato-languages { display: flex; gap: 0.75rem; }
+.delato-language { color: inherit; }
+.delato-language-on { font-weight: 600; text-decoration: none; }

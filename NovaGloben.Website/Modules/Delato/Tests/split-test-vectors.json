@@ -1,0 +1,85 @@
+{
+  "comment": "Shared split-algorithm test vectors consumed by the Delato module's tests (Delato.Tests). Amounts/rates as strings to avoid float parsing. Targets: m<N> = member id N, e<N>(a,b,..) = entity id N with member ids a,b... Expected: per-member USD cents after entity subdivision.",
+  "cases": [
+    {
+      "name": "equal_three_members_no_remainder",
+      "amount": "90.00", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Member","id":1}, {"type":"Member","id":2}, {"type":"Member","id":3} ],
+      "entities": {},
+      "expectedUsd": { "1": "30.00", "2": "30.00", "3": "30.00" }
+    },
+    {
+      "name": "equal_three_members_remainder_cents_to_lowest_ids",
+      "amount": "100.00", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Member","id":1}, {"type":"Member","id":2}, {"type":"Member","id":3} ],
+      "entities": {},
+      "expectedUsd": { "1": "33.34", "2": "33.33", "3": "33.33" }
+    },
+    {
+      "name": "equal_with_couple_entity_subdivision",
+      "amount": "100.00", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Member","id":5}, {"type":"Entity","id":1} ],
+      "entities": { "1": [2, 3] },
+      "expectedUsd": { "5": "50.00", "2": "25.00", "3": "25.00" }
+    },
+    {
+      "name": "shares_2_1_1_with_fx",
+      "amount": "200.00", "currency": "EUR", "fxRateToUsd": "1.10",
+      "splitMode": "Shares",
+      "targets": [ {"type":"Member","id":1,"value":"2"}, {"type":"Member","id":2,"value":"1"}, {"type":"Member","id":3,"value":"1"} ],
+      "entities": {},
+      "expectedUsd": { "1": "110.00", "2": "55.00", "3": "55.00" }
+    },
+    {
+      "name": "percentage_50_30_20",
+      "amount": "123.45", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Percentage",
+      "targets": [ {"type":"Member","id":1,"value":"50"}, {"type":"Member","id":2,"value":"30"}, {"type":"Member","id":3,"value":"20"} ],
+      "entities": {},
+      "expectedUsd": { "1": "61.73", "2": "37.03", "3": "24.69" }
+    },
+    {
+      "name": "exact_amounts_in_original_currency",
+      "amount": "100.00", "currency": "GBP", "fxRateToUsd": "1.25",
+      "splitMode": "ExactAmounts",
+      "targets": [ {"type":"Member","id":1,"value":"60.00"}, {"type":"Member","id":2,"value":"40.00"} ],
+      "entities": {},
+      "expectedUsd": { "1": "75.00", "2": "50.00" }
+    },
+    {
+      "name": "equal_couple_entity_odd_cent_subdivision",
+      "amount": "100.01", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Entity","id":1}, {"type":"Member","id":9} ],
+      "entities": { "1": [4, 7] },
+      "expectedUsd": { "4": "25.01", "7": "25.00", "9": "50.00" }
+    },
+    {
+      "name": "shares_entity_gets_two_shares",
+      "amount": "90.00", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Shares",
+      "targets": [ {"type":"Entity","id":2,"value":"2"}, {"type":"Member","id":1,"value":"1"} ],
+      "entities": { "2": [2, 3] },
+      "expectedUsd": { "2": "30.00", "3": "30.00", "1": "30.00" }
+    },
+    {
+      "name": "irr_large_rate_small",
+      "amount": "5000000", "currency": "IRR", "fxRateToUsd": "0.0000017",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Member","id":1}, {"type":"Member","id":2} ],
+      "entities": {},
+      "expectedUsd": { "1": "4.25", "2": "4.25" }
+    },
+    {
+      "name": "leftover_cent_member_before_entity_on_id_tie",
+      "amount": "0.05", "currency": "USD", "fxRateToUsd": "1",
+      "splitMode": "Equal",
+      "targets": [ {"type":"Entity","id":1}, {"type":"Member","id":1} ],
+      "entities": { "1": [2, 3] },
+      "expectedUsd": { "1": "0.03", "2": "0.01", "3": "0.01" }
+    }
+  ]
+}

@@ -12,4 +12,8 @@
   <Project Path="Modules\Lek\Client\Lek.Client.csproj" />
   <Project Path="Modules\Lek\Server\Lek.Server.csproj" />
   <Project Path="Modules\Lek\Tests\Lek.Tests.csproj" />
+  <Project Path="Modules\Delato\Shared\Delato.Shared.csproj" />
+  <Project Path="Modules\Delato\Client\Delato.Client.csproj" />
+  <Project Path="Modules\Delato\Server\Delato.Server.csproj" />
+  <Project Path="Modules\Delato\Tests\Delato.Tests.csproj" />
 </Solution>

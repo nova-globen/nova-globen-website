@@ -1,0 +1,380 @@
+{
+  "groups": [
+    {
+      "id": 1,
+      "name": "Ski Trip",
+      "baseCurrency": "USD",
+      "createdAt": "2026-10-29T17:18:10.9195562Z",
+      "creatorMemberId": 1,
+      "members": [
+        {
+          "id": 1,
+          "name": "Alice",
+          "email": "alice@example.test"
+        },
+        {
+          "id": 2,
+          "name": "Bob",
+          "email": "bob@example.test"
+        },
+        {
+          "id": 3,
+          "name": "Carol",
+          "email": null
+        },
+        {
+          "id": 4,
+          "name": "Erik",
+          "email": "erik@example.test"
+        }
+      ],
+      "entities": [
+        {
+          "id": 1,
+          "name": "Bob & Carol",
+          "kind": "Couple",
+          "memberIds": [
+            2,
+            3
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Drivers",
+          "kind": "Subgroup",
+          "memberIds": [
+            1,
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Flat",
+      "baseCurrency": "USD",
+      "createdAt": "2026-10-29T17:18:11.2679642Z",
+      "creatorMemberId": 5,
+      "members": [
+        {
+          "id": 5,
+          "name": "Bob",
+          "email": "bob@example.test"
+        },
+        {
+          "id": 6,
+          "name": "Dana",
+          "email": "dana@example.test"
+        }
+      ],
+      "entities": []
+    }
+  ],
+  "expenses": [
+    {
+      "id": 1,
+      "groupId": 1,
+      "description": "Fixture",
+      "date": "2026-08-20",
+      "payerMemberId": 1,
+      "amountOriginal": 100.0,
+      "currencyCode": "USD",
+      "fxRateToUsd": 1.0,
+      "amountUsd": 100.0,
+      "storageMode": "KeepOriginal",
+      "splitMode": "Equal",
+      "createdAt": "2026-10-29T17:18:11.1129454Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": null
+        },
+        {
+          "type": "Member",
+          "targetId": 2,
+          "value": null
+        },
+        {
+          "type": "Member",
+          "targetId": 3,
+          "value": null
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 33.34
+        },
+        {
+          "memberId": 2,
+          "amountUsd": 33.33
+        },
+        {
+          "memberId": 3,
+          "amountUsd": 33.33
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "groupId": 1,
+      "description": "Fixture",
+      "date": "2026-08-20",
+      "payerMemberId": 1,
+      "amountOriginal": 120.5,
+      "currencyCode": "EUR",
+      "fxRateToUsd": 1.09,
+      "amountUsd": 131.35,
+      "storageMode": "ConvertedToUsd",
+      "splitMode": "Equal",
+      "createdAt": "2026-10-29T17:18:11.1780497Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": null
+        },
+        {
+          "type": "Entity",
+          "targetId": 1,
+          "value": null
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 65.68
+        },
+        {
+          "memberId": 2,
+          "amountUsd": 32.84
+        },
+        {
+          "memberId": 3,
+          "amountUsd": 32.83
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "groupId": 1,
+      "description": "Fixture",
+      "date": "2026-08-20",
+      "payerMemberId": 2,
+      "amountOriginal": 5000000.0,
+      "currencyCode": "IRR",
+      "fxRateToUsd": 0.0000017,
+      "amountUsd": 8.5,
+      "storageMode": "KeepOriginal",
+      "splitMode": "Shares",
+      "createdAt": "2026-10-29T17:18:11.1839987Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": 2.0
+        },
+        {
+          "type": "Member",
+          "targetId": 2,
+          "value": 1.0
+        },
+        {
+          "type": "Member",
+          "targetId": 4,
+          "value": 1.0
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 4.26
+        },
+        {
+          "memberId": 2,
+          "amountUsd": 2.12
+        },
+        {
+          "memberId": 4,
+          "amountUsd": 2.12
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "groupId": 1,
+      "description": "Fixture",
+      "date": "2026-08-20",
+      "payerMemberId": 4,
+      "amountOriginal": 50.0,
+      "currencyCode": "USD",
+      "fxRateToUsd": 1.0,
+      "amountUsd": 50.0,
+      "storageMode": "KeepOriginal",
+      "splitMode": "Percentage",
+      "createdAt": "2026-10-29T17:18:11.1904341Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": 60.0
+        },
+        {
+          "type": "Entity",
+          "targetId": 2,
+          "value": 40.0
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 36.67
+        },
+        {
+          "memberId": 2,
+          "amountUsd": 6.67
+        },
+        {
+          "memberId": 4,
+          "amountUsd": 6.66
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "groupId": 1,
+      "description": "Fixture",
+      "date": "2026-08-20",
+      "payerMemberId": 2,
+      "amountOriginal": 100.0,
+      "currencyCode": "USD",
+      "fxRateToUsd": 1.0,
+      "amountUsd": 100.0,
+      "storageMode": "KeepOriginal",
+      "splitMode": "ExactAmounts",
+      "createdAt": "2026-10-29T17:18:11.1934319Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": 40.25
+        },
+        {
+          "type": "Member",
+          "targetId": 3,
+          "value": 59.75
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 40.25
+        },
+        {
+          "memberId": 3,
+          "amountUsd": 59.75
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "groupId": 1,
+      "description": "Edited",
+      "date": "2026-08-21",
+      "payerMemberId": 2,
+      "amountOriginal": 30.0,
+      "currencyCode": "SEK",
+      "fxRateToUsd": 0.095,
+      "amountUsd": 2.85,
+      "storageMode": "KeepOriginal",
+      "splitMode": "Equal",
+      "createdAt": "2026-10-29T17:18:11.1979831Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 1,
+          "value": null
+        },
+        {
+          "type": "Member",
+          "targetId": 2,
+          "value": null
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 1,
+          "amountUsd": 1.43
+        },
+        {
+          "memberId": 2,
+          "amountUsd": 1.42
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "groupId": 2,
+      "description": "Rent",
+      "date": "2026-08-01",
+      "payerMemberId": 5,
+      "amountOriginal": 1500.0,
+      "currencyCode": "USD",
+      "fxRateToUsd": 1.0,
+      "amountUsd": 1500.0,
+      "storageMode": "KeepOriginal",
+      "splitMode": "Equal",
+      "createdAt": "2026-10-29T17:18:11.2751094Z",
+      "targets": [
+        {
+          "type": "Member",
+          "targetId": 5,
+          "value": null
+        },
+        {
+          "type": "Member",
+          "targetId": 6,
+          "value": null
+        }
+      ],
+      "shares": [
+        {
+          "memberId": 5,
+          "amountUsd": 750.0
+        },
+        {
+          "memberId": 6,
+          "amountUsd": 750.0
+        }
+      ]
+    }
+  ],
+  "settlements": [
+    {
+      "id": 1,
+      "groupId": 1,
+      "fromMemberId": 3,
+      "toMemberId": 1,
+      "amountOriginal": 55.0,
+      "currencyCode": "USD",
+      "fxRateToUsd": 1.0,
+      "amountUsd": 55.0,
+      "date": "2026-08-25",
+      "createdAt": "2026-10-29T17:18:11.247391Z"
+    },
+    {
+      "id": 2,
+      "groupId": 1,
+      "fromMemberId": 2,
+      "toMemberId": 1,
+      "amountOriginal": 10.0,
+      "currencyCode": "EUR",
+      "fxRateToUsd": 1.1,
+      "amountUsd": 11.0,
+      "date": "2026-08-25",
+      "createdAt": "2026-10-29T17:18:11.2642847Z"
+    }
+  ]
+}

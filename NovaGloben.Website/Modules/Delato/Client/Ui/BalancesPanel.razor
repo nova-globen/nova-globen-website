@@ -1,0 +1,175 @@
+@inherits LedgerPart
+@* The group's balances, all in USD: what was spent, each member's (or couple's/subgroup's) balance, the suggested
+   transfers that settle everyone - each can be recorded as a payment - the raw pairwise debts and the recorded
+   payments. *@
+@if (_report is null)
+{
+    <p class="delato-muted">@T["Loading"]</p>
+}
+else
+{
+    <div class="delato-panel">
+        <p>@T["TotalSpent"]: <Amount Value="_report.TotalSpentUsd" /></p>
+
+        <div class="delato-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected="@(!_byEntity)" class="@(_byEntity ? "delato-tab" : "delato-tab delato-tab-on")" @onclick="() => _byEntity = false">@T["ViewPeople"]</button>
+            <button type="button" role="tab" aria-selected="@_byEntity" class="@(_byEntity ? "delato-tab delato-tab-on" : "delato-tab")" @onclick="() => _byEntity = true" disabled="@(Group.Entities.Count == 0)">@T["ViewEntities"]</button>
+        </div>
+
+        @if (!_byEntity)
+        {
+            <ul class="delato-list">
+                @foreach (var b in _report.MemberBalances)
+                {
+                    <li class="delato-balance">
+                        <span class="delato-row-title">@b.Name</span>
+                        <span class="@GroupList.BalanceClass(b.NetUsd)"><Amount Value="b.NetUsd" /> <span class="delato-muted">@T[MySummary.StateKey(b.NetUsd)]</span></span>
+                    </li>
+                }
+            </ul>
+
+            <h3>@T["SuggestedSettlements"]</h3>
+            @if (_report.SuggestedTransfers.Count == 0)
+            {
+                <p class="delato-muted">@T["NoSuggestions"]</p>
+            }
+            else
+            {
+                <ul class="delato-list">
+                    @foreach (var t in _report.SuggestedTransfers)
+                    {
+                        <li class="delato-balance">
+                            <span>@string.Format(T["Pays"], Name(t.FromMemberId), Name(t.ToMemberId)) <Amount Value="t.AmountUsd" /></span>
+                            <button type="button" class="delato-button" @onclick="() => StartSettle(t)">@T["Record"]</button>
+                        </li>
+                    }
+                </ul>
+            }
+        }
+        else
+        {
+            <ul class="delato-list">
+                @foreach (var b in _report.EntityBalances)
+                {
+                    <li class="delato-balance">
+                        <span class="delato-row-title">@b.Name <span class="delato-tag">@T["Kind" + b.Kind]</span></span>
+                        <span class="@GroupList.BalanceClass(b.NetUsd)"><Amount Value="b.NetUsd" /> <span class="delato-muted">@T[MySummary.StateKey(b.NetUsd)]</span></span>
+                    </li>
+                }
+            </ul>
+
+            <h3>@T["SuggestedSettlements"]</h3>
+            @if (_report.SuggestedEntityTransfers.Count == 0)
+            {
+                <p class="delato-muted">@T["NoSuggestions"]</p>
+            }
+            else
+            {
+                <ul class="delato-list">
+                    @foreach (var t in _report.SuggestedEntityTransfers)
+                    {
+                        <li class="delato-balance">@string.Format(T["Pays"], EntityName(t.FromEntityId), EntityName(t.ToEntityId)) <Amount Value="t.AmountUsd" /></li>
+                    }
+                </ul>
+            }
+        }
+
+        @if (_settling is not null)
+        {
+            <SettleForm Context="Context" Group="Group" Draft="_settling" OnDone="SettleDoneAsync" />
+        }
+        else
+        {
+            <div class="delato-actions">
+                <button type="button" class="delato-button" @onclick="StartBlankSettle" disabled="@(Group.Members.Count < 2)">@T["RecordPayment"]</button>
+            </div>
+        }
+
+        <details class="delato-details">
+            <summary>@T["PairwiseDebts"]</summary>
+            @if (_report.PairwiseDebts.Count == 0)
+            {
+                <p class="delato-muted">@T["NoPairwiseDebts"]</p>
+            }
+            else
+            {
+                <ul>
+                    @foreach (var d in _report.PairwiseDebts)
+                    {
+                        <li>@string.Format(T["OwesTo"], Name(d.FromMemberId), Name(d.ToMemberId)) <Amount Value="d.AmountUsd" /></li>
+                    }
+                </ul>
+            }
+        </details>
+
+        <h3>@T["RecordedPayments"]</h3>
+        @if (_payments is null || _payments.Count == 0)
+        {
+            <p class="delato-muted">@T["NoPayments"]</p>
+        }
+        else
+        {
+            <ul class="delato-list">
+                @foreach (var p in _payments)
+                {
+                    <li class="delato-balance">
+                        <span>
+                            <bdi dir="ltr">@p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</bdi> ·
+                            @string.Format(T["Pays"], Name(p.FromMemberId), Name(p.ToMemberId))
+                            <Amount Value="p.AmountOriginal" Currency="@p.CurrencyCode" />
+                            @if (p.CurrencyCode != "USD")
+                            {
+                                <span class="delato-muted"> = <Amount Value="p.AmountUsd" /></span>
+                            }
+                        </span>
+                        <button type="button" class="delato-link delato-danger" @onclick="() => DeletePaymentAsync(p)">@T["Delete"]</button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public GroupDetailDto Group { get; set; } = default!;
+
+    private GroupReportDto? _report;
+    private List<SettlementDto>? _payments;
+    private bool _byEntity;
+    private SettlementDraft? _settling;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() =>
+        await Context.TryAsync(async () =>
+        {
+            _report = await Context.Api.ReportAsync(Group.Id);
+            _payments = await Context.Api.SettlementsAsync(Group.Id);
+        });
+
+    private string Name(int memberId) =>
+        Group.Members.FirstOrDefault(m => m.Id == memberId)?.Name ?? string.Format(T["UnknownMember"], memberId);
+
+    // a negative id is a member standing alone in the couples-and-subgroups view (id = -memberId)
+    private string EntityName(int id) =>
+        id < 0 ? Name(-id) : Group.Entities.FirstOrDefault(e => e.Id == id)?.Name ?? string.Format(T["UnknownMember"], id);
+
+    private void StartSettle(MemberTransferDto transfer) => _settling = SettlementDraft.From(transfer, DateOnly.FromDateTime(DateTime.Today));
+
+    private void StartBlankSettle() =>
+        _settling = new SettlementDraft { Date = DateOnly.FromDateTime(DateTime.Today), FromMemberId = Group.Members[0].Id, ToMemberId = Group.Members[1].Id };
+
+    private async Task SettleDoneAsync(bool changed)
+    {
+        _settling = null;
+        if (changed) await LoadAsync();
+    }
+
+    private async Task DeletePaymentAsync(SettlementDto payment)
+    {
+        if (await Context.TryAsync(() => Context.Api.DeleteSettlementAsync(Group.Id, payment.Id)))
+        {
+            await LoadAsync();
+        }
+    }
+}

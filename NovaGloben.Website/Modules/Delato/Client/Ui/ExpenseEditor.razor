@@ -1,0 +1,157 @@
+@inherits LedgerPart
+@* Add or edit an expense: amount in any currency (with the rate "1 USD = ? XXX" and the choice to convert or keep the
+   original), the payer, and the split between members and couples/subgroups, with a live preview of each share. *@
+<form class="delato-form" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+    <h3>@(ExpenseId is null ? T["AddExpense"] : T["EditExpense"])</h3>
+
+    <div class="delato-field">
+        <label for="@Id("description")">@T["Description"]</label>
+        <input id="@Id("description")" @bind="Draft.Description" @bind:event="oninput" maxlength="500" required />
+    </div>
+
+    <div class="delato-grid">
+        <div class="delato-field">
+            <label for="@Id("date")">@T["Date"]</label>
+            <input id="@Id("date")" type="date" @bind="Draft.Date" @bind:format="yyyy-MM-dd" required />
+        </div>
+        <div class="delato-field">
+            <label for="@Id("payer")">@T["PaidByLabel"]</label>
+            <select id="@Id("payer")" @bind="Draft.PayerMemberId">
+                @foreach (var m in Group.Members)
+                {
+                    <option value="@m.Id">@m.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="delato-grid">
+        <div class="delato-field">
+            <label for="@Id("amount")">@T["Amount"]</label>
+            <input id="@Id("amount")" inputmode="decimal" dir="ltr" @bind="Draft.AmountText" @bind:event="oninput" required />
+        </div>
+        <div class="delato-field">
+            <label for="@Id("currency")">@T["Currency"]</label>
+            <select id="@Id("currency")" @bind="Draft.Currency">
+                @foreach (var c in Context.Currencies)
+                {
+                    <option value="@c.Code">@c.Code - @Context.CurrencyName(c.Code)</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if (Draft.IsForeign)
+    {
+        <div class="delato-field">
+            <label for="@Id("rate")">@string.Format(T["RatePrompt"], Draft.Currency)</label>
+            <input id="@Id("rate")" inputmode="decimal" dir="ltr" @bind="Draft.PerUsdText" @bind:event="oninput" required />
+        </div>
+        <fieldset class="delato-choice">
+            <legend>@T["StorageQuestion"]</legend>
+            <span class="delato-option">
+                <input type="radio" id="@Id("convert")" name="@Id("storage")" checked="@(Draft.Storage == StorageMode.ConvertedToUsd)" @onchange="() => Draft.Storage = StorageMode.ConvertedToUsd" />
+                <label for="@Id("convert")">@T["StorageConvert"]</label>
+            </span>
+            <span class="delato-option">
+                <input type="radio" id="@Id("keep")" name="@Id("storage")" checked="@(Draft.Storage == StorageMode.KeepOriginal)" @onchange="() => Draft.Storage = StorageMode.KeepOriginal" />
+                <label for="@Id("keep")">@T["StorageKeep"]</label>
+            </span>
+        </fieldset>
+    }
+
+    <fieldset class="delato-choice">
+        <legend>@T["SplitLabel"]</legend>
+        @foreach (var mode in Enum.GetValues<SplitMode>())
+        {
+            <span class="delato-option">
+                <input type="radio" id="@Id("mode-" + mode)" name="@Id("mode")" checked="@(Draft.Mode == mode)" @onchange="() => Draft.Mode = mode" />
+                <label for="@Id("mode-" + mode)">@T["Split" + mode]</label>
+            </span>
+        }
+    </fieldset>
+
+    <fieldset class="delato-targets">
+        <legend>@T["Participants"]</legend>
+        @foreach (var target in Draft.Targets)
+        {
+            var key = $"{target.Type}-{target.Id}";
+            <div class="delato-target">
+                <span class="delato-option">
+                    <input type="checkbox" id="@Id("take-" + key)" @bind="target.Selected" />
+                    <label for="@Id("take-" + key)">
+                        @target.Name
+                        @if (target.Type == TargetType.Entity)
+                        {
+                            <span class="delato-muted">(@T["KindEntity"])</span>
+                        }
+                    </label>
+                </span>
+                @if (target.Selected && Draft.Mode != SplitMode.Equal)
+                {
+                    <label class="delato-visually-hidden" for="@Id("value-" + key)">@ValueLabel - @target.Name</label>
+                    <input class="delato-value" id="@Id("value-" + key)" inputmode="decimal" dir="ltr" placeholder="@ValueLabel"
+                           @bind="target.ValueText" @bind:event="oninput" />
+                }
+            </div>
+        }
+    </fieldset>
+
+    @{ var problems = Draft.Problems(); var preview = Draft.Preview(); }
+    @if (_tried && problems.Count > 0)
+    {
+        <ul class="delato-problems" role="alert">
+            @foreach (var p in problems)
+            {
+                <li>@string.Format(T[p.Key], p.Args)</li>
+            }
+        </ul>
+    }
+    @if (preview is { } shown)
+    {
+        <div class="delato-preview" aria-live="polite">
+            <p>@T["PreviewTitle"]: <Amount Value="shown.AmountUsd" /></p>
+            <ul>
+                @foreach (var share in shown.Shares)
+                {
+                    <li>@(Group.Members.FirstOrDefault(m => m.Id == share.MemberId)?.Name) <Amount Value="share.AmountUsd" /></li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="delato-actions">
+        <button type="submit" class="delato-button" disabled="@_busy">@T["Save"]</button>
+        <button type="button" class="delato-link" @onclick="() => OnDone.InvokeAsync(false)">@T["Cancel"]</button>
+    </div>
+</form>
+
+@code {
+    [Parameter, EditorRequired] public GroupDetailDto Group { get; set; } = default!;
+    [Parameter, EditorRequired] public ExpenseDraft Draft { get; set; } = default!;
+    [Parameter] public int? ExpenseId { get; set; }
+    [Parameter] public EventCallback<bool> OnDone { get; set; }
+
+    private bool _tried;
+    private bool _busy;
+
+    private string ValueLabel => Draft.Mode switch
+    {
+        SplitMode.Shares => T["ValueShares"],
+        SplitMode.Percentage => T["ValuePercent"],
+        _ => string.Format(T["ValueExact"], Draft.Currency),
+    };
+
+    private async Task SaveAsync()
+    {
+        _tried = true;
+        if (Draft.Problems().Count > 0) return;
+        _busy = true;
+        var request = Draft.ToRequest();
+        var saved = await Context.TryAsync(() => ExpenseId is int id
+            ? Context.Api.UpdateExpenseAsync(Group.Id, id, request)
+            : Context.Api.AddExpenseAsync(Group.Id, request));
+        _busy = false;
+        if (saved) await OnDone.InvokeAsync(true);
+    }
+}

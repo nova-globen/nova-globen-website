@@ -8,6 +8,7 @@
   "//7": "value of false suppresses seeding even though the assembly is present; true or ABSENT seeds as normal,",
   "//8": "so a stock app that ships this file with no module keys behaves exactly as before.",
   "FeatureManagement": {
-    "module.blogs.enabled": true
+    "module.blogs.enabled": true,
+    "module.delato.enabled": false
   }
 }

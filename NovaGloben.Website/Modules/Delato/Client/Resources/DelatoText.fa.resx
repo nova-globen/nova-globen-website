@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Delato's texts (Persian). Generated from one table with the other language's file, so both hold the same keys. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddExpense" xml:space="preserve"><value>افزودن هزینه</value></data>
+  <data name="AddMember" xml:space="preserve"><value>افزودن عضو</value></data>
+  <data name="AllSettled" xml:space="preserve"><value>حساب شما با همه تسویه است.</value></data>
+  <data name="Amount" xml:space="preserve"><value>مبلغ</value></data>
+  <data name="Back" xml:space="preserve"><value>بازگشت به گروه‌ها</value></data>
+  <data name="Cancel" xml:space="preserve"><value>انصراف</value></data>
+  <data name="Close" xml:space="preserve"><value>بستن</value></data>
+  <data name="CoupleNeedsTwo" xml:space="preserve"><value>زوج باید دقیقاً ۲ عضو داشته باشد.</value></data>
+  <data name="Create" xml:space="preserve"><value>ایجاد</value></data>
+  <data name="Currency" xml:space="preserve"><value>ارز</value></data>
+  <data name="Date" xml:space="preserve"><value>تاریخ</value></data>
+  <data name="Delete" xml:space="preserve"><value>حذف</value></data>
+  <data name="DeleteExpenseConfirm" xml:space="preserve"><value>«{0}» حذف شود؟ این کار قابل بازگشت نیست.</value></data>
+  <data name="Description" xml:space="preserve"><value>شرح</value></data>
+  <data name="EditExpense" xml:space="preserve"><value>ویرایش هزینه</value></data>
+  <data name="EmailOptional" xml:space="preserve"><value>ایمیل (اختیاری)</value></data>
+  <data name="Entities" xml:space="preserve"><value>زوج‌ها و زیرگروه‌ها</value></data>
+  <data name="ErrorAmount" xml:space="preserve"><value>مبلغی بزرگ‌تر از صفر، با حداکثر ۲ رقم اعشار، وارد کنید.</value></data>
+  <data name="ErrorDescription" xml:space="preserve"><value>شرح هزینه را وارد کنید.</value></data>
+  <data name="ErrorExactSum" xml:space="preserve"><value>جمع مبلغ‌ها {0} است اما باید برابر {1} باشد.</value></data>
+  <data name="ErrorExactValues" xml:space="preserve"><value>برای هر شرکت‌کنندهٔ انتخاب‌شده یک مبلغ مثبت لازم است.</value></data>
+  <data name="ErrorNetwork" xml:space="preserve"><value>اتصال به سرور برقرار نشد. اتصال را بررسی کنید و دوباره تلاش کنید.</value></data>
+  <data name="ErrorNoTargets" xml:space="preserve"><value>دست‌کم یک شرکت‌کننده انتخاب کنید.</value></data>
+  <data name="ErrorPayer" xml:space="preserve"><value>پرداخت‌کننده را انتخاب کنید.</value></data>
+  <data name="ErrorPercentSum" xml:space="preserve"><value>جمع درصدها {0} است اما باید ۱۰۰ شود.</value></data>
+  <data name="ErrorPercentValues" xml:space="preserve"><value>برای هر شرکت‌کنندهٔ انتخاب‌شده یک درصد مثبت لازم است.</value></data>
+  <data name="ErrorRate" xml:space="preserve"><value>وارد کنید که ۱ دلار آمریکا چند واحد از این ارز است (عددی بزرگ‌تر از صفر).</value></data>
+  <data name="ErrorSettleMembers" xml:space="preserve"><value>پرداخت‌کننده و دریافت‌کننده را انتخاب کنید.</value></data>
+  <data name="ErrorSettleSame" xml:space="preserve"><value>یک عضو نمی‌تواند به خودش پرداخت کند.</value></data>
+  <data name="ErrorShares" xml:space="preserve"><value>برای هر شرکت‌کنندهٔ انتخاب‌شده یک عدد صحیح مثبت به‌عنوان سهم لازم است.</value></data>
+  <data name="ErrorUnknown" xml:space="preserve"><value>خطایی رخ داد. لطفاً دوباره تلاش کنید.</value></data>
+  <data name="GroupName" xml:space="preserve"><value>نام گروه</value></data>
+  <data name="Groups" xml:space="preserve"><value>گروه‌ها</value></data>
+  <data name="ImportCarried" xml:space="preserve"><value>در فایل</value></data>
+  <data name="ImportChoose" xml:space="preserve"><value>فایل خروجی</value></data>
+  <data name="ImportCreated" xml:space="preserve"><value>ایجادشده</value></data>
+  <data name="ImportDeleteFile" xml:space="preserve"><value>انجام شد. اکنون فایل ورودی را از رایانهٔ خود حذف کنید: نام‌ها و نشانی‌های ایمیل در آن است و دیگر لازم نیست.</value></data>
+  <data name="ImportExpenses" xml:space="preserve"><value>هزینه‌ها</value></data>
+  <data name="ImportGroups" xml:space="preserve"><value>گروه‌ها</value></data>
+  <data name="ImportHelp" xml:space="preserve"><value>برای مدیران سایت: فایل خروجی دفتر قبلی را انتخاب کنید (JSON، حداکثر ۱ مگابایت). وارد کردن دوباره چیز تازه‌ای نمی‌سازد.</value></data>
+  <data name="ImportNotJson" xml:space="preserve"><value>این فایل خروجی دفتر قبلی نیست.</value></data>
+  <data name="ImportSettlements" xml:space="preserve"><value>پرداخت‌ها</value></data>
+  <data name="ImportSkipped" xml:space="preserve"><value>از قبل موجود</value></data>
+  <data name="ImportTitle" xml:space="preserve"><value>وارد کردن دفتر قبلی</value></data>
+  <data name="ImportTooLarge" xml:space="preserve"><value>حجم فایل بیش از ۱ مگابایت است.</value></data>
+  <data name="IsOwed" xml:space="preserve"><value>طلبکار</value></data>
+  <data name="Kind" xml:space="preserve"><value>نوع</value></data>
+  <data name="KindCouple" xml:space="preserve"><value>زوج</value></data>
+  <data name="KindEntity" xml:space="preserve"><value>زوج یا زیرگروه</value></data>
+  <data name="KindSubgroup" xml:space="preserve"><value>زیرگروه</value></data>
+  <data name="LinkedAccount" xml:space="preserve"><value>حساب متصل</value></data>
+  <data name="ListSeparator" xml:space="preserve"><value>، </value></data>
+  <data name="Loading" xml:space="preserve"><value>در حال بارگذاری…</value></data>
+  <data name="MemberCount" xml:space="preserve"><value>{0} عضو</value></data>
+  <data name="Members" xml:space="preserve"><value>اعضا</value></data>
+  <data name="MySummary" xml:space="preserve"><value>خلاصهٔ حساب من</value></data>
+  <data name="Name" xml:space="preserve"><value>نام</value></data>
+  <data name="NewEntity" xml:space="preserve"><value>زوج یا زیرگروه جدید</value></data>
+  <data name="NewGroup" xml:space="preserve"><value>گروه جدید</value></data>
+  <data name="NoEntities" xml:space="preserve"><value>هنوز زوج یا زیرگروهی ساخته نشده است.</value></data>
+  <data name="NoExpenses" xml:space="preserve"><value>هنوز هزینه‌ای ثبت نشده است.</value></data>
+  <data name="NoGroups" xml:space="preserve"><value>هنوز گروهی ندارید. نخستین گروه را در پایین بسازید.</value></data>
+  <data name="NoMembers" xml:space="preserve"><value>هنوز عضوی اضافه نشده است.</value></data>
+  <data name="NoPairwiseDebts" xml:space="preserve"><value>بدهی تسویه‌نشده‌ای وجود ندارد.</value></data>
+  <data name="NoPayments" xml:space="preserve"><value>هنوز پرداختی ثبت نشده است.</value></data>
+  <data name="NoSuggestions" xml:space="preserve"><value>حساب همه تسویه است.</value></data>
+  <data name="Owes" xml:space="preserve"><value>بدهکار</value></data>
+  <data name="OwesTo" xml:space="preserve"><value>{0} به {1} بدهکار است</value></data>
+  <data name="PaidBy" xml:space="preserve"><value>پرداخت‌شده توسط {0}</value></data>
+  <data name="PaidByLabel" xml:space="preserve"><value>پرداخت‌کننده</value></data>
+  <data name="PairwiseDebts" xml:space="preserve"><value>بدهی‌های دوبه‌دو</value></data>
+  <data name="Participants" xml:space="preserve"><value>شرکت‌کنندگان</value></data>
+  <data name="PayTo" xml:space="preserve"><value>پرداخت به {0}</value></data>
+  <data name="Pays" xml:space="preserve"><value>{0} به {1} پرداخت می‌کند</value></data>
+  <data name="PreviewTitle" xml:space="preserve"><value>به دلار آمریکا</value></data>
+  <data name="RatePrompt" xml:space="preserve"><value>۱ دلار = ؟ {0}</value></data>
+  <data name="ReceiveFrom" xml:space="preserve"><value>دریافت از {0}</value></data>
+  <data name="Record" xml:space="preserve"><value>ثبت</value></data>
+  <data name="RecordPayment" xml:space="preserve"><value>ثبت پرداخت</value></data>
+  <data name="RecordedPayments" xml:space="preserve"><value>پرداخت‌های ثبت‌شده</value></data>
+  <data name="Save" xml:space="preserve"><value>ذخیره</value></data>
+  <data name="SettleFrom" xml:space="preserve"><value>از</value></data>
+  <data name="SettleTo" xml:space="preserve"><value>به</value></data>
+  <data name="SettledUp" xml:space="preserve"><value>تسویه</value></data>
+  <data name="SplitEqual" xml:space="preserve"><value>مساوی</value></data>
+  <data name="SplitExactAmounts" xml:space="preserve"><value>مبلغ دقیق</value></data>
+  <data name="SplitLabel" xml:space="preserve"><value>تقسیم</value></data>
+  <data name="SplitPercentage" xml:space="preserve"><value>درصدی</value></data>
+  <data name="SplitShares" xml:space="preserve"><value>سهمی</value></data>
+  <data name="StorageConvert" xml:space="preserve"><value>تبدیل‌شده به دلار ذخیره شود</value></data>
+  <data name="StorageKeep" xml:space="preserve"><value>با ارز اصلی نگه داشته شود</value></data>
+  <data name="StorageQuestion" xml:space="preserve"><value>این هزینه چگونه ذخیره شود؟</value></data>
+  <data name="SuggestedSettlements" xml:space="preserve"><value>تسویه‌های پیشنهادی</value></data>
+  <data name="TabBalances" xml:space="preserve"><value>ترازها</value></data>
+  <data name="TabExpenses" xml:space="preserve"><value>هزینه‌ها</value></data>
+  <data name="TabMembers" xml:space="preserve"><value>اعضا</value></data>
+  <data name="TotalBalance" xml:space="preserve"><value>تراز کل</value></data>
+  <data name="TotalSpent" xml:space="preserve"><value>مجموع هزینه‌ها</value></data>
+  <data name="UnknownMember" xml:space="preserve"><value>عضو شمارهٔ {0}</value></data>
+  <data name="ValueExact" xml:space="preserve"><value>مبلغ ({0})</value></data>
+  <data name="ValuePercent" xml:space="preserve"><value>درصد</value></data>
+  <data name="ValueShares" xml:space="preserve"><value>سهم</value></data>
+  <data name="ViewEntities" xml:space="preserve"><value>زوج‌ها و زیرگروه‌ها</value></data>
+  <data name="ViewPeople" xml:space="preserve"><value>افراد</value></data>
+  <data name="You" xml:space="preserve"><value>شما</value></data>
+</root>
