@@ -1,0 +1,68 @@
+@namespace Didin.App.Components
+@inject Didin.App.Services.ISignIn SignIn
+@inject Didin.Module.Media.Services.MediaOptions Options
+
+@* The module's own catalogue (Modules/Didin/Ui) in the app's window. A guest browses what the site opens to guests (a
+   public catalogue, as production's sample); signing in goes through the site's own sign-in (Services/SignIn.cs).
+   A <main>, like the site's page body, so the module's catalogue-page rules apply here too. *@
+<main class="bin-maui">
+    <header class="bin-topbar">
+        <span class="bin-brand"><BinLogo /><span>Didin</span></span>
+        <div class="bin-topbar-actions">
+            @if (SignIn.UserName != null)
+            {
+                <span class="bin-user">@SignIn.UserName</span>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignOutAsync">Sign out</FluentButton>
+            }
+            else
+            {
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@(!SignIn.IsAvailable || _busy)"
+                              Title="@SignIn.Unavailable">Sign in</FluentButton>
+            }
+        </div>
+    </header>
+    @if (_note != null)
+    {
+        <p class="bin-maui-note" role="status">@_note</p>
+    }
+    <div class="bin-maui-content">
+        <CatalogHost @key="_session" />
+    </div>
+</main>
+
+@code {
+    private bool _busy;
+    private string _note;
+    private int _session;   // a new value rebuilds the catalogue for the new identity
+
+    protected override void OnInitialized()
+    {
+        _note = SignIn.IsAvailable ? null : SignIn.Unavailable;
+        Options.Guest = SignIn.AccessToken == null;
+    }
+
+    private async Task SignInAsync()
+    {
+        _busy = true;
+        try
+        {
+            if (await SignIn.SignInAsync())
+            {
+                Options.Guest = false;
+                _note = null;
+                _session++;
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task SignOutAsync()
+    {
+        await SignIn.SignOutAsync();
+        Options.Guest = true;
+        _session++;
+    }
+}

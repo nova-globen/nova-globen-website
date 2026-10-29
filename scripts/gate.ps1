@@ -66,6 +66,16 @@ try
     # a vacuous green (Stomme measured it, 2026-09-22).
     Step 'build' { dotnet build $solution -c Release "-m:4" -nologo -clp:ErrorsOnly }
 
+    # The Didin app (apps/didin) is a MAUI project outside the solution: it is built when a commit touches it or the
+    # module code it compiles (the UI and the models), on a machine with the MAUI workloads. Its Windows target is
+    # the quick one; the public repository's apps.yml builds Android as well.
+    $staged = @(git diff --cached --name-only 2>$null)
+    $appTouched = $staged | Where-Object { $_ -match '^(apps/|NovaGloben\.Website/Modules/Didin/(Ui|Shared)/)' }
+    if ($appTouched -and (dotnet workload list 2>$null | Select-String -Quiet 'maui-windows'))
+    {
+        Step 'app (Windows)' { dotnet build (Join-Path $root 'apps/didin/Didin.App/Didin.App.csproj') -f net10.0-windows10.0.19041.0 -c Release -nologo -clp:ErrorsOnly }
+    }
+
     $testProjects = @(Get-ChildItem (Join-Path $root 'NovaGloben.Website') -Recurse -Filter '*.Tests.csproj' |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' })
     if ($testProjects.Count -eq 0)

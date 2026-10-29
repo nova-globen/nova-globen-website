@@ -37,9 +37,11 @@ public sealed class BrokerStartupLog(BrokerState state, IServiceProvider service
 
         logger.LogInformation(
             "Token budgets, in weighted units (input {Input}, cache write {CacheWrite}, cache read {CacheRead}, output {Output} "
-            + "each): per user {UserTokens}/{QuotaWindow}, organisation {OrganisationTokens}/day (0 means no limit); "
+            + "each, times {LongContextMultiplier} for a prompt over {LongContextThreshold} tokens): "
+            + "per user {UserTokens}/{QuotaWindow}, organisation {OrganisationTokens}/day (0 means no limit); "
             + "an answer whose usage cannot be read is charged {Unreadable}. Counters are in memory and reset on restart.",
             options.TokenWeights.Input, options.TokenWeights.CacheWrite, options.TokenWeights.CacheRead, options.TokenWeights.Output,
+            options.TokenWeights.LongContextMultiplier, options.TokenWeights.LongContextThreshold,
             options.QuotaTokens, options.QuotaWindow, options.OrganisationTokensPerDay, options.UnreadableUsageCharge);
 
         var auditor = services.GetRequiredService<PromptAuditor>();

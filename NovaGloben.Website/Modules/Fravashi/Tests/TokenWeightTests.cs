@@ -131,4 +131,74 @@ public class TokenWeightTests
         options.TokenWeights.Problems().Should().ContainSingle().Which.Should().Contain("Broker:TokenWeights:CacheRead");
         new TokenWeights().Problems().Should().BeEmpty();
     }
+
+    // ---- long context -------------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(100_000, 0, 0, 1000, 105_000)]            // exactly the threshold: not long, 100,000 + 5,000
+    [InlineData(100_001, 0, 0, 1000, 525_005)]            // one more: (100,001 + 5,000) x 5
+    [InlineData(1_000, 10_000, 90_000, 0, 112_500)]       // writes and reads count toward the prompt (101,000): (1,000 + 12,500 + 9,000) x 5
+    public void A_prompt_past_the_threshold_costs_the_long_context_multiple(long input, long cacheWrite, long cacheRead, long output, long units)
+    {
+        new TokenWeights().Units(new TokenUsage(input, cacheWrite, cacheRead, output)).Should().Be(units);
+    }
+
+    [Fact]
+    public void The_long_context_threshold_and_multiplier_are_configurable()
+    {
+        var options = new BrokerServiceOptions();
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Broker:TokenWeights:LongContextThreshold"] = "1000",
+                ["Broker:TokenWeights:LongContextMultiplier"] = "2",
+            })
+            .Build()
+            .GetSection(BrokerServiceOptions.SectionName)
+            .Bind(options);
+
+        options.TokenWeights.Units(new TokenUsage(1000, 0, 0, 0)).Should().Be(1000);
+        options.TokenWeights.Units(new TokenUsage(1001, 0, 0, 0)).Should().Be(2002);
+    }
+
+    [Theory]
+    [InlineData(0, 5.0, "LongContextThreshold")]
+    [InlineData(-1, 5.0, "LongContextThreshold")]
+    [InlineData(100_000, 0.5, "LongContextMultiplier")]
+    [InlineData(100_000, double.NaN, "LongContextMultiplier")]
+    [InlineData(100_000, 1001.0, "LongContextMultiplier")]
+    public void A_long_context_setting_that_makes_no_sense_stops_the_broker(long threshold, double multiplier, string key)
+    {
+        var weights = new TokenWeights { LongContextThreshold = threshold, LongContextMultiplier = multiplier };
+
+        weights.Problems().Should().ContainSingle().Which.Should().Contain("Broker:TokenWeights:" + key);
+    }
+
+    // ---- the per-user budget counts units, end to end ------------------------------------------------------
+
+    [Fact]
+    public void The_per_user_budget_is_spent_in_weighted_units_not_raw_tokens()
+    {
+        var options = Options.Create(new BrokerServiceOptions
+        {
+            QuotaTokens = 10_000,
+            QuotaWindow = TimeSpan.FromDays(1),
+            SuspendAfterRefusals = 0,
+        });
+        var clock = new TestTimeProvider(Now);
+        var budget = new InMemoryTokenBudget(options, clock);
+        var containment = new ForwardContainment(new ModelPolicy([]), budget, new Suspensions(options, clock));
+
+        // 50,000 raw tokens of cache reads are 5,000 units: far past 10,000 raw, still inside 10,000 units
+        containment.After("alice", "/v1/messages", 200, new TokenUsage(0, 0, 50_000, 0));
+        budget.Check("alice").Allowed.Should().BeTrue();
+        budget.RawUsedBy("alice").Should().Be(50_000);
+
+        // 5,000 more units: the budget is spent and the next request is refused as the user's
+        containment.After("alice", "/v1/messages", 200, new TokenUsage(0, 0, 50_000, 0));
+        var decision = budget.Check("alice");
+        decision.Allowed.Should().BeFalse();
+        decision.Limit.Should().Be("user");
+        budget.UsedBy("alice").Should().Be(10_000);
+    }
 }

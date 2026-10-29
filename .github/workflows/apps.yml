@@ -1,0 +1,50 @@
+name: apps
+
+# The Didin app (apps/didin): built for Android and Windows when the app changes or the module code it compiles (its UI
+# and models), and on request. Nothing is signed or released here: an APK ships as a GitHub Release once the app can
+# sign in (the Didin site's own sign-in, Stomme 10.76), from a workflow of its own. It runs in the public repository
+# only; the private development repository builds the app's Windows target in its gate before a commit that touches it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'NovaGloben.Website/Modules/Didin/Ui/**'
+      - 'NovaGloben.Website/Modules/Didin/Shared/**'
+      - '.github/workflows/apps.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'NovaGloben.Website/Modules/Didin/Ui/**'
+      - 'NovaGloben.Website/Modules/Didin/Shared/**'
+      - '.github/workflows/apps.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  didin:
+    if: github.repository == 'nova-globen/nova-globen-website'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install the MAUI workloads
+        run: dotnet workload install maui-android maui-windows
+      - name: Build for Android
+        run: dotnet build apps/didin/Didin.App/Didin.App.csproj -f net10.0-android -c Release -nologo
+      - name: Build for Windows
+        run: dotnet build apps/didin/Didin.App/Didin.App.csproj -f net10.0-windows10.0.19041.0 -c Release -nologo

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SafeAreaEdges: on Android 15+ the app is drawn edge to edge; the page keeps clear of the status and navigation
+     bars (the clock no longer sits on the header), with the app's own dark ground behind them. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Didin.App"
+             xmlns:components="clr-namespace:Didin.App.Components"
+             x:Class="Didin.App.MainPage"
+             SafeAreaEdges="All"
+             BackgroundColor="#1E1C1C">
+
+    <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html" BlazorWebViewInitialized="OnWebViewInitialized">
+        <BlazorWebView.RootComponents>
+            <RootComponent Selector="#app" ComponentType="{x:Type components:AppRoot}" />
+        </BlazorWebView.RootComponents>
+    </BlazorWebView>
+
+</ContentPage>

@@ -267,7 +267,11 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
                 asOf = clock.GetUtcNow(),
                 suspended,
                 // the budgets count weighted units; the raw tokens behind them, as the provider counted, beside
-                weights = new { input = weights.Input, cacheWrite = weights.CacheWrite, cacheRead = weights.CacheRead, output = weights.Output },
+                weights = new
+                {
+                    input = weights.Input, cacheWrite = weights.CacheWrite, cacheRead = weights.CacheRead, output = weights.Output,
+                    longContextThreshold = weights.LongContextThreshold, longContextMultiplier = weights.LongContextMultiplier,
+                },
                 organisation = new
                 {
                     unitsUsed = organisation.Units,

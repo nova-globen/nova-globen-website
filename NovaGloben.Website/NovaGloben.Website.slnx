@@ -6,6 +6,7 @@
   <Project Path="Modules\Fravashi\Server\Fravashi.Broker.Server.csproj" />
   <Project Path="Modules\Fravashi\Tests\Fravashi.Broker.Tests.csproj" />
   <Project Path="Modules\Didin\Shared\Didin.Shared.csproj" />
+  <Project Path="Modules\Didin\Ui\Didin.Ui.csproj" />
   <Project Path="Modules\Didin\Client\Didin.Client.csproj" />
   <Project Path="Modules\Didin\Server\Didin.Server.csproj" />
   <Project Path="Modules\Didin\Tests\Didin.Tests.csproj" />

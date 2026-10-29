@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    Didin's UI: the catalogue, title pages, player, filters, assistant and library views, with no Stomme in it. The
+    module's client (Didin.Client.Stomme) hosts it in a Stomme page; the Didin app (apps/didin) hosts it in a MAUI
+    BlazorWebView. Each host gives it an ICatalogClient and the MediaOptions it needs.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyName>Didin.Ui</AssemblyName>
+    <RootNamespace>Didin</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Didin.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Didin.Shared.csproj" />
+    <ProjectReference Include="..\Ui\Didin.Ui.csproj" />
   </ItemGroup>
 
   <!-- The content hash of each static file, baked in at build time: a changed file gets a new address. -->

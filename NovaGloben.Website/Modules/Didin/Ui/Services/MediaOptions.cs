@@ -29,7 +29,19 @@ namespace Didin.Module.Media.Services
         /// <summary>A page of this site ("/admin/assistant").</summary>
         public string PageUrl(string path) => SiteBase + path;
 
-        /// <summary>An asset address from the API, already under the site's folder; absolute and empty values pass through.</summary>
-        public string AssetUrl(string url) => url;
+        /// <summary>
+        /// Empty on the site. In the app, the host the site is on ("https://nova-globen.se"): the API answers asset
+        /// addresses relative to its host ("/didin/api/art/12?v=..."), which the app's own page could not resolve.
+        /// </summary>
+        public string Origin { get; set; } = "";
+
+        /// <summary>
+        /// An asset address from the API, already under the site's folder, made loadable from this page: prefixed with
+        /// <see cref="Origin"/> when it is host-relative. Absolute and empty values pass through. Never a token in it.
+        /// </summary>
+        public string AssetUrl(string url) =>
+            string.IsNullOrEmpty(Origin) || string.IsNullOrEmpty(url) || !url.StartsWith('/') || url.StartsWith("//", System.StringComparison.Ordinal)
+                ? url
+                : Origin + url;
     }
 }

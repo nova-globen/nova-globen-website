@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <!--
+      The Didin app: the module's own UI (Modules/Didin/Ui) in a MAUI window, for Android phones, Android TV and Windows.
+      It talks to a Didin site (https://<host>/didin/, set at build time: DidinSite below) over its API. Signing in goes through that site's own sign-in
+      (the folder is the issuer; authorization code with PKCE), which arrives with Stomme 10.76: until then
+      the app browses a public catalogue as a guest and its sign-in refuses (Services/SignIn.cs). No APK is released
+      before signing in works; releases are GitHub Releases (D21).
+      Builds need the maui-android and maui-windows workloads; build one target with -f.
+    -->
+    <PropertyGroup>
+        <TargetFrameworks>net10.0-windows10.0.19041.0;net10.0-android</TargetFrameworks>
+
+        <OutputType>Exe</OutputType>
+        <RootNamespace>Didin.App</RootNamespace>
+        <AssemblyName>Didin.App</AssemblyName>
+        <!-- the Windows executable is didin.exe -->
+        <AssemblyName Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">didin</AssemblyName>
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableDefaultCssItems>false</EnableDefaultCssItems>
+        <Nullable>disable</Nullable>
+        <!-- MAUI's packages follow its workload, so this project sets its own versions; the module projects it references
+             keep theirs from NovaGloben.Website/Directory.Packages.props. -->
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+
+        <ApplicationTitle>Didin</ApplicationTitle>
+        <ApplicationId>se.novaglobenab.didin</ApplicationId>
+        <ApplicationDisplayVersion>0.2</ApplicationDisplayVersion>
+        <ApplicationVersion>2</ApplicationVersion>
+
+        <!-- The Didin site the app talks to (AppConfig): production's by default, a local host's in a debug build; another
+             with -p:DidinSite=https://<host>/didin. -->
+        <DidinSite Condition="'$(DidinSite)' == '' and '$(Configuration)' == 'Debug'">http://localhost:5100/didin</DidinSite>
+        <DidinSite Condition="'$(DidinSite)' == ''">https://nova-globen.se/didin</DidinSite>
+
+        <!-- an unpackaged Windows app: run with dotnet run, no MSIX -->
+        <WindowsPackageType>None</WindowsPackageType>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+        <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    </PropertyGroup>
+
+    <!-- Android release: one signed .apk. The keystore's path and password come from the environment (DIDIN_KEYSTORE,
+         DIDIN_KEYSTORE_PASS; the ng profile didin-android-signing) and never from the repository. Without them a release
+         build is signed with the debug key and must not be published. -->
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+        <AndroidPackageFormat Condition="'$(Configuration)' == 'Release'">apk</AndroidPackageFormat>
+        <!-- 32-bit too: many Android TVs run a 32-bit system, and .NET builds only 64-bit by default -->
+        <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+        <AndroidKeyStore Condition="'$(DIDIN_KEYSTORE)' != ''">true</AndroidKeyStore>
+        <AndroidSigningKeyStore>$(DIDIN_KEYSTORE)</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias>didin</AndroidSigningKeyAlias>
+        <AndroidSigningStorePass>env:DIDIN_KEYSTORE_PASS</AndroidSigningStorePass>
+        <AndroidSigningKeyPass>env:DIDIN_KEYSTORE_PASS</AndroidSigningKeyPass>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AssemblyMetadata Include="DidinSite" Value="$(DidinSite)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1E1C1C" />
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1E1C1C" BaseSize="128,128" />
+        <MauiFont Include="Resources\Fonts\*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+        <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="5.0.0" />
+    </ItemGroup>
+
+    <!-- cast to a TV from the phone: Google's Cast framework and its device picker -->
+    <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+        <PackageReference Include="Xamarin.GooglePlayServices.Cast.Framework" Version="122.3.1.2" />
+        <!-- Fragment 1.9 carries the Kotlin extensions itself: the Cast framework's older Fragment.Ktx would add them twice -->
+        <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.0" />
+    </ItemGroup>
+
+    <!-- The module's stylesheets ship inside the app (wwwroot/index.html links them), so they always match the markup
+         compiled into it. -->
+    <ItemGroup>
+        <Content Include="..\..\..\NovaGloben.Website\Modules\Didin\Client\wwwroot\Theme.css" Link="wwwroot\css\Theme.css" />
+        <Content Include="..\..\..\NovaGloben.Website\Modules\Didin\Client\wwwroot\Module.css" Link="wwwroot\css\Module.css" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\NovaGloben.Website\Modules\Didin\Ui\Didin.Ui.csproj" />
+        <ProjectReference Include="..\..\..\NovaGloben.Website\Modules\Didin\Shared\Didin.Shared.csproj" />
+    </ItemGroup>
+
+</Project>
