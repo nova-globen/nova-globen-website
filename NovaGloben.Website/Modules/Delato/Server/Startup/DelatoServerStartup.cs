@@ -35,6 +35,8 @@ public sealed class DelatoServerStartup : IServerStartup
 
         // The one-time import of an earlier ledger, for the site's Host or Administrators.
         services.AddScoped<DelatoImport>();
+        // a person added to groups without an account asks to be forgotten (site administrators)
+        services.AddScoped<DelatoForget>();
 
         // The Delato site: created beside the host's root site and wired on every boot; no other site is touched.
         services.AddScoped<ISiteContentReconciler, DelatoSiteReconciler>();

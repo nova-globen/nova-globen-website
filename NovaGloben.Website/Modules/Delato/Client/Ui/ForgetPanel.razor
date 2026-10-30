@@ -1,0 +1,42 @@
+@inherits LedgerPart
+@* For the site's Host or Administrators: someone a member added to groups by name and e-mail, without an account,
+   asks to be forgotten. Their address is entered here; every member with it that no account has claimed becomes
+   "Former member" without an e-mail, in every group. The server checks the role. *@
+<section class="delato-section delato-forget">
+    <h2>@T["ForgetTitle"]</h2>
+    <p class="delato-muted">@T["ForgetHelp"]</p>
+    <form class="delato-inline-form" @onsubmit="ForgetAsync" @onsubmit:preventDefault>
+        <label for="@Id("email")">@T["ForgetEmail"]</label>
+        <input id="@Id("email")" type="email" @bind="_email" disabled="@_busy" />
+        <button type="submit" class="delato-button" disabled="@(_busy || string.IsNullOrWhiteSpace(_email))">@T["ForgetButton"]</button>
+    </form>
+    @if (_result is not null)
+    {
+        <p class="delato-note" role="status">@string.Format(T["ForgetDone"], _result.Members, _result.Groups)</p>
+    }
+</section>
+
+@code {
+    private string _email = "";
+    private ForgetResult? _result;
+    private bool _busy;
+
+    private async Task ForgetAsync()
+    {
+        _busy = true;
+        _result = null;
+        try
+        {
+            ForgetResult? result = null;
+            if (await Context.TryAsync(async () => result = await Context.Api.ForgetAsync(_email.Trim())))
+            {
+                _result = result;
+                _email = "";
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

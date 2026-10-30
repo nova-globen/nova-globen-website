@@ -110,4 +110,9 @@
   <data name="ViewEntities" xml:space="preserve"><value>زوج‌ها و زیرگروه‌ها</value></data>
   <data name="ViewPeople" xml:space="preserve"><value>افراد</value></data>
   <data name="You" xml:space="preserve"><value>شما</value></data>
+  <data name="ForgetTitle" xml:space="preserve"><value>فراموش کردن یک نفر</value></data>
+  <data name="ForgetHelp" xml:space="preserve"><value>برای مدیران سایت: کسی که یکی از اعضا او را با نام و ایمیل، بدون حساب کاربری، به گروه‌ها افزوده، خواسته است فراموش شود. نام او در همه گروه‌ها «Former member» می‌شود و ایمیلش حذف می‌شود؛ گروه‌ها و ترازهایشان می‌مانند. عضوی که حسابی آن را برداشته تغییر نمی‌کند: آن شخص خودش حسابش را حذف می‌کند.</value></data>
+  <data name="ForgetEmail" xml:space="preserve"><value>ایمیل او</value></data>
+  <data name="ForgetButton" xml:space="preserve"><value>فراموش کن</value></data>
+  <data name="ForgetDone" xml:space="preserve"><value>{0} عضو در {1} گروه فراموش شد.</value></data>
 </root>

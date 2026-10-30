@@ -57,6 +57,12 @@ public record OwedFromDto(int FromMemberId, string FromName, decimal AmountUsd);
 public record MyGroupSummaryDto(int GroupId, string GroupName, decimal MyNetUsd, List<OwedToDto> IShouldPay, List<OwedFromDto> IShouldReceive);
 public record MySummaryDto(decimal TotalNetUsd, List<MyGroupSummaryDto> Groups);
 
+// ---- a person's request (site administrators) ----
+/// <summary>Forget the person with this e-mail address in every group where they were added without an account.</summary>
+public record ForgetRequest(string? Email);
+/// <summary>How many members were forgotten, in how many groups.</summary>
+public record ForgetResult(int Members, int Groups);
+
 // ---- misc ----
 public record CurrencyDto(string Code, string Symbol, string NameEn, string NameFa);
 

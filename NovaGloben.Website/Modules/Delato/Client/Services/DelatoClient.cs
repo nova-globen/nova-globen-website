@@ -50,4 +50,7 @@ public sealed class DelatoClient(HttpClient http, SiteState siteState) : Service
 
     // the one-time import (the server allows it to the site's Host or Administrators only)
     public Task<ImportResult> ImportAsync(ImportRequest request) => PostJsonAsync<ImportRequest, ImportResult>(Api("import"), request);
+
+    // a person added to groups without an account asks to be forgotten (site administrators)
+    public Task<ForgetResult> ForgetAsync(string email) => PostJsonAsync<ForgetRequest, ForgetResult>(Api("forget"), new(email));
 }

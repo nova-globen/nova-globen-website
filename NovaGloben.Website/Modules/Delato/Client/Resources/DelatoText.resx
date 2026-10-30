@@ -110,4 +110,9 @@
   <data name="ViewEntities" xml:space="preserve"><value>Couples and subgroups</value></data>
   <data name="ViewPeople" xml:space="preserve"><value>People</value></data>
   <data name="You" xml:space="preserve"><value>You</value></data>
+  <data name="ForgetTitle" xml:space="preserve"><value>Forget a person</value></data>
+  <data name="ForgetHelp" xml:space="preserve"><value>For site administrators: someone a member added to groups by name and e-mail, without an account, asked to be forgotten. Their name becomes &quot;Former member&quot; and their e-mail address is removed in every group; the groups and their balances stay. A member an account has claimed is not changed: that person deletes their account themselves.</value></data>
+  <data name="ForgetEmail" xml:space="preserve"><value>Their e-mail address</value></data>
+  <data name="ForgetButton" xml:space="preserve"><value>Forget</value></data>
+  <data name="ForgetDone" xml:space="preserve"><value>{0} member(s) in {1} group(s) forgotten.</value></data>
 </root>

@@ -75,7 +75,7 @@ public sealed class SiteGuardTests
 
     [Fact]
     public void The_api_guard_knows_every_controller_route() =>
-        DelatoApiGuard.Routes.Should().BeEquivalentTo(["/api/v1/groups", "/api/v1/me", "/api/v1/currencies", "/api/v1/import"]);
+        DelatoApiGuard.Routes.Should().BeEquivalentTo(["/api/v1/groups", "/api/v1/me", "/api/v1/currencies", "/api/v1/import", "/api/v1/forget"]);
 
     [Theory]
     [InlineData("nova-globen.test", "/api/v1/groups")]
