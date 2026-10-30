@@ -26,15 +26,16 @@ namespace Didin.Server.Controllers
 
         // GET {site}/api/cast/{ticket}/media - a cast device playing it: no sign-in, the ticket is the key. Open to any
         // origin: the receiver page fetches from its own.
+        // GET {site}/api/cast/{ticket}/media?download=1 - the original to keep, for the app, whose browser has no sign-in
         [HttpGet("~/api/cast/{ticket}/media")]
         [AllowAnonymous]
-        public async Task Cast(string ticket)
+        public async Task Cast(string ticket, [FromQuery(Name = "download")] string downloadFlag = null)
         {
             Response.Headers.AccessControlAllowOrigin = "*";
             Response.Headers.AccessControlExposeHeaders = "Content-Length, Content-Range, Accept-Ranges";
             var token = tickets.Read(Site, ticket);
             if (token == null) { Response.StatusCode = 403; return; }
-            await ServeAsync(token, download: false);
+            await ServeAsync(token, downloadFlag is "1" or "true");
         }
 
         private async Task ServeAsync(string token, bool download)

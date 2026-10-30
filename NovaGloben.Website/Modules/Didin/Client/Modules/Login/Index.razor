@@ -90,7 +90,9 @@
             try
             {
                 await JSRuntime.InvokeVoidAsync("eval",
-                    $"import('{DidinAssets.Url(DidinAssets.QrLink)}').then(m => m.start(document.getElementById('bin-login-qr'), '{SiteBase}'))");
+                    "window.__didinQr = window.__didinQr || function (src, base) { " +
+                    "import(src).then(function (m) { m.start(document.getElementById('bin-login-qr'), base); }); };");
+                await JSRuntime.InvokeVoidAsync("__didinQr", DidinAssets.Url(DidinAssets.QrLink), SiteBase);
             }
             catch (JSException) { }
         }
@@ -143,7 +145,7 @@
     /// <summary>
     /// Post back to the Login page so the auth cookie is set - identical to the
     /// stock Stomme login flow (Stomme.Modules.Admin.Login). The fields are
-    /// passed as JSON and turned into a real form by eval JS (the host strips
+    /// passed as an argument and turned into a real form by eval JS (the host strips
     /// script tags from HeadContent and internal module JS is not auto-included,
     /// so the Didin interop is eval-based - same pattern as Didin.Module.Media).
     /// </summary>
@@ -159,13 +161,13 @@
             ["remember"] = _remember ? "true" : "false",
             ["returnurl"] = WebUtility.UrlEncode(_returnurl),
         };
-        var payload = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(
-            System.Text.Json.JsonSerializer.Serialize(fields));
+        // a fixed function, given the fields as an argument: no value is ever written into script text
         await JSRuntime.InvokeVoidAsync("eval",
-            "(() => { var d = JSON.parse(\"" + payload + "\"); " +
+            "window.__didinPost = window.__didinPost || function (d) { " +
             "var f = document.createElement('form'); f.method = 'post'; f.action = d.__url; " +
             "Object.keys(d).forEach(function (k) { if (k === '__url') return; " +
             "var i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = d[k]; f.appendChild(i); }); " +
-            "document.body.appendChild(f); f.submit(); })()");
+            "document.body.appendChild(f); f.submit(); };");
+        await JSRuntime.InvokeVoidAsync("__didinPost", fields);
     }
 }

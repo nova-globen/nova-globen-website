@@ -404,11 +404,8 @@ else
     private async Task DownloadSeason(System.Collections.Generic.List<Didin.Shared.Models.MediaFileInfo> files)
     {
         // the browser saves each as its own download; a short pause between them keeps it from merging or dropping any
-        var urls = System.Text.Json.JsonSerializer.Serialize(files.Select(f => Options.DownloadUrl(f.Token)));
-        await Js.InvokeVoidAsync("eval",
-            "(async function (urls) { for (var i = 0; i < urls.length; i++) { var a = document.createElement('a'); a.href = urls[i]; " +
-            "a.download = ''; document.body.appendChild(a); a.click(); a.remove(); await new Promise(function (r) { setTimeout(r, 1500); }); } })(" +
-            urls + ")");
+        var urls = await DownloadButton.AddressesAsync(Options, CatalogClient, files);
+        await new Interop(Js).DownloadAllAsync(urls);
     }
 
     private System.Collections.Generic.List<Didin.Shared.Models.SeasonInfo> VisibleSeasons =>

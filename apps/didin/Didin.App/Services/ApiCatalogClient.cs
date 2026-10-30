@@ -39,6 +39,7 @@ public sealed class ApiCatalogClient(HttpClient http, MediaOptions options, ISig
     public Task DeleteReviewVerdictAsync(string fileToken) => SendAsync(HttpMethod.Delete, Api($"admin/library/review/{fileToken}"), null);
     public Task SetSubtitleLanguageAsync(string lang) => SendAsync(HttpMethod.Put, Api("me/subtitles"), JsonContent.Create(new SubtitlePreference { Lang = lang }));
     public Task<CastMedia> GetCastAsync(string fileToken) => PostAsync<CastMedia>(Api($"cast/{fileToken}"), JsonContent.Create(new { }));
+    public Task<CastMedia> GetDownloadAsync(string fileToken) => PostAsync<CastMedia>(Api($"cast/{fileToken}/download"), JsonContent.Create(new { }));
 
     /// <summary>A text resource the API addressed (a subtitle track); a site-relative address is made absolute.</summary>
     public async Task<string> GetTextAsync(string url)

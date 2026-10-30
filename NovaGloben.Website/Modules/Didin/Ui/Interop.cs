@@ -5,9 +5,9 @@ using Microsoft.JSInterop;
 namespace Didin.Module.Media
 {
     /// <summary>
-    /// localStorage catalog cache + fullscreen helpers, implemented as small
-    /// eval snippets: the host strips script tags from HeadContent and does not
-    /// auto-include internal module JS, so no external script can be relied on.
+    /// localStorage catalog cache, fullscreen and video helpers, defined in the page by eval of constant script: the
+    /// host strips script tags from HeadContent and does not auto-include internal module JS, so no external script can
+    /// be relied on. A value is always passed as an argument to a fixed function, never written into script text.
     /// Every call is best-effort - caching must never break the app.
     /// </summary>
     public class Interop
@@ -15,29 +15,112 @@ namespace Didin.Module.Media
         private readonly IJSRuntime _js;
         public Interop(IJSRuntime js) => _js = js;
 
+        /// <summary>
+        /// The page half of the calls below that take values: fixed functions, defined once from this constant, and
+        /// called with their values as arguments. No value is ever written into script text.
+        /// </summary>
+        private const string Bridge = @"window.__didin = window.__didin || {
+            loadCatalog: function (version) {
+                try {
+                    var stored = window.localStorage.getItem('didin.catalog'); if (!stored) return null;
+                    var doc = JSON.parse(stored); return doc && doc.version === version ? stored : null;
+                } catch (e) { return null; }
+            },
+            saveFilters: function (json) {
+                try { window.localStorage.setItem('didin.filters', json); } catch (e) { }
+            },
+            saveCatalog: function (version, json) {
+                try { var d = JSON.parse(json); d.version = version; window.localStorage.setItem('didin.catalog', JSON.stringify(d)); } catch (e) { }
+            },
+            fullscreen: function (id) {
+                var el = document.getElementById(id); if (!el || document.fullscreenElement === el) return;
+                var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+                // refused without a user gesture (a part that played on), or the element gone by the time it settles
+                if (rfs) { var p = rfs.call(el); if (p && p.catch) p.catch(function () {}); }
+            },
+            pause: function (id) { var v = document.getElementById(id); if (v) v.pause(); },
+            playFrom: function (id, at) {
+                var v = document.getElementById(id); if (!v) return;
+                v.currentTime = at; v.play().catch(function () {});
+            },
+            // a fresh element ignores currentTime until it knows its duration
+            seekWhenReady: function (id, at) {
+                var v = document.getElementById(id); if (!v) return;
+                var go = function () { v.currentTime = at; };
+                if (v.readyState >= 1) go(); else v.addEventListener('loadedmetadata', go, { once: true });
+            },
+            // each address as a clicked download link; a short pause between them keeps the browser from merging or
+            // dropping any. In the app, a link to the site opens in the device's browser.
+            downloadAll: async function (urls) {
+                for (var i = 0; i < urls.length; i++) {
+                    var a = document.createElement('a'); a.href = urls[i]; a.download = '';
+                    document.body.appendChild(a); a.click(); a.remove();
+                    await new Promise(function (r) { setTimeout(r, 1500); });
+                }
+            },
+            // AirPlay in Safari: the button shows while a device is around
+            airplay: function (id, buttonId) {
+                if (!window.WebKitPlaybackTargetAvailabilityEvent) return;
+                var v = document.getElementById(id), b = document.getElementById(buttonId); if (!v) return;
+                v.addEventListener('webkitplaybacktargetavailabilitychanged', function (e) { if (b) b.hidden = e.availability !== 'available'; });
+            }
+        };";
+
+        private async Task CallAsync(string function, params object[] args)
+        {
+            await _js.InvokeVoidAsync("eval", Bridge);
+            await _js.InvokeVoidAsync("__didin." + function, args);
+        }
+
         public async Task<string> LoadCatalogAsync(string version)
         {
-            const string code = @"
-                (() => { try {
-                    var stored = window.localStorage.getItem('didin.catalog');
-                    if (!stored) return null;
-                    var doc = JSON.parse(stored);
-                    return doc && doc.version === arguments[0] ? stored : null;
-                } catch (e) { return null; } })()";
-            try { return await _js.InvokeAsync<string>("eval", $"(version => {code})('{version}')"); }
+            try
+            {
+                await _js.InvokeVoidAsync("eval", Bridge);
+                return await _js.InvokeAsync<string>("__didin.loadCatalog", version);
+            }
             catch { return null; }
         }
 
         public async Task SaveCatalogAsync(string version, string json)
         {
-            try
-            {
-                var payload = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(json);
-                await _js.InvokeVoidAsync("eval",
-                    $"try {{ var d = JSON.parse(\"{payload}\"); d.version = '{version}'; " +
-                    "window.localStorage.setItem('didin.catalog', JSON.stringify(d)); } catch (e) { }");
-            }
+            try { await CallAsync("saveCatalog", version, json); }
             catch { /* cache is an optimization only */ }
+        }
+
+        /// <summary>Pauses the video with this id; best effort.</summary>
+        public async Task PauseAsync(string videoId)
+        {
+            try { await CallAsync("pause", videoId); }
+            catch { }
+        }
+
+        /// <summary>Plays the video from a position in seconds; best effort.</summary>
+        public async Task PlayFromAsync(string videoId, double at)
+        {
+            try { await CallAsync("playFrom", videoId, at); }
+            catch { }
+        }
+
+        /// <summary>Moves the video to a position once it knows its duration; best effort.</summary>
+        public async Task SeekWhenReadyAsync(string videoId, double at)
+        {
+            try { await CallAsync("seekWhenReady", videoId, at); }
+            catch { }
+        }
+
+        /// <summary>Downloads each address, one after another, as a clicked link would.</summary>
+        public async Task DownloadAllAsync(string[] urls)
+        {
+            try { await CallAsync("downloadAll", (object)urls); }
+            catch { }
+        }
+
+        /// <summary>Shows the AirPlay button while Safari sees a device; elsewhere nothing.</summary>
+        public async Task AirPlayAsync(string videoId, string buttonId)
+        {
+            try { await CallAsync("airplay", videoId, buttonId); }
+            catch { }
         }
 
         /// <summary>
@@ -152,14 +235,7 @@ namespace Didin.Module.Media
 
         public async Task FullscreenAsync(string elementId)
         {
-            try
-            {
-                await _js.InvokeVoidAsync("eval",
-                    "(() => { var el = document.getElementById('" + elementId + "'); if (!el || document.fullscreenElement === el) return; " +
-                    "var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen; " +
-                    // refused without a user gesture (a part that played on), or the element gone by the time it settles
-                    "if (rfs) { var p = rfs.call(el); if (p && p.catch) p.catch(function () {}); } })()");
-            }
+            try { await CallAsync("fullscreen", elementId); }
             catch { /* player still works without fullscreen */ }
         }
 
@@ -289,12 +365,7 @@ namespace Didin.Module.Media
 
         public async Task SaveFiltersAsync(string json)
         {
-            try
-            {
-                var payload = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(json);
-                await _js.InvokeVoidAsync("eval",
-                    $"try {{ window.localStorage.setItem('didin.filters', \"{payload}\"); }} catch (e) {{ }}");
-            }
+            try { await CallAsync("saveFilters", json); }
             catch { }
         }
     }

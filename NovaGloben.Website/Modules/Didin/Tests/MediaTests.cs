@@ -163,6 +163,8 @@ public sealed class MediaTests : IDisposable
         picks.Select(p => p.TitleId).Should().Equal(ids);
     }
 
+    private readonly CastTickets _tickets = new(new EphemeralDataProtectionProvider());
+
     private async Task<(StreamController Controller, DefaultHttpContext Http, string Token)> StreamSetup(Dictionary<string, string?> settings)
     {
         File.WriteAllBytes(Path.Combine(Root, "media", "one.mp4"), Enumerable.Range(0, 100).Select(i => (byte)i).ToArray());
@@ -176,7 +178,7 @@ public sealed class MediaTests : IDisposable
 
         var configuration = Settings(settings);
         var query = new CatalogQuery(_store, _cache, configuration);
-        var controller = new StreamController(query, new MediaFiles(new MediaSource(configuration), query), new CastTickets(new EphemeralDataProtectionProvider()));
+        var controller = new StreamController(query, new MediaFiles(new MediaSource(configuration), query), _tickets);
         var http = new DefaultHttpContext();
         http.Items[DidinSiteOnlyAttribute.ItemKey] = Site;
         http.Response.Body = new MemoryStream();
@@ -196,6 +198,38 @@ public sealed class MediaTests : IDisposable
         http.Response.ContentType.Should().Be("video/mp4");
         http.Response.Headers.ContentRange.ToString().Should().Be("bytes 10-19/100");
         ((MemoryStream)http.Response.Body).ToArray().Should().Equal(Enumerable.Range(10, 10).Select(i => (byte)i));
+    }
+
+    [Fact]
+    public async Task A_download_ticket_gives_the_original_to_keep_and_a_forged_one_nothing()
+    {
+        var (controller, http, token) = await StreamSetup(new() { ["MediaStore:Root"] = Root });
+
+        await controller.Cast(_tickets.Issue(Site, token), "1");
+
+        http.Response.StatusCode.Should().Be(200);
+        http.Response.Headers.ContentDisposition.ToString().Should().StartWith("attachment").And.Contain("one.mp4");
+        ((MemoryStream)http.Response.Body).Length.Should().Be(100);
+
+        var (forged, forgedHttp, _) = await StreamSetup(new() { ["MediaStore:Root"] = Root });
+        await forged.Cast("not-a-ticket", "1");
+        forgedHttp.Response.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task A_download_ticket_is_issued_for_a_listed_file_only()
+    {
+        var (_, _, token) = await StreamSetup(new() { ["MediaStore:Root"] = Root });
+        var cast = new CastController(new CatalogQuery(_store, _cache, Settings(new() { ["MediaStore:Root"] = Root })), _tickets);
+        var http = new DefaultHttpContext();
+        http.Items[DidinSiteOnlyAttribute.ItemKey] = Site;
+        cast.ControllerContext = new ControllerContext { HttpContext = http };
+
+        var issued = (await cast.Download(token)).Should().BeOfType<OkObjectResult>().Subject.Value.Should().BeOfType<CastMedia>().Subject;
+        issued.Url.Should().Contain("/api/cast/").And.EndWith("/media?download=1");
+        _tickets.Read(Site, issued.Url.Split('/')[^2]).Should().Be(token);
+
+        (await cast.Download(FileToken.Encode("files/11"))).Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]

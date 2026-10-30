@@ -1,12 +1,23 @@
 @namespace Didin.Module.Media
+@inject IJSRuntime Js
 @inject Services.MediaOptions Options
+@inject Services.ICatalogClient CatalogClient
 
 @* Download the original file, beside its play button: a plain link, so the browser (or the app) saves it under
-   its own name and can resume it. A damaged file is not offered. *@
+   its own name and can resume it. A damaged file is not offered. In the app a signed-in person's download is handed
+   to the device's browser, which has no sign-in, so it goes to a ticket address asked for on the click. *@
 @if (File != null && File.Playback != "damaged")
 {
-    <a class="bin-download" href="@Options.DownloadUrl(File.Token)" download
-       title="Download (@Size(File.SizeBytes))" aria-label="Download @Label (@Size(File.SizeBytes))"><BinIcon Name="download" /></a>
+    @if (ByTicket(Options))
+    {
+        <a class="bin-download" href="@Options.DownloadUrl(File.Token)" @onclick="DownloadAsync" @onclick:preventDefault
+           title="Download (@Size(File.SizeBytes))" aria-label="Download @Label (@Size(File.SizeBytes))"><BinIcon Name="download" /></a>
+    }
+    else
+    {
+        <a class="bin-download" href="@Options.DownloadUrl(File.Token)" download
+           title="Download (@Size(File.SizeBytes))" aria-label="Download @Label (@Size(File.SizeBytes))"><BinIcon Name="download" /></a>
+    }
 }
 
 @code {
@@ -15,4 +26,32 @@
 
     public static string Size(long bytes) =>
         bytes >= 1L << 30 ? $"{bytes / 1073741824.0:0.0} GB" : $"{Math.Max(1, bytes / 1048576.0):0} MB";
+
+    // a guest in the app sees only a public catalogue, whose plain address any browser opens
+    private static bool ByTicket(Services.MediaOptions options) => options.TicketPlayback && !options.Guest;
+
+    /// <summary>
+    /// The addresses to download these files from: the plain ones, or in the app for a signed-in person a ticket's
+    /// for each. A file whose ticket cannot be had is left out.
+    /// </summary>
+    public static async Task<string[]> AddressesAsync(Services.MediaOptions options, Services.ICatalogClient client,
+        System.Collections.Generic.IEnumerable<Didin.Shared.Models.MediaFileInfo> files)
+    {
+        if (!ByTicket(options)) return files.Select(f => options.DownloadUrl(f.Token)).ToArray();
+        var urls = new System.Collections.Generic.List<string>();
+        foreach (var file in files)
+        {
+            Didin.Shared.Models.CastMedia ticket = null;
+            try { ticket = await client.GetDownloadAsync(file.Token); }
+            catch { }
+            if (!string.IsNullOrEmpty(ticket?.Url)) urls.Add(options.AssetUrl(ticket.Url));
+        }
+        return urls.ToArray();
+    }
+
+    private async Task DownloadAsync()
+    {
+        var urls = await AddressesAsync(Options, CatalogClient, new[] { File });
+        if (urls.Length > 0) await new Interop(Js).DownloadAllAsync(urls);
+    }
 }

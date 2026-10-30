@@ -81,7 +81,7 @@
         </div>
     </div>
     <video class="bin-player-video" id="bin-video" controls autoplay playsinline tabindex="0" src="@Src"
-           onerror="this.nextElementSibling.removeAttribute('hidden')">
+           onerror="var n = document.getElementById('bin-codec-notice'); if (n) n.removeAttribute('hidden');">
         @if (string.IsNullOrEmpty(Options.ApiBase))
         {
             @* Sidecar subtitles as WebVTT. Same-origin only: a track from another origin is refused, so the
@@ -108,7 +108,7 @@
             <button type="button" class="bin-cast-stop" id="bin-cast-stop" @onclick="StopCasting">Stop casting</button>
         </div>
     }
-    <div class="bin-codec-error" hidden="@(!KnownUnplayable)">
+    <div class="bin-codec-error" id="bin-codec-notice" hidden="@(!KnownUnplayable)">
         @if (File.Playback == "damaged")
         {
             <text>This file is damaged and cannot be played - it needs to be re-acquired.</text>
@@ -281,7 +281,7 @@
         {
             _wasCasting = true;
             _castLast = Cast.Status.Position;
-            await LocalAsync("v.pause();");
+            await new Interop(Js).PauseAsync("bin-video");
             if (Cast.Status.Ended && !_castEndHandled)
             {
                 _castEndHandled = true;
@@ -327,15 +327,7 @@
     private Task CastSeek(double by) =>
         Cast.SeekAsync(Math.Max(0, Math.Min(Cast.Status.Duration - 1, Cast.Status.Position + by)));
 
-    private Task PlayLocalFrom(double at) =>
-        LocalAsync($"v.currentTime = {at.ToString(System.Globalization.CultureInfo.InvariantCulture)}; v.play().catch(function () {{}});");
-
-    /// <summary>Runs statements against this player's video as <c>v</c>; best effort.</summary>
-    private async Task LocalAsync(string statements)
-    {
-        try { await Js.InvokeVoidAsync("eval", $"(() => {{ var v = document.getElementById('bin-video'); if (!v) return; {statements} }})()"); }
-        catch { }
-    }
+    private Task PlayLocalFrom(double at) => new Interop(Js).PlayFromAsync("bin-video", at);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -346,18 +338,14 @@
             {
                 // only a signed-in person can cast, so only then is Google's Cast script loaded (from Google's servers)
                 if (!Options.Guest) await Cast.InitAsync();
-                // AirPlay in Safari: the button shows while a device is around
-                await LocalAsync("if (!window.WebKitPlaybackTargetAvailabilityEvent) return; var b = document.getElementById('bin-airplay'); " +
-                    "v.addEventListener('webkitplaybacktargetavailabilitychanged', function (e) { if (b) b.hidden = e.availability !== 'available'; });");
+                await interop.AirPlayAsync("bin-video", "bin-airplay");
                 // a session still open from the last part or episode: this one goes on to the TV too
                 if (Cast.Status.Connected) _ = StartCastAsync(StartAt ?? 0);
             }
             await interop.FullscreenAsync("bin-player-shell");   // the host's wrapper: it outlives one part
             if (StartAt is double start && start > 0 && !KnownUnplayable)
             {
-                // seek once the media knows its duration; a fresh element ignores currentTime before that
-                await Js.InvokeVoidAsync("eval",
-                    $"(() => {{ var v = document.getElementById('bin-video'); if (!v) return; var go = () => {{ v.currentTime = {start.ToString(System.Globalization.CultureInfo.InvariantCulture)}; }}; if (v.readyState >= 1) go(); else v.addEventListener('loadedmetadata', go, {{ once: true }}); }})()");
+                await interop.SeekWhenReadyAsync("bin-video", start);
             }
             if (!KnownUnplayable)
             {

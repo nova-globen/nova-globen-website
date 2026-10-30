@@ -30,6 +30,9 @@ namespace Didin.Module.Media.Services
         /// <summary>A cast ticket for one file: what a Chromecast needs to play it; null when it cannot.</summary>
         Task<CastMedia> GetCastAsync(string fileToken) => Task.FromResult<CastMedia>(null);
 
+        /// <summary>A ticket address to download one file's original (only its <c>Url</c> is set); null when it cannot.</summary>
+        Task<CastMedia> GetDownloadAsync(string fileToken) => Task.FromResult<CastMedia>(null);
+
         // signing in another device from this one: what asks, and the answer. Null when the code is unknown
         // or expired. The MAUI shell only asks to be signed in, it never approves, so it keeps these defaults.
         Task<LinkInfo> GetLinkAsync(string code) => Task.FromResult<LinkInfo>(null);

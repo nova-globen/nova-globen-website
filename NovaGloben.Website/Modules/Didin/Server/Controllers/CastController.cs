@@ -36,6 +36,16 @@ namespace Didin.Server.Controllers
             });
         }
 
+        // POST {site}/api/cast/{fileToken}/download  ->  { url }: the original file under a ticket, for the app, which
+        // hands the download to the device's browser; that browser has no sign-in of its own
+        [HttpPost("{token}/download")]
+        public async Task<IActionResult> Download(string token)
+        {
+            var file = await query.GetFileAsync(Site, FileToken.Decode(token), HttpContext.RequestAborted);
+            if (file == null || file.Playback == "damaged") return NotFound();
+            return Ok(new CastMedia { Url = Site.Url($"/api/cast/{tickets.Issue(Site, token)}/media") + "?download=1" });
+        }
+
         /// <summary>
         /// The type the receiver is told. An MKV is announced as WebM (Matroska's own subset): the receiver picks its
         /// player by type and has no entry for Matroska, while its browser engine plays H.264 MKV as Chrome does.

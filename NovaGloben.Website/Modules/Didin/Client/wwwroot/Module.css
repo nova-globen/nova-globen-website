@@ -59,7 +59,7 @@
 .didin .bin-star { background: none; border: 0; font-size: 1.6rem; line-height: 1; color: rgba(255,255,255,.28); cursor: pointer; padding: 0 .1rem; }
 .didin .bin-star.on { color: #f5c518; }
 .didin .bin-star:focus-visible { outline: 2px solid var(--colorBrandStroke1, #479ef5); border-radius: 4px; }
-.didin .bin-review { flex-basis: 100%; min-height: 3.2rem; background: rgba(255,255,255,.06); color: inherit; border: 1px solid var(--bs-border-color, #3a3a3a); border-radius: 6px; padding: .45rem .6rem; }
+.didin textarea.bin-review { flex-basis: 100%; min-height: 3.2rem; background: rgba(255,255,255,.06); color: inherit; border: 1px solid var(--bs-border-color, #3a3a3a); border-radius: 6px; padding: .45rem .6rem; }
 .didin .bin-reviews { max-width: 46rem; margin-bottom: 1rem; }
 .didin .bin-reviewline { padding: .45rem 0; border-top: 1px solid rgba(255,255,255,.08); }
 .didin .bin-stars { color: #f5c518; margin-left: .3rem; }
@@ -549,7 +549,6 @@ main .bin-login-actions fluent-button[appearance="primary"] { order: -1; }
 }
 
 /* ---- Library (administrators): figures as tiles, sections with a count pill and an empty line ---- */
-.didin ul.bin-review { min-height: 0; background: none; border: 0; border-radius: 0; padding: 0; }
 .didin .bin-library-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0 0 1.2rem; }
 .didin .bin-library-head h2 { margin: 0; color: #fff; font: 600 clamp(1.6rem, 2.6vw, 2.2rem)/1.15 var(--bin-font); }
 .didin .bin-library-version { color: var(--bin-text-dim, rgba(255, 255, 255, .66)); font-size: .85rem; font-variant-numeric: tabular-nums; }
