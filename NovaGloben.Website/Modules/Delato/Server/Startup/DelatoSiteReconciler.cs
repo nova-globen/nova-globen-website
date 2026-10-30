@@ -34,10 +34,11 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
     public const string SiteKeySetting = "Delato:SiteKey";
     public const string SiteKey = "delato";
     public const string SiteName = "Delato";
-    private static readonly string[] RemovedPaths = { "private", "mypage" };
+    private static readonly string[] RemovedPaths = { "private", "mypage", "terms" };
 
     /// <summary>The ledger module's definition name, as Stomme registers it.</summary>
     internal static readonly string LedgerModule = typeof(Delato.Module.Ledger.Index).ToModuleDefinitionName();
+    internal static readonly string PrivacyModule = typeof(Delato.Module.Privacy.Index).ToModuleDefinitionName();
 
     /// <summary>The site's languages: English, the default, and Persian.</summary>
     internal static readonly (string Code, bool IsDefault)[] Languages = { ("en", true), ("fa", false) };
@@ -214,6 +215,14 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
             }
         }
 
+        // the template's privacy page carries Delato's own notice in place of its boilerplate, which is not true here; it
+        // is for everyone, signed in or not
+        if (registered.Contains(PrivacyModule)
+            && (await pages.GetPagesAsync(site.SiteId)).FirstOrDefault(item => item.Path == "privacy" && !item.IsDeleted) is { } privacy)
+        {
+            await EnsureOnlyModuleAsync(provider, site, privacy, PrivacyModule, "Privacy", Everyone());
+        }
+
         // the template's sample pages have no place here (soft-deleted pages still count as existing, so the
         // framework's template top-up does not bring them back)
         foreach (var page in (await pages.GetPagesAsync(site.SiteId)).Where(item => RemovedPaths.Contains(item.Path) && !item.IsDeleted))
@@ -322,6 +331,13 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
     }
 
     /// <summary>Signed-in accounts view; the site's Administrators view and edit.</summary>
+    internal static List<Permission> Everyone() => new()
+    {
+        new Permission(PermissionNames.View, RoleNames.Everyone, true),
+        new Permission(PermissionNames.View, RoleNames.Admin, true),
+        new Permission(PermissionNames.Edit, RoleNames.Admin, true),
+    };
+
     internal static List<Permission> SignedInOnly() => new()
     {
         new Permission(PermissionNames.View, RoleNames.Registered, true),

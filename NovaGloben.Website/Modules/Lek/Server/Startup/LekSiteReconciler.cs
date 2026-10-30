@@ -16,7 +16,7 @@ namespace Lek.Server.Startup
     /// scope of its own, because the host listed the sites before this one existed;</item>
     /// <item>on the Lek site it wires it: Home lists the games and each game has its page, open to everyone; anyone may
     /// register, and an account signs in once its e-mail is confirmed - the confirmation goes out through
-    /// the mail settings in <c>Lek:Mail</c>, written to the site and sent by Stomme's notification job; the template's
+    /// the mail settings in <c>Lek:Mail</c>, written to the site and sent by Stomme's notification job; the template's privacy page carries Lek's own notice and its terms page and
     /// sample pages are deleted; the site is named Lek and its head links the games' stylesheet.</item>
     /// </list>
     /// Every step changes only what differs, so a wired site is left alone.
@@ -27,9 +27,10 @@ namespace Lek.Server.Startup
         public const string SiteKeySetting = "Lek:SiteKey";
         public const string SiteKey = "lek";
         public const string SiteName = "Lek";
-        private static readonly string[] RemovedPaths = { "private", "mypage" };
+        private static readonly string[] RemovedPaths = { "private", "mypage", "terms" };
 
         internal static readonly string HomeModule = typeof(Lek.Module.Home.Index).ToModuleDefinitionName();
+        internal static readonly string PrivacyModule = typeof(Lek.Module.Privacy.Index).ToModuleDefinitionName();
 
         /// <summary>Each game's page: its path, its menu name, its module and its place in the menu.</summary>
         internal static readonly (string Path, string Name, string Module, int Order)[] Games =
@@ -200,7 +201,7 @@ namespace Lek.Server.Startup
 
             // Reading the definitions registers the ones found in the loaded assemblies.
             var registered = (await definitions.GetModuleDefinitionsAsync(site.SiteId)).Select(item => item.ModuleDefinitionName).ToHashSet();
-            var missing = Games.Select(g => g.Module).Append(HomeModule).Where(m => !registered.Contains(m)).ToList();
+            var missing = Games.Select(g => g.Module).Append(HomeModule).Append(PrivacyModule).Where(m => !registered.Contains(m)).ToList();
             if (missing.Count > 0)
             {
                 logger.LogError("Lek's modules are not registered on site {SiteId} ({Missing}); the site is left unwired.", site.SiteId, string.Join(", ", missing));
@@ -216,6 +217,12 @@ namespace Lek.Server.Startup
             foreach (var (path, name, module, order) in Games)
             {
                 await EnsureGamePageAsync(provider, site, allPages, path, name, module, order);
+            }
+
+            // the template's privacy page carries Lek's own notice in place of its boilerplate, which is not true here
+            if (allPages.FirstOrDefault(item => item.Path == "privacy" && !item.IsDeleted) is { } privacy)
+            {
+                await EnsureOnlyModuleAsync(provider, site, privacy, PrivacyModule, "Privacy");
             }
 
             // the template's sample pages have no place on a game site (soft-deleted pages still count as existing, so the

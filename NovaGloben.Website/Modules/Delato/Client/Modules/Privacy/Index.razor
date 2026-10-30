@@ -1,0 +1,54 @@
+@namespace Delato.Module.Privacy
+@inherits ModuleBase
+
+@* The Delato site's privacy notice, in place of the site template's boilerplate. English only, as legal text: the
+   interface's Persian is not reviewed for it. Every statement has a row in docs/claims.md (N-26); the facts about the
+   host come from the infra session (2026-10-30). *@
+<article class="delato-privacy" lang="en" dir="ltr">
+    <p>Last updated: 30 October 2026.</p>
+    <p><strong>This is a test site: accounts and data may be reset or deleted at any time, without notice.</strong> Search engines are asked not to index it.</p>
+
+    <h2>Who is responsible</h2>
+    <p>Delato is run by Nova Globen AB (organisation number 559481-6935), Mössebergsvägen 20, lgh 1002, 167 43 Bromma, Sweden, <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>. Nova Globen AB is the controller of the personal data described here.</p>
+
+    <h2>What we keep</h2>
+    <p>For an account: your username, display name, e-mail address and password (stored only as a hash), your time zone and language, a photo if you add one, when you last signed in and the IP address you signed in from, and for each sign-in a session record (when it started, when it was last used, when it ends, and which browser you use), which signing out ends.</p>
+    <p>For the groups you share expenses in: each group's name and currency, its members (a name, and an e-mail address when one is given), couples and subgroups, every expense (what it was, the date, who paid, the amount, the currency and exchange rate, and how it was split) and every recorded payment between members. Everything in a group is seen by all of its members. A member can add you to a group by name and e-mail address; when you register with that address and confirm it, your account is linked to that member. If someone added you to a group and you have no account, the group's members see the name and e-mail address they gave; a member of the group can remove you as long as you appear in none of its expenses, and for anything else you can write to <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>.</p>
+
+    <h2>E-mail</h2>
+    <p>We send e-mail only for your account: to confirm your address, and when you ask for a forgotten password, a forgotten username or a sign-in link. It comes from the site's own no-reply address. We send no newsletters or marketing.</p>
+
+    <h2>Cookies</h2>
+    <p>The site sets only the cookies it needs, and none for advertising or tracking:</p>
+    <ul>
+        <li><code>X-XSRF-TOKEN-COOKIE-delato</code>: protects the site's forms; until you close the browser.</li>
+        <li><code>stomme-release-delato</code>: the version of the site your browser last loaded, so an update fetches the new files; 1 year.</li>
+        <li><code>.AspNetCore.Culture</code>: the language you chose for the pages; 1 year.</li>
+        <li><code>.AspNetCore.Identity.Application-delato</code>, when you sign in: keeps you signed in; until you close the browser, or longer if you choose "Stay signed in".</li>
+    </ul>
+
+    <h2>Why, and on what basis</h2>
+    <p>We keep this to give you your account and the shared ledgers (contract), to keep the site secure and free of abuse (legitimate interest), and, for people added to a group without an account, so its members can keep a shared ledger (legitimate interest).</p>
+
+    <h2>Who processes data for us</h2>
+    <p>Nova Globen AB operates the servers. Cloudflare provides the domain name service and the network the site is delivered through. Brevo delivers the account e-mail. Some providers may process data outside the EU/EEA; where they do, we rely on appropriate safeguards such as the EU Standard Contractual Clauses.</p>
+
+    <h2>How long</h2>
+    <ul>
+        <li>Your account and the data kept with it: while the account exists.</li>
+        <li>A group's ledger belongs to all its members, so when your account is deleted the groups, expenses and payments stay and still add up, but your member is renamed "Former member" and loses its link to your account and its e-mail address.</li>
+        <li>The security record of your account's sign-ins and changes: one year after the account is deleted, then deleted.</li>
+        <li>The site's own log of errors and security events, which can include an IP address: 30 days.</li>
+        <li>The servers' application logs: overwritten as they fill; not backed up.</li>
+        <li>Backups: deleted data can remain in our encrypted backups for up to about 100 days; then it is gone.</li>
+    </ul>
+
+    <h2>Deleting your account, and your rights</h2>
+    <p>You can delete your account yourself on <a href="@Page("/profile")">your account page</a>, under "Security", or ask us at <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>. You also have the right to a copy of your data, to have it corrected, and to object to or restrict its processing; write to us. You can complain to the Swedish Authority for Privacy Protection (Integritetsskyddsmyndigheten, IMY). More on your rights is in Nova Globen AB's <a href="https://nova-globen.se/privacy">privacy policy</a>.</p>
+</article>
+
+@code {
+    private string Page(string path) => (string.IsNullOrEmpty(PageState?.Alias?.Path) ? "" : "/" + PageState.Alias.Path.Trim('/')) + path;
+
+    public override string RenderMode => RenderModes.Static;
+}

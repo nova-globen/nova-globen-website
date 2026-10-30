@@ -1,0 +1,53 @@
+@namespace Lek.Module.Privacy
+@inherits ModuleBase
+
+@* The Lek site's privacy notice, in place of the site template's boilerplate. Every statement has a row in
+   docs/claims.md (N-25); the facts about the host come from the infra session (2026-10-30). *@
+<article class="lek-privacy">
+    <p>Last updated: 30 October 2026.</p>
+    <p><strong>This is a test site: accounts and data may be reset or deleted at any time, without notice.</strong> Search engines are asked not to index it.</p>
+
+    <h2>Who is responsible</h2>
+    <p>Lek is run by Nova Globen AB (organisation number 559481-6935), Mössebergsvägen 20, lgh 1002, 167 43 Bromma, Sweden, <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>. Nova Globen AB is the controller of the personal data described here.</p>
+
+    <h2>What we keep</h2>
+    <p>For an account: your username, display name, e-mail address and password (stored only as a hash), your time zone and language, a photo if you add one, when you last signed in and the IP address you signed in from, and for each sign-in a session record (when it started, when it was last used, when it ends, and which browser you use), which signing out ends.</p>
+    <p>From the games: your statistics in Elementals and Fuse, your Inside Job safehouse with its loot and the raids run on it, and your Silent Hour result for each day you played. Other players see your name in Inside Job's list of players and in the raid log of a safehouse you raided, and see the name you play under in a multiplayer game while it lasts. Multiplayer games are held only in the server's memory.</p>
+
+    <h2>E-mail</h2>
+    <p>We send e-mail only for your account: to confirm your address, and when you ask for a forgotten password, a forgotten username or a sign-in link. It comes from the site's own no-reply address. We send no newsletters or marketing.</p>
+
+    <h2>Cookies</h2>
+    <p>The site sets only the cookies it needs, and none for advertising or tracking:</p>
+    <ul>
+        <li><code>X-XSRF-TOKEN-COOKIE-lek</code>: protects the site's forms; until you close the browser.</li>
+        <li><code>stomme-release-lek</code>: the version of the site your browser last loaded, so an update fetches the new files; 1 year.</li>
+        <li><code>.AspNetCore.Culture</code>: the language of the pages; 1 year.</li>
+        <li><code>.AspNetCore.Identity.Application-lek</code>, when you sign in: keeps you signed in; until you close the browser, or longer if you choose "Stay signed in".</li>
+    </ul>
+
+    <h2>Why, and on what basis</h2>
+    <p>We keep this to give you your account and the games (contract), and to keep the site secure and free of abuse (legitimate interest).</p>
+
+    <h2>Who processes data for us</h2>
+    <p>Nova Globen AB operates the servers. Cloudflare provides the domain name service and the network the site is delivered through. Brevo delivers the account e-mail. Some providers may process data outside the EU/EEA; where they do, we rely on appropriate safeguards such as the EU Standard Contractual Clauses.</p>
+
+    <h2>How long</h2>
+    <ul>
+        <li>Your account and the data kept with it: while the account exists.</li>
+        <li>When your account is deleted, your game data goes with it. You leave Inside Job's list of players, and the raids you ran on other players' safehouses stay in their logs without your name.</li>
+        <li>The security record of your account's sign-ins and changes: one year after the account is deleted, then deleted.</li>
+        <li>The site's own log of errors and security events, which can include an IP address: 30 days.</li>
+        <li>The servers' application logs: overwritten as they fill; not backed up.</li>
+        <li>Backups: deleted data can remain in our encrypted backups for up to about 100 days; then it is gone.</li>
+    </ul>
+
+    <h2>Deleting your account, and your rights</h2>
+    <p>You can delete your account yourself on <a href="@Page("/profile")">your account page</a>, under "Security", or ask us at <a href="mailto:info@nova-globen.se">info@nova-globen.se</a>. You also have the right to a copy of your data, to have it corrected, and to object to or restrict its processing; write to us. You can complain to the Swedish Authority for Privacy Protection (Integritetsskyddsmyndigheten, IMY). More on your rights is in Nova Globen AB's <a href="https://nova-globen.se/privacy">privacy policy</a>.</p>
+</article>
+
+@code {
+    private string Page(string path) => LekAssets.SiteBase(PageState?.Alias) + path;
+
+    public override string RenderMode => RenderModes.Static;
+}
