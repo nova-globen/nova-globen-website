@@ -69,15 +69,17 @@ public sealed class PipelineTests
     }
 
     [Theory]
-    [InlineData("/didin/android")]
-    [InlineData("/didin/android/")]
-    [InlineData("/didin/Android")]
-    public async Task The_short_app_address_goes_to_the_download_page_for_good(string path)
+    [InlineData("/didin/android", "/products/didin/android")]
+    [InlineData("/didin/android/", "/products/didin/android")]
+    [InlineData("/didin/Android", "/products/didin/android")]
+    [InlineData("/didin/privacy", "/privacy")]
+    [InlineData("/didin/terms/", "/terms")]
+    public async Task A_short_address_goes_to_its_page_on_the_company_site_for_good(string path, string target)
     {
         var http = await Run(Request("nova-globen.test/didin", path));
 
         http.Response.StatusCode.Should().Be(301);
-        http.Response.Headers.Location.ToString().Should().Be("/products/didin/android");
+        http.Response.Headers.Location.ToString().Should().Be(target);
         http.Items.Should().NotContainKey("reached");
     }
 

@@ -39,7 +39,7 @@ namespace Didin.Server.Startup
         private static readonly string StockLoginModule = typeof(Stomme.Modules.Admin.Login.Index).ToModuleDefinitionName();
         internal static readonly string ThemeType = TypeName(typeof(Didin.Theme.Fluent.Default));
         internal static readonly string ContainerType = TypeName(typeof(Didin.Theme.Fluent.Container));
-        private static readonly string[] RemovedPaths = { "register", "private", "mypage" };
+        private static readonly string[] RemovedPaths = { "register", "private", "mypage", "privacy", "terms" };
         private const string DefaultSiteTemplate = "Stomme.Infrastructure.SiteTemplates.DefaultSiteTemplate, Stomme.Server";
 
         /// <summary>

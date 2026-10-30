@@ -33,7 +33,7 @@ namespace Didin.Server.Startup
                     context.Response.Redirect(target);
                     return System.Threading.Tasks.Task.CompletedTask;
                 }
-                if (AndroidPage.Redirect(context) is { } page)
+                if (CompanyPages.Redirect(context) is { } page)
                 {
                     context.Response.Redirect(page, permanent: true);
                     return System.Threading.Tasks.Task.CompletedTask;
@@ -67,14 +67,22 @@ namespace Didin.Server.Startup
     }
 
     /// <summary>
-    /// The short address of the Android app's download page, <c>{site}/android</c>, answers a permanent redirect to that
-    /// page on the company site (<c>/products/didin/android</c>), where the downloads, checksums and terms are.
+    /// Short addresses on the Didin site whose page lives on the company site answer a permanent redirect there:
+    /// <c>{site}/android</c> to the Android app's download page (the downloads, checksums and terms), and
+    /// <c>{site}/privacy</c> and <c>{site}/terms</c> to the company's privacy policy and terms, which cover Didin's
+    /// accounts. The site template's own privacy and terms pages are boilerplate that is not true here; the site
+    /// reconciler deletes them.
     /// </summary>
-    public static class AndroidPage
+    public static class CompanyPages
     {
-        public const string Target = "/products/didin/android";
+        public static readonly IReadOnlyDictionary<string, string> Targets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["android"] = "/products/didin/android",
+            ["privacy"] = "/privacy",
+            ["terms"] = "/terms",
+        };
 
-        /// <summary>Where a GET or HEAD of the short address goes, or null for any other request.</summary>
+        /// <summary>Where a GET or HEAD of a short address goes, or null for any other request.</summary>
         public static string Redirect(HttpContext context)
         {
             var request = context.Request;
@@ -82,7 +90,9 @@ namespace Didin.Server.Startup
             var site = DidinSite.From(context);
             if (site == null) return null;
             var path = (request.Path.Value ?? "/").TrimEnd('/');
-            return string.Equals(path, site.BasePath.TrimEnd('/') + "/android", StringComparison.OrdinalIgnoreCase) ? Target : null;
+            var prefix = site.BasePath.TrimEnd('/') + "/";
+            if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+            return Targets.TryGetValue(path.Substring(prefix.Length), out var target) ? target : null;
         }
     }
 

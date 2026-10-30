@@ -5,10 +5,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Stomme.Client" Version="10.77.0" />
-    <PackageVersion Include="Stomme.Sdk.Slim" Version="10.77.0" />
-    <PackageVersion Include="Stomme.Server" Version="10.77.0" />
-    <PackageVersion Include="Stomme.Shared" Version="10.77.0" />
+    <PackageVersion Include="Stomme.Client" Version="10.78.0" />
+    <PackageVersion Include="Stomme.Sdk.Slim" Version="10.78.0" />
+    <PackageVersion Include="Stomme.Server" Version="10.78.0" />
+    <PackageVersion Include="Stomme.Shared" Version="10.78.0" />
     <!-- The Articles module: markdown (BSD-2-Clause) and server-side code highlighting (MIT). -->
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="ColorCode.HTML" Version="2.0.15" />
