@@ -322,12 +322,7 @@ namespace Didin.Server.Startup
         /// </summary>
         private async Task WarnSiteWideRowsAsync(IServiceProvider provider, Site site)
         {
-            var permissions = provider.GetRequiredService<IPermissionRepository>();
-            var found = new List<Permission>();
-            foreach (var entity in new[] { EntityNames.Module, EntityNames.Page })
-            {
-                found.AddRange(await permissions.GetPermissionsAsync(site.SiteId, entity, -1));
-            }
+            var found = await SiteWideRows.FindAsync(provider.GetRequiredService<IPermissionRepository>(), site.SiteId);
             if (found.Count == 0)
             {
                 logger.LogInformation("Didin: no site-wide Module or Page permission rows on site {SiteId}.", site.SiteId);

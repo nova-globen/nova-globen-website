@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace NovaGloben.Website.Sites
 {
@@ -21,7 +22,8 @@ namespace NovaGloben.Website.Sites
     /// The only inline script a page carries is Stomme's theme bootstrap in &lt;head&gt; (App.razor), so the policy
     /// allows the executable inline scripts of the HEAD by their SHA-256 hash, computed from the response itself: it
     /// survives a Stomme upgrade that changes the bootstrap. Nothing in the body is hashed - the body is where pages and
-    /// articles are rendered, so a script there is refused. Turnstile's origin is allowed only on a page that loads it.
+    /// articles are rendered, so a script there is refused. Turnstile's origin is allowed only on a page that loads it, and
+    /// Cloudflare Web Analytics' two origins only on a page that carries its beacon (<see cref="WebAnalytics"/>, added here).
     /// A signed-in editor's pages and any interactive page (the sign-in page) are not given the policy and keep Stomme's
     /// scripts; the other headers apply to them too. A static page also loses Stomme's framework scripts
     /// (<see cref="FrameworkScripts"/>).
@@ -50,7 +52,8 @@ namespace NovaGloben.Website.Sites
 
         public static async Task InvokeAsync(HttpContext context, Func<Task> next)
         {
-            var noIndex = IsNoIndex(context.RequestServices.GetRequiredService<IConfiguration>());
+            var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+            var noIndex = IsNoIndex(configuration);
             context.Response.OnStarting(() =>
             {
                 var headers = context.Response.Headers;
@@ -99,6 +102,11 @@ namespace NovaGloben.Website.Sites
                 if (!IsInteractive(html))
                 {
                     html = FrameworkScripts.Remove(html);
+                    var analytics = WebAnalytics.Token(configuration, context.RequestServices.GetRequiredService<IHostEnvironment>());
+                    if (analytics != null && context.Response.StatusCode == StatusCodes.Status200OK)
+                    {
+                        html = WebAnalytics.Add(html, analytics);
+                    }
                     context.Response.Headers["Content-Security-Policy"] = Policy(html);
                     body = Encoding.UTF8.GetBytes(html);
                 }
@@ -126,10 +134,16 @@ namespace NovaGloben.Website.Sites
             var scripts = new List<string> { "'self'" };
             scripts.AddRange(HeadScriptHashes(html).Select(h => $"'sha256-{h}'"));
             var frames = new List<string>();
+            var connects = new List<string> { "'self'" };
             if (html.Contains(Turnstile + "/", StringComparison.Ordinal))
             {
                 scripts.Add(Turnstile);
                 frames.Add(Turnstile);
+            }
+            if (html.Contains(WebAnalytics.ScriptOrigin + "/", StringComparison.Ordinal))
+            {
+                scripts.Add(WebAnalytics.ScriptOrigin);
+                connects.Add(WebAnalytics.ReportOrigin);
             }
 
             var directives = new List<string>
@@ -139,7 +153,7 @@ namespace NovaGloben.Website.Sites
                 "style-src 'self' 'unsafe-inline'",
                 "img-src 'self' data:",
                 "font-src 'self'",
-                "connect-src 'self'",
+                "connect-src " + string.Join(' ', connects),
                 "frame-src " + (frames.Count > 0 ? string.Join(' ', frames) : "'none'"),
                 "object-src 'none'",
                 "base-uri 'self'",

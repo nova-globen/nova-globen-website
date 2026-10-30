@@ -25,6 +25,18 @@ public sealed class ArtKeyTests
     }
 
     [Fact]
+    public void The_permissions_check_is_for_the_sites_administrators_only()
+    {
+        var authorize = typeof(PermissionsCheckController).GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), false)
+            .Cast<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().Single();
+
+        authorize.Roles.Should().Be(Stomme.Shared.RoleNames.Admin);
+        typeof(PermissionsCheckController).GetMethods().SelectMany(m => m.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute), false))
+            .Should().BeEmpty();
+        typeof(DidinController).IsAssignableFrom(typeof(PermissionsCheckController)).Should().BeTrue("it answers on the Didin site only");
+    }
+
+    [Fact]
     public void A_poster_without_a_hash_has_no_key()
     {
         ArtController.Keyed(null, Hash).Should().BeFalse();

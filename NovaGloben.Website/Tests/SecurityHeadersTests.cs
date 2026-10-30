@@ -73,6 +73,50 @@ public class SecurityHeadersTests
         Assert.Contains($"frame-src {SecurityHeaders.Turnstile}", contact);
     }
 
+    private const string AnalyticsToken = "45ecd45888c6481f93ae6d5bb5e4bbea";
+
+    private sealed class Environment(string name) : Microsoft.Extensions.Hosting.IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = name;
+        public string ApplicationName { get; set; } = "test";
+        public string ContentRootPath { get; set; } = "";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
+    }
+
+    [Theory]
+    [InlineData(AnalyticsToken, null, "Production", true)]
+    [InlineData(AnalyticsToken, "true", "Production", false)]     // the test host, kept out of search engines
+    [InlineData(AnalyticsToken, null, "Development", false)]
+    [InlineData(null, null, "Production", false)]
+    [InlineData("", null, "Production", false)]
+    [InlineData("not-a-token\"><script>", null, "Production", false)]
+    public void The_analytics_beacon_is_on_only_on_the_public_host(string? token, string? noIndex, string environment, bool on)
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [WebAnalytics.TokenKey] = token,
+            [SecurityHeaders.NoIndexKey] = noIndex,
+        }).Build();
+
+        Assert.Equal(on ? token : null, WebAnalytics.Token(configuration, new Environment(environment)));
+    }
+
+    [Fact]
+    public void The_beacon_goes_before_the_body_closes_once_and_opens_its_two_origins()
+    {
+        var page = WebAnalytics.Add(Page(body: "<p>x</p>"), AnalyticsToken);
+        var policy = SecurityHeaders.Policy(page);
+
+        Assert.Contains($"<script defer src=\"{WebAnalytics.ScriptOrigin}/beacon.min.js\" data-cf-beacon='{{\"token\": \"{AnalyticsToken}\"}}'></script></body>", page);
+        Assert.Equal(page, WebAnalytics.Add(page, AnalyticsToken));
+        Assert.Contains($"script-src 'self' 'sha256-{Hash(Bootstrap)}' {WebAnalytics.ScriptOrigin}", policy);
+        Assert.Contains($"connect-src 'self' {WebAnalytics.ReportOrigin}", policy);
+
+        var plain = SecurityHeaders.Policy(Page());
+        Assert.DoesNotContain("cloudflareinsights", plain);
+        Assert.Contains("connect-src 'self';", plain);
+    }
+
     [Fact]
     public void Plugins_framing_by_others_and_foreign_form_targets_are_refused()
     {

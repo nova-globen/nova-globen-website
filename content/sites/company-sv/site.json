@@ -16,8 +16,8 @@
     {
       "path": "",
       "name": "Hem",
-      "title": "Nova Globen AB | Mjukvarukonsulting och produkter från Sverige",
-      "description": "Nova Globen AB planerar, bygger, kopplar ihop och underhåller affärsprogramvara, lägger till praktisk AI där den gör nytta och gör Stomme, Fravashi, Vacha och Didin.",
+      "title": "Nova Globen AB | Konsulttjänster och programvaruprodukter från Sverige",
+      "description": "Nova Globen AB planerar, bygger, kopplar ihop och underhåller affärsprogramvara, lägger till praktisk AI där den gör nytta och tar fram Stomme, Fravashi, Vacha och Didin.",
       "navigation": true,
       "order": 1,
       "sections": [
@@ -96,7 +96,7 @@
       "path": "products/didin",
       "name": "Didin",
       "title": "Didin: en strömningsapp för filmer och serier | Nova Globen AB",
-      "description": "Didin är en strömningsapp: bläddra och sök i en katalog med filmer och serier och titta i webbläsaren. Ett urval är öppet för alla.",
+      "description": "Didin är en strömningsapp: bläddra och sök i en katalog med filmer och serier och titta i webbläsaren. Ett smakprov är öppet för alla.",
       "navigation": false,
       "order": 10,
       "sections": [ { "name": "product", "content": "pages/product-didin.html" } ]
@@ -114,7 +114,7 @@
       "path": "products/vacha",
       "name": "Vacha",
       "title": "Nova Globen Vacha: en text- och kodredigerare för Windows",
-      "description": "Vacha, som hette Tond fram till 1.0.0, öppnar en fil som Anteckningar gör och redigerar den som en kodredigerare.",
+      "description": "Vacha, som hette Tond fram till 1.0.0, öppnar en fil på samma sätt som Anteckningar och redigerar den som en kodredigerare.",
       "navigation": false,
       "order": 9,
       "sections": [ { "name": "product", "content": "pages/product-vacha.html" } ]

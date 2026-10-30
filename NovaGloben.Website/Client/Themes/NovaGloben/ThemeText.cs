@@ -49,7 +49,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
 
         public static readonly ThemeText Swedish = new ThemeText
         {
-            SkipToContent = "Hoppa till huvudinnehåll",
+            SkipToContent = "Hoppa till huvudinnehållet",
             Home = "startsida",
             MainNavigation = "Huvudmeny",
             MenuLabel = "Meny",
@@ -59,7 +59,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             Country = "Sverige",
             Phone = "08-504 313 12",
             OrgNumberLabel = "Org. nr",
-            VatLabel = "Moms",
+            VatLabel = "Momsreg.nr",
             ServicesHeading = "Tjänster",
             CompanyHeading = "Företag",
             AllRightsReserved = "Alla rättigheter förbehållna.",
