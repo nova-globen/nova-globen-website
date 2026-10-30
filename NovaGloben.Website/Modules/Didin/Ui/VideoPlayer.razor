@@ -231,7 +231,29 @@
 
     // A file the catalogue already marks as unplayable shows its notice instead of a failing player.
     private bool KnownUnplayable => File.Playback is "transcode" or "damaged" || State.CannotPlayHere(File);
-    private string Src => KnownUnplayable ? null : Options.StreamUrl(File.Token);
+    private string Src => KnownUnplayable ? null : _src;
+    private string _src;
+    private string _srcFor;   // the file token _src was made for
+
+    // The player's address: the stream's, or in the app for a signed-in person a sealed ticket's (TicketPlayback),
+    // fetched once per file; until it is there the video has no source.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (File == null || File.Token == _srcFor) return;
+        _srcFor = File.Token;
+        _src = null;
+        if (KnownUnplayable) return;
+        if (!Options.TicketPlayback || Options.Guest)
+        {
+            _src = Options.StreamUrl(File.Token);
+            return;
+        }
+        var token = File.Token;
+        Didin.Shared.Models.CastMedia media = null;
+        try { media = await CatalogClient.GetCastAsync(token); }
+        catch { /* the notice below the video shows when it has nothing to play */ }
+        if (token == _srcFor) _src = Options.AssetUrl(media?.Url);
+    }
 
     // ---- cast to TV: the TV plays the file and the player becomes its remote; progress, subtitles and the
     // next part follow it. Closing the player stops the TV; stopping from the TV (or Chrome's menu) plays on here.

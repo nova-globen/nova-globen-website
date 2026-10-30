@@ -10,6 +10,12 @@
         <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
                    android:value="se.novaglobenab.didin.CastOptionsProvider" />
     </application>
+    <!-- signing in opens the site's sign-in page in a Custom Tab (Android 11+ must declare it can see one) -->
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

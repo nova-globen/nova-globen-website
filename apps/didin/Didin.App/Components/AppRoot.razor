@@ -3,21 +3,24 @@
 @inject Didin.Module.Media.Services.MediaOptions Options
 
 @* The module's own catalogue (Modules/Didin/Ui) in the app's window. A guest browses what the site opens to guests (a
-   public catalogue, as production's sample); signing in goes through the site's own sign-in (Services/SignIn.cs).
+   public catalogue, as production's sample); signing in goes through the site's own sign-in in the browser
+   (Services/SignIn.cs), and the last session is picked up when the app starts.
    A <main>, like the site's page body, so the module's catalogue-page rules apply here too. *@
 <main class="bin-maui">
     <header class="bin-topbar">
         <span class="bin-brand"><BinLogo /><span>Didin</span></span>
         <div class="bin-topbar-actions">
-            @if (SignIn.UserName != null)
+            @if (SignIn.IsSignedIn)
             {
-                <span class="bin-user">@SignIn.UserName</span>
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignOutAsync">Sign out</FluentButton>
+                @if (SignIn.UserName != null)
+                {
+                    <span class="bin-user">@SignIn.UserName</span>
+                }
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignOutAsync" Disabled="@_busy">Sign out</FluentButton>
             }
-            else
+            else if (_ready)
             {
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@(!SignIn.IsAvailable || _busy)"
-                              Title="@SignIn.Unavailable">Sign in</FluentButton>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@_busy">Sign in</FluentButton>
             }
         </div>
     </header>
@@ -26,19 +29,24 @@
         <p class="bin-maui-note" role="status">@_note</p>
     }
     <div class="bin-maui-content">
-        <CatalogHost @key="_session" />
+        @if (_ready)
+        {
+            <CatalogHost @key="_session" />
+        }
     </div>
 </main>
 
 @code {
+    private bool _ready;
     private bool _busy;
     private string _note;
     private int _session;   // a new value rebuilds the catalogue for the new identity
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _note = SignIn.IsAvailable ? null : SignIn.Unavailable;
-        Options.Guest = SignIn.AccessToken == null;
+        await SignIn.RestoreAsync();
+        Options.Guest = !SignIn.IsSignedIn;
+        _ready = true;
     }
 
     private async Task SignInAsync()
@@ -46,10 +54,10 @@
         _busy = true;
         try
         {
-            if (await SignIn.SignInAsync())
+            _note = await SignIn.SignInAsync();
+            if (_note == null)
             {
                 Options.Guest = false;
-                _note = null;
                 _session++;
             }
         }
@@ -61,8 +69,17 @@
 
     private async Task SignOutAsync()
     {
-        await SignIn.SignOutAsync();
-        Options.Guest = true;
-        _session++;
+        _busy = true;
+        try
+        {
+            await SignIn.SignOutAsync();
+            Options.Guest = true;
+            _note = null;
+            _session++;
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 }

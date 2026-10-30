@@ -3,9 +3,8 @@
     <!--
       The Didin app: the module's own UI (Modules/Didin/Ui) in a MAUI window, for Android phones, Android TV and Windows.
       It talks to a Didin site (https://<host>/didin/, set at build time: DidinSite below) over its API. Signing in goes through that site's own sign-in
-      (the folder is the issuer; authorization code with PKCE), which arrives with Stomme 10.76: until then
-      the app browses a public catalogue as a guest and its sign-in refuses (Services/SignIn.cs). No APK is released
-      before signing in works; releases are GitHub Releases (D21).
+      (the folder is the issuer; authorization code with PKCE in the system browser, Services/SignIn.cs); without it
+      the app browses a public catalogue as a guest. Releases are GitHub Releases.
       Builds need the maui-android and maui-windows workloads; build one target with -f.
     -->
     <PropertyGroup>
@@ -44,7 +43,7 @@
     </PropertyGroup>
 
     <!-- Android release: one signed .apk. The keystore's path and password come from the environment (DIDIN_KEYSTORE,
-         DIDIN_KEYSTORE_PASS; the ng profile didin-android-signing) and never from the repository. Without them a release
+         DIDIN_KEYSTORE_PASS) and never from the repository. Without them a release
          build is signed with the debug key and must not be published. -->
     <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
         <AndroidPackageFormat Condition="'$(Configuration)' == 'Release'">apk</AndroidPackageFormat>

@@ -19,12 +19,23 @@ when the app starts.
 
 ## Signing in
 
-A Didin site signs its own users in: it is its own OpenID Connect issuer at `https://<host>/didin/`, and the app is a
-public client of that site using the authorization code flow with PKCE. That arrives with the next version of the
-site's platform. Until then the app has no sign-in at all (`Services/SignIn.cs`): it browses a catalogue that is open
-to guests, and every account's own feature is hidden, as for a guest on the site. There is no password sign-in.
+A Didin site signs its own users in: it is its own OpenID Connect issuer at `https://<host>/didin`, and the app is
+its public client `didin-app` (registered by the site, limited to that site), using the authorization code flow with
+PKCE in the system browser (`Services/SignIn.cs`):
+
+- **Android:** a Custom Tab, back to the app through `se.novaglobenab.didin:/signin` (`SignInCallbackActivity`); the
+  refresh token is kept in the platform's secure storage.
+- **Windows:** the default browser, back to a one-shot listener on `http://127.0.0.1:<port>/signin`
+  (`LoopbackRedirect`); the refresh token is kept encrypted for the Windows user (DPAPI) under the local app data.
+
+The access token stays in memory and goes only into an `Authorization` header. A signed-in person's video plays from a
+sealed ticket for that one file, and posters load by their catalogue address, so no token is ever put in a URL. The
+last session is picked up when the app starts; signing out revokes both tokens at the site. Without signing in, the
+app browses a catalogue that is open to guests. There is no password sign-in.
+
+Not yet: signing in on an Android TV that has no browser (the site's phone sign-in by QR code is the way there).
 
 ## Releases
 
-None until signing in works. Then a signed APK is published as a GitHub Release; the signing key comes from the
+A signed APK is published as a GitHub Release; the signing key comes from the
 environment (`DIDIN_KEYSTORE`, `DIDIN_KEYSTORE_PASS`) and never from this repository.

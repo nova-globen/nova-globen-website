@@ -23,7 +23,8 @@ namespace Didin.Server.Startup
     /// <item>on the Didin site it wires it: Home carries the Media module and is for signed-in users only (anonymous
     /// visitors land on the sign-in page); the sign-in page shows Didin's form instead of the stock one; no
     /// self-registration (the register page and the template's sample pages are deleted); the site's name, theme and
-    /// container are Didin's, and its head carries the scroll fix the FluentUI stylesheet needs.</item>
+    /// container are Didin's, and its head carries the scroll fix the FluentUI stylesheet needs; the Didin app is
+    /// registered as a client of the site's own authority (<see cref="AppClient"/>).</item>
     /// </list>
     /// Every step changes only what differs, so a wired site is left alone.
     /// </summary>
@@ -213,12 +214,16 @@ namespace Didin.Server.Startup
 
             // Home is for signed-in users, or for everyone on a host whose catalogue is public (the sample); either way
             // only the catalogue's browsing is open, as Didin:PublicCatalog's policy says.
+            // The module and the page each get their OWN list: saving the module stamps its rows as Module rows, and the
+            // same objects on the page would then be another entity's rows, which Stomme refuses (10.76) and before that
+            // would have written as site-wide rows.
             var isPublic = Services.DidinBrowsing.IsPublic(provider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>());
-            var homePermissions = isPublic ? Everyone() : SignedInOnly();
+            List<Permission> HomePermissions() => isPublic ? Everyone() : SignedInOnly();
+            var homePermissions = HomePermissions();
             var home = allPages.FirstOrDefault(item => item.Path == "");
             if (home != null)
             {
-                await EnsureOnlyModuleAsync(provider, site, home, MediaModule, "Media", homePermissions, hide: _ => true);
+                await EnsureOnlyModuleAsync(provider, site, home, MediaModule, "Media", HomePermissions(), hide: _ => true);
                 if (!SamePermissions(home.PermissionList, homePermissions))
                 {
                     home.PermissionList = homePermissions;
@@ -234,6 +239,10 @@ namespace Didin.Server.Startup
             }
 
             await EnsureAdministratorsAsync(provider, site);
+            await WarnSiteWideRowsAsync(provider, site);
+
+            // the Didin app signs in at this site's own authority, as a client limited to this site
+            await AppClient.EnsureAsync(provider, site.SiteId, logger);
 
             // a catalogue the host brings with it (Didin:SeedCatalog), into an empty catalogue only
             await provider.GetRequiredService<Services.CatalogSeed>().SeedIfEmptyAsync(new Services.DidinSite(site.SiteId, "/" + Services.DidinSite.Folder));
@@ -305,6 +314,31 @@ namespace Didin.Server.Startup
         }
 
         internal static string GrantedSetting(int userId) => $"Didin:AdministratorGranted:{userId}";
+
+        /// <summary>
+        /// Logs, as a warning, every site-wide Module or Page permission row (EntityId -1) on the Didin site. An earlier
+        /// version of this reconciler gave Home and its module one list, which Stomme before 10.76 could have written as
+        /// such rows; none should exist, and this says so on every boot until any found are removed by hand.
+        /// </summary>
+        private async Task WarnSiteWideRowsAsync(IServiceProvider provider, Site site)
+        {
+            var permissions = provider.GetRequiredService<IPermissionRepository>();
+            var found = new List<Permission>();
+            foreach (var entity in new[] { EntityNames.Module, EntityNames.Page })
+            {
+                found.AddRange(await permissions.GetPermissionsAsync(site.SiteId, entity, -1));
+            }
+            if (found.Count == 0)
+            {
+                logger.LogInformation("Didin: no site-wide Module or Page permission rows on site {SiteId}.", site.SiteId);
+                return;
+            }
+            foreach (var row in found)
+            {
+                logger.LogWarning("Didin: site-wide permission row {PermissionId} on site {SiteId}: {Entity} {Permission} for role {RoleId} user {UserId}, authorized {Authorized}. Remove it by hand.",
+                    row.PermissionId, site.SiteId, row.EntityName, row.PermissionName, row.RoleId, row.UserId, row.IsAuthorized);
+            }
+        }
 
         /// <summary>
         /// The memberships to add: Administrators and Registered Users for every host account not granted before. Nothing

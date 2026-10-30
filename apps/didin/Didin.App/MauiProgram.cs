@@ -31,11 +31,18 @@ public static class MauiProgram
 #endif
 
         // The module's own UI (Modules/Didin/Ui) against the Didin site's API: the site's folder is the API's base, the
-        // host is where its poster and subtitle addresses resolve. A guest until the site's sign-in is there.
-        var options = new MediaOptions { SiteBase = AppConfig.SiteUrl, Origin = AppConfig.Origin, Guest = true };
+        // host is where its poster and subtitle addresses resolve. Subtitles come through the client with the token
+        // (ApiBase set), and a signed-in person's video plays from a sealed ticket (TicketPlayback). A guest until
+        // signed in at the site's own authority (Services/SignIn.cs).
+        var options = new MediaOptions
+        {
+            SiteBase = AppConfig.SiteUrl, Origin = AppConfig.Origin, ApiBase = AppConfig.SiteUrl, TicketPlayback = true, Guest = true,
+        };
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(120) });
-        builder.Services.AddSingleton<ISignIn, NoSignInYet>();
+        builder.Services.AddSingleton<IBrowserSignIn, BrowserSignIn>();
+        builder.Services.AddSingleton<ITokenStore, TokenStore>();
+        builder.Services.AddSingleton<ISignIn, SiteSignIn>();
         builder.Services.AddScoped<ICatalogClient, ApiCatalogClient>();
         builder.Services.AddScoped<MediaState>();
 #if ANDROID

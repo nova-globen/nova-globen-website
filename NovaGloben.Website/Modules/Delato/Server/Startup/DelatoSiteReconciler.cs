@@ -21,7 +21,8 @@ namespace Delato.Server.Startup;
 /// are sent to sign in), and nothing else; anyone may register, and an account signs in once its e-mail is confirmed
 /// (Delato links an account to a member by its confirmed e-mail only); the confirmation goes out through the mail
 /// settings in <c>Delato:Mail</c>, written to the site and sent by Stomme's notification job; the site's languages
-/// are English (the default) and Persian; the template's sample pages are deleted; the site is named Delato.</item>
+/// are English (the default) and Persian; the template's sample pages are deleted; the site is named Delato; Delato's
+/// app is registered as a client of the site's own authority (<see cref="AppClient"/>).</item>
 /// </list>
 /// Where Delato is off (<see cref="DelatoSwitch"/>) nothing is created or wired, and an existing Delato site loses its
 /// aliases, so its folder answers 404; its pages, users and data stay. Every step changes only what differs, so a
@@ -261,6 +262,9 @@ public sealed class DelatoSiteReconciler(IServiceProvider services, IServiceScop
         {
             logger.LogWarning("Delato: no Delato:Mail settings on this host, so a new account's confirmation e-mail cannot be sent.");
         }
+
+        // Delato's app signs in at this site's own authority, as a client limited to this site
+        await AppClient.EnsureAsync(provider, site.SiteId, logger);
     }
 
     /// <summary>Places the module on the page once, with these permissions, and takes every other placement off it.</summary>

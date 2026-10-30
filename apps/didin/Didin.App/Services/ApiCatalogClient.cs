@@ -43,35 +43,36 @@ public sealed class ApiCatalogClient(HttpClient http, MediaOptions options, ISig
     /// <summary>A text resource the API addressed (a subtitle track); a site-relative address is made absolute.</summary>
     public async Task<string> GetTextAsync(string url)
     {
-        using var response = await http.SendAsync(Request(HttpMethod.Get, options.AssetUrl(url)));
+        using var response = await http.SendAsync(await RequestAsync(HttpMethod.Get, options.AssetUrl(url)));
         return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null;
     }
 
-    private HttpRequestMessage Request(HttpMethod method, string url, HttpContent content = null)
+    private async Task<HttpRequestMessage> RequestAsync(HttpMethod method, string url, HttpContent content = null)
     {
         var request = new HttpRequestMessage(method, url) { Content = content };
-        if (!string.IsNullOrEmpty(signIn.AccessToken))
+        var token = await signIn.GetAccessTokenAsync();
+        if (!string.IsNullOrEmpty(token))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", signIn.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
         return request;
     }
 
     private async Task<T> GetAsync<T>(string url)
     {
-        using var response = await http.SendAsync(Request(HttpMethod.Get, url));
+        using var response = await http.SendAsync(await RequestAsync(HttpMethod.Get, url));
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<T>() : default;
     }
 
     private async Task<T> PostAsync<T>(string url, HttpContent content)
     {
-        using var response = await http.SendAsync(Request(HttpMethod.Post, url, content));
+        using var response = await http.SendAsync(await RequestAsync(HttpMethod.Post, url, content));
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<T>() : default;
     }
 
     private async Task SendAsync(HttpMethod method, string url, HttpContent content)
     {
-        using var response = await http.SendAsync(Request(method, url, content));
+        using var response = await http.SendAsync(await RequestAsync(method, url, content));
         response.EnsureSuccessStatusCode();
     }
 }

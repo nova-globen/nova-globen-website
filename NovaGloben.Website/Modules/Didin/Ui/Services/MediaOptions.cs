@@ -15,8 +15,20 @@ namespace Didin.Module.Media.Services
         /// </summary>
         public bool Guest { get; set; }
 
-        /// <summary>Kept empty: the site's own pages call its API on the same origin.</summary>
+        /// <summary>
+        /// Kept empty: the site's own pages call its API on the same origin. The app sets it (to the site's address), and
+        /// the player then fetches subtitle tracks through the catalogue client, with the app's token, instead of naming
+        /// another origin's address in a &lt;track&gt;, which the browser refuses.
+        /// </summary>
         public string ApiBase { get; set; } = "";
+
+        /// <summary>
+        /// False on the site, where the cookie goes with the video's request. True in the app: a &lt;video&gt; cannot send
+        /// the app's token, so a signed-in person's player plays the address of a sealed ticket for that one file
+        /// (the cast route: {site}/api/cast/{ticket}/media), asked for with the token. A guest plays the plain address,
+        /// which only a public catalogue answers.
+        /// </summary>
+        public bool TicketPlayback { get; set; }
 
         public string CatalogUrl => $"{SiteBase}/api/catalog";
         public string TitlesUrl => $"{SiteBase}/api/titles";
