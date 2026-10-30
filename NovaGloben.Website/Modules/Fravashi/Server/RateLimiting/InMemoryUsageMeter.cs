@@ -60,6 +60,18 @@ public sealed class InMemoryUsageMeter : IUsageMeter
         }
     }
 
+    public (int Requests, DateTimeOffset? WindowStart) RequestsOf(string userId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        if (!_users.TryGetValue(userId, out var state)) return (0, null);
+        lock (state)
+        {
+            return _clock.GetUtcNow() - state.QuotaWindowStart >= _options.QuotaWindow || state.QuotaCount == 0
+                ? (0, null)
+                : (state.QuotaCount, state.QuotaWindowStart);
+        }
+    }
+
     private sealed class UserWindows
     {
         public DateTimeOffset RateWindowStart { get; set; } = DateTimeOffset.MinValue;

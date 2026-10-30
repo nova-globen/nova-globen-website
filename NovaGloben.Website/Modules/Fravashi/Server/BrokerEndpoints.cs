@@ -210,14 +210,27 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
                 return;
             }
 
-            using var upstream = await forwarder.ForwardAsync(
-                new ForwardedCall(
-                    path,
-                    http.Request.QueryString.Value,
-                    body,
-                    http.Request.ContentType,
-                    ForwardedCall.PassedThrough(http.Request.Headers.Select(h => (h.Key, h.Value.ToString())))),
-                http.RequestAborted);
+            HttpResponseMessage answered;
+            try
+            {
+                answered = await forwarder.ForwardAsync(
+                    new ForwardedCall(
+                        path,
+                        http.Request.QueryString.Value,
+                        body,
+                        http.Request.ContentType,
+                        ForwardedCall.PassedThrough(http.Request.Headers.Select(h => (h.Key, h.Value.ToString())))),
+                    http.RequestAborted);
+            }
+            catch (Exception ex) when (ForwardFailure.For(ex, http.RequestAborted.IsCancellationRequested) is { } failure)
+            {
+                // the provider was not reached or did not answer: the client hears so, nothing is charged (B-35)
+                audit.Write(new AuditRecord(clock.GetUtcNow(), "forward", claims.Subject, claims.TokenId, model, 1,
+                    AuditRecord.OutcomeDenied, failure.Reason));
+                await Results.Json(new { error = failure.Reason }, statusCode: failure.Status).ExecuteAsync(http);
+                return;
+            }
+            using var upstream = answered;
 
             // The answer is relayed as it arrives and its usage figures are read out of the same bytes on the way past.
             // The charge and the audit line come AFTER it, because the figure is only known once the answer is over; a
@@ -289,6 +302,30 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
                     suspendedSince = suspensions.Of(request.User!)?.Since,
                 },
             });
+        });
+
+        // A person's own usage, read with the broker token the CLI forwards with: their figures and nothing else (the
+        // operator's /broker/usage is the one that sees others). It spends nothing and records nothing.
+        api.MapGet("/broker/usage/me", (
+            HttpContext http,
+            BrokerState state,
+            TokenService tokens,
+            IUsageMeter meter,
+            ITokenBudget budget,
+            Suspensions suspensions,
+            IOptions<BrokerServiceOptions> opts,
+            TimeProvider clock) =>
+        {
+            if (!state.Ready)
+            {
+                return Results.Json(new { error = "broker_unavailable" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+            var validation = tokens.Validate(ReadBearer(http), opts.Value.TokenScope);
+            if (!validation.IsValid)
+            {
+                return Results.Json(new { error = validation.Reason }, statusCode: StatusCodes.Status401Unauthorized);
+            }
+            return Results.Ok(PersonalUsage.For(validation.Token!.Subject, meter, budget, suspensions, opts.Value, state.StartedAt, clock.GetUtcNow()));
         });
 
         // Lifting a suspension, which is the one thing about it that is not automatic.

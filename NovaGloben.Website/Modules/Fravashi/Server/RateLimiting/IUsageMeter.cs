@@ -13,4 +13,10 @@ public interface IUsageMeter
     /// budget); the rate-limit window still counts the attempt.
     /// </summary>
     UsageDecision TryConsume(string userId);
+
+    /// <summary>
+    /// The requests a user has made in their current quota window and when that window started; (0, null) when they
+    /// have none. Reads only: nothing is recorded.
+    /// </summary>
+    (int Requests, DateTimeOffset? WindowStart) RequestsOf(string userId) => (0, null);
 }

@@ -48,4 +48,7 @@ public sealed class BrokerState
     public IReadOnlyList<string> Problems { get; }
 
     public bool Ready => Secrets is not null;
+
+    /// <summary>When this broker started; its usage counters live in memory and count from here.</summary>
+    public DateTimeOffset StartedAt { get; } = DateTimeOffset.UtcNow;
 }

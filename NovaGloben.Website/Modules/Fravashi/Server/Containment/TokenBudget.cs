@@ -39,6 +39,9 @@ public interface ITokenBudget
 
     /// <summary>The organisation's weighted units and raw tokens today.</summary>
     (long Units, long RawTokens) OrganisationUsed();
+
+    /// <summary>When the user's current window started; null when they have none running.</summary>
+    DateTimeOffset? WindowStartOf(string userId) => null;
 }
 
 /// <summary>
@@ -98,6 +101,17 @@ public sealed class InMemoryTokenBudget : ITokenBudget
 
     /// <inheritdoc />
     public (long Units, long RawTokens) OrganisationUsed() => Current(Organisation, TimeSpan.FromDays(1));
+
+    /// <inheritdoc />
+    public DateTimeOffset? WindowStartOf(string userId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        if (!_windows.TryGetValue(userId, out var window)) return null;
+        lock (window)
+        {
+            return _clock.GetUtcNow() - window.Start >= _options.QuotaWindow ? null : window.Start;
+        }
+    }
 
     private (long Units, long Raw) Current(string key, TimeSpan length)
     {
