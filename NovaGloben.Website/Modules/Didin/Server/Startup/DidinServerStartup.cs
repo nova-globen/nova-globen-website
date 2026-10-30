@@ -21,6 +21,9 @@ namespace Didin.Server.Startup
             // Every document of every kind, on whichever store the installation chose; tenant-owned, site-scoped.
             services.AddModuleAggregatePersistence<DidinDocument, System.Guid>();
             services.AddScoped<DidinStore>();
+            // a person deleted from the site takes their Didin data along, and gets it in their data package
+            services.AddScoped<Stomme.Erasure.ISubjectErasureParticipant, Didin.Server.Services.DidinUserErasure>();
+            services.AddScoped<Stomme.Portability.ISubjectDataContributor, Didin.Server.Services.DidinSubjectData>();
 
             // The catalogue: read whole per site and version (the cache), projected per request (the query), brought in
             // by the site's administrators (the import), with its binaries in a folder of the data volume.

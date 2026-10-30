@@ -25,8 +25,8 @@ namespace Lek.Server.Controllers
     public class InsideJobController : LekController
     {
         private const string BaseSetting = "insidejob:base";
-        private const string RaidsSetting = "insidejob:raids";
-        private const string PlayersSetting = "insidejob:players";
+        internal const string RaidsSetting = "insidejob:raids";
+        internal const string PlayersSetting = "insidejob:players";
         private const string Header = "X-Requested-With";
         private const string HeaderValue = "InsideJob";
         private const int LootPerHour = 100;

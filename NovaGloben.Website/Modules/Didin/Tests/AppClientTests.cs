@@ -20,6 +20,7 @@ public sealed class AppClientTests
         client.Permissions.Should().BeEquivalentTo(new[]
         {
             Permissions.Endpoints.Authorization, Permissions.Endpoints.Token, Permissions.Endpoints.Revocation,
+            Permissions.Endpoints.DeviceAuthorization, Permissions.GrantTypes.DeviceCode,
             Permissions.GrantTypes.AuthorizationCode, Permissions.GrantTypes.RefreshToken, Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId, Permissions.Prefixes.Scope + Scopes.Profile,
             Permissions.Prefixes.Scope + Scopes.OfflineAccess, Permissions.Prefixes.Scope + "api",

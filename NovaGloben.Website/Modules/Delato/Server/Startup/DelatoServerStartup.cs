@@ -26,6 +26,8 @@ public sealed class DelatoServerStartup : IServerStartup
         // Every document of every kind, on whichever store the installation chose; tenant-owned, site-scoped.
         services.AddModuleAggregatePersistence<DelatoDocument, Guid>();
         services.AddScoped<DelatoStore>();
+        // a person deleted from the site is unlinked from the groups they belong to; the groups' ledgers stay
+        services.AddScoped<Stomme.Erasure.ISubjectErasureParticipant, Delato.Server.Services.DelatoUserErasure>();
 
         // The rules of the API, and who the caller is (the site's Stomme account; its e-mail only when confirmed).
         services.AddScoped<DelatoLedger>();

@@ -13,14 +13,21 @@
     <table>
       <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Lifetime</th></tr></thead>
       <tbody>
-        <tr><td><code>X-XSRF-TOKEN-COOKIE</code> (on the Swedish pages <code>X-XSRF-TOKEN-COOKIE-sv</code>)</td><td>Security: protects the website's forms against cross-site request forgery.</td><td>Until you close the browser</td></tr>
-        <tr><td><code>stomme-release</code> (on the Swedish pages <code>stomme-release-sv</code>)</td><td>Remembers which version of the website your browser last loaded, so that after an update your browser fetches the new files instead of old cached ones. It contains only a version number.</td><td>1 year</td></tr>
+        <tr><td><code>X-XSRF-TOKEN-COOKIE</code> (on the Swedish pages <code>X-XSRF-TOKEN-COOKIE-sv</code>, on Didin <code>X-XSRF-TOKEN-COOKIE-didin</code>)</td><td>Security: protects the website's forms against cross-site request forgery.</td><td>Until you close the browser</td></tr>
+        <tr><td><code>stomme-release</code> (on the Swedish pages <code>stomme-release-sv</code>, on Didin <code>stomme-release-didin</code>)</td><td>Remembers which version of the website your browser last loaded, so that after an update your browser fetches the new files instead of old cached ones. It contains only a version number.</td><td>1 year</td></tr>
+        <tr><td><code>.AspNetCore.Culture</code></td><td>Remembers the language of the pages you visit. It is set on Didin (<a href="/didin/">/didin/</a>) and contains only a language code.</td><td>1 year</td></tr>
       </tbody>
     </table>
-    <p>Both are set by nova-globen.se itself (first-party cookies) and are read only by this website.</p>
+    <p>All of them are set by nova-globen.se itself (first-party cookies) and are read only by this website.</p>
 
     <h2>Signing in</h2>
-    <p>Signing in to the website's administration, which only Nova Globen AB's staff do, sets further cookies needed for the signed-in session and the administration's language.</p>
+    <p>Accounts are by invitation, for Didin and for Fravashi. When you sign in, one more cookie is set:</p>
+    <table>
+      <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Lifetime</th></tr></thead>
+      <tbody>
+        <tr><td><code>.AspNetCore.Identity.Application</code> (on Didin <code>.AspNetCore.Identity.Application-didin</code>)</td><td>Keeps you signed in: it ties your browser to your session on the server, which signing out ends.</td><td>Until you close the browser, or longer if you choose "Stay signed in"</td></tr>
+      </tbody>
+    </table>
 
     <h2>Managing cookies</h2>
     <p>You can delete or block cookies in your browser's settings. If you block the security cookie, forms on this website may not work.</p>

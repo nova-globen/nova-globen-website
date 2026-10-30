@@ -15,6 +15,8 @@ namespace Lek.Server.Startup
         {
             // whether this host switched the module off: its reconciler, guards and middleware stand down then
             services.AddSingleton<Lek.Server.Services.LekSwitch>();
+            // a person deleted from the site leaves Inside Job's list of players and is no longer named in others' raid logs
+            services.AddScoped<Stomme.Erasure.ISubjectErasureParticipant, Lek.Server.Services.LekUserErasure>();
             services.AddSingleton<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.Mvc.MvcOptions>, Lek.Server.Services.LekControllersOff>();
 
             services.TryAddSingleton(TimeProvider.System);

@@ -51,7 +51,7 @@
       "path": "services/modernization",
       "name": "Modernisering och underhåll",
       "title": "Modernisering och underhåll | Nova Globen AB",
-      "description": "Vi förbättrar äldre system, minskar teknisk skuld och håller affärsprogram i gott skick över tid.",
+      "description": "Vi förbättrar äldre system, minskar teknisk skuld och håller affärsprogramvara i gott skick över tid.",
       "navigation": true,
       "order": 2,
       "sections": [ { "name": "service", "content": "pages/service-modernization.html" } ]
@@ -105,7 +105,7 @@
       "path": "products/didin/android",
       "name": "Didin för Android",
       "title": "Didin för Android: ladda ned appen | Nova Globen AB",
-      "description": "Didin 0.3.3 för Android-telefoner och Android TV: APK-filen, kontrollsummor och signeringscertifikat, installation och vad appen gör med dina uppgifter.",
+      "description": "Didin 0.3.4 för Android-telefoner och Android TV: APK-filen, kontrollsummor och signeringscertifikat, installation och vad appen gör med dina uppgifter.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-didin-android.html" } ]
@@ -161,7 +161,7 @@
       "path": "about",
       "name": "Om oss",
       "title": "Om Nova Globen AB",
-      "description": "Nova Globen AB är ett mjukvarukonsultbolag med säte i Bromma, Sverige.",
+      "description": "Nova Globen AB är ett konsultbolag inom programvaruutveckling med säte i Bromma, Sverige.",
       "navigation": true,
       "order": 5,
       "sections": [ { "name": "about", "content": "pages/about.html" } ]

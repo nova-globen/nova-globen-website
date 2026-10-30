@@ -16,7 +16,8 @@ namespace Didin.Server.Services
 {
     /// <summary>
     /// The Didin app as a client of the Didin site's own authority (since Stomme 10.76 the folder is the issuer): a
-    /// public client, authorization code with PKCE and refresh tokens, limited to the Didin site's aliases, so it is
+    /// public client, authorization code with PKCE and refresh tokens, and the device authorization grant (RFC 8628,
+    /// Stomme 10.77) for a TV that signs in through the person's phone, limited to the Didin site's aliases, so it is
     /// refused (unauthorized_client) at the root site and at every other folder site of the tenant. Registered by the
     /// site's reconciler rather than in the host's OpenIddict:Applications, because the aliases differ per host and the
     /// reconciler is what makes them. Nothing happens on a host whose provider is off.
@@ -98,7 +99,9 @@ namespace Didin.Server.Services
                 Permissions.Endpoints.Authorization,
                 Permissions.Endpoints.Token,
                 Permissions.Endpoints.Revocation,
+                Permissions.Endpoints.DeviceAuthorization,
                 Permissions.GrantTypes.AuthorizationCode,
+                Permissions.GrantTypes.DeviceCode,
                 Permissions.GrantTypes.RefreshToken,
                 Permissions.ResponseTypes.Code,
             });

@@ -8,7 +8,9 @@ namespace Didin.App.Services;
 /// <summary>
 /// Signing the app in to its Didin site, and the access token that sign-in gives it. The site is its own issuer
 /// (https://&lt;host&gt;/didin, Stomme 10.76): authorization code with PKCE in the system browser, the app a public
-/// client of that site only (didin-app, registered by the module). There is deliberately no password sign-in.
+/// client of that site only (didin-app, registered by the module). A TV, which may have no browser, signs in through the
+/// person's phone instead (the device authorization grant, RFC 8628, Stomme 10.77). There is deliberately no password
+/// sign-in.
 /// </summary>
 public interface ISignIn
 {
@@ -27,8 +29,30 @@ public interface ISignIn
     /// <summary>Signs in; null when it did, else why not, for the person.</summary>
     Task<string> SignInAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Starts signing in through the person's phone: the code and the address to show. Null with the reason for the
+    /// person when it cannot.
+    /// </summary>
+    Task<(DeviceSignIn Start, string Problem)> StartPhoneSignInAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Waits for the phone's answer to <paramref name="start"/>, asking the site as often as it allows; null when
+    /// signed in, else why not, for the person. Cancelling <paramref name="ct"/> stops the waiting.
+    /// </summary>
+    Task<string> FinishPhoneSignInAsync(DeviceSignIn start, CancellationToken ct = default);
+
     /// <summary>Signs out: revokes the tokens at the site and forgets them.</summary>
     Task SignOutAsync(CancellationToken ct = default);
+}
+
+/// <summary>
+/// A sign-in waiting for the person's phone: the code they enter, the site's address to enter it at, the same address
+/// with the code in it (for the QR code), and until when it holds. The device code stays with the app.
+/// </summary>
+public sealed record DeviceSignIn(string UserCode, string VerificationUri, string VerificationUriComplete, DateTimeOffset Until)
+{
+    internal string DeviceCode { get; init; }
+    internal int Interval { get; init; }
 }
 
 /// <summary>
@@ -161,6 +185,115 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
         try { await LoadNameAsync(ct); }
         catch (Exception) { /* signed in; the name shows after the next start */ }
         return null;
+    }
+
+    public async Task<(DeviceSignIn Start, string Problem)> StartPhoneSignInAsync(CancellationToken ct = default)
+    {
+        Discovery discovery;
+        try { discovery = await DiscoverAsync(ct); }
+        catch (Exception) { return (null, Unreachable); }
+        if (discovery.DeviceAuthorizationEndpoint == null) return (null, "This site does not offer signing in with a phone yet.");
+
+        DeviceResponse reply;
+        try
+        {
+            using var response = await http.PostAsync(discovery.DeviceAuthorizationEndpoint, new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = ClientId,
+                ["scope"] = Scope,
+            }), ct);
+            if (!response.IsSuccessStatusCode) return (null, "The site did not start a sign-in with a phone.");
+            reply = await response.Content.ReadFromJsonAsync<DeviceResponse>(ct);
+        }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            return (null, Unreachable);
+        }
+
+        // the person is sent to these addresses, so they must be the site's own
+        if (string.IsNullOrEmpty(reply?.DeviceCode) || string.IsNullOrEmpty(reply.UserCode) || !OnSite(reply.VerificationUri))
+        {
+            return (null, "The site's answer was not one the app can use.");
+        }
+        return (new DeviceSignIn(reply.UserCode, reply.VerificationUri,
+            OnSite(reply.VerificationUriComplete) ? reply.VerificationUriComplete : reply.VerificationUri,
+            DateTimeOffset.UtcNow.AddSeconds(reply.ExpiresIn > 0 ? reply.ExpiresIn : 600))
+        {
+            DeviceCode = reply.DeviceCode,
+            Interval = reply.Interval > 0 ? reply.Interval : 5,
+        }, null);
+    }
+
+    public async Task<string> FinishPhoneSignInAsync(DeviceSignIn start, CancellationToken ct = default)
+    {
+        Discovery discovery;
+        try { discovery = await DiscoverAsync(ct); }
+        catch (Exception) when (!ct.IsCancellationRequested) { return Unreachable; }
+        var interval = start.Interval;
+        while (DateTimeOffset.UtcNow < start.Until)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(interval), ct);
+            string error;
+            TokenResponse tokens;
+            try
+            {
+                using var response = await http.PostAsync(discovery.TokenEndpoint, new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = DeviceCodeGrant,
+                    ["device_code"] = start.DeviceCode,
+                    ["client_id"] = ClientId,
+                }), ct);
+                if (response.IsSuccessStatusCode)
+                {
+                    tokens = await response.Content.ReadFromJsonAsync<TokenResponse>(ct);
+                    error = tokens?.AccessToken == null ? "invalid_response" : null;
+                }
+                else
+                {
+                    tokens = null;
+                    error = (await ReadErrorAsync(response, ct)) ?? "unknown";
+                }
+            }
+            catch (Exception) when (!ct.IsCancellationRequested)
+            {
+                continue;   // a dropped connection: ask again at the next turn while the code holds
+            }
+
+            switch (error)
+            {
+                case null:
+                    await KeepAsync(tokens);
+                    try { await LoadNameAsync(ct); }
+                    catch (Exception) when (!ct.IsCancellationRequested) { /* signed in; the name shows after the next start */ }
+                    return null;
+                case "authorization_pending":
+                    break;
+                case "slow_down":
+                    interval += 5;   // RFC 8628 3.5
+                    break;
+                case "access_denied":
+                    return "Signing in was declined on the phone.";
+                case "expired_token":
+                    return ExpiredCode;
+                default:
+                    return $"The site refused the sign-in ({error}).";
+            }
+        }
+        return ExpiredCode;
+    }
+
+    internal const string DeviceCodeGrant = "urn:ietf:params:oauth:grant-type:device_code";
+    internal const string ExpiredCode = "The code expired before the phone approved it. Try again for a new one.";
+
+    /// <summary>True for an address on the Didin site's own host.</summary>
+    internal static bool OnSite(string address) =>
+        Uri.TryCreate(address, UriKind.Absolute, out var uri) && Uri.TryCreate(AppConfig.Origin, UriKind.Absolute, out var origin)
+        && uri.Scheme == origin.Scheme && string.Equals(uri.Authority, origin.Authority, StringComparison.OrdinalIgnoreCase);
+
+    private static async Task<string> ReadErrorAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        try { return (await response.Content.ReadFromJsonAsync<ErrorResponse>(ct))?.Error; }
+        catch (Exception) when (!ct.IsCancellationRequested) { return null; }
     }
 
     public async Task SignOutAsync(CancellationToken ct = default)
@@ -345,6 +478,22 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
         [JsonPropertyName("token_endpoint")] public string TokenEndpoint { get; set; }
         [JsonPropertyName("userinfo_endpoint")] public string UserinfoEndpoint { get; set; }
         [JsonPropertyName("revocation_endpoint")] public string RevocationEndpoint { get; set; }
+        [JsonPropertyName("device_authorization_endpoint")] public string DeviceAuthorizationEndpoint { get; set; }
+    }
+
+    private sealed class DeviceResponse
+    {
+        [JsonPropertyName("device_code")] public string DeviceCode { get; set; }
+        [JsonPropertyName("user_code")] public string UserCode { get; set; }
+        [JsonPropertyName("verification_uri")] public string VerificationUri { get; set; }
+        [JsonPropertyName("verification_uri_complete")] public string VerificationUriComplete { get; set; }
+        [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
+        [JsonPropertyName("interval")] public int Interval { get; set; }
+    }
+
+    private sealed class ErrorResponse
+    {
+        [JsonPropertyName("error")] public string Error { get; set; }
     }
 
     private sealed class TokenResponse

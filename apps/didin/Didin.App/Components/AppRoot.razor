@@ -4,7 +4,8 @@
 
 @* The module's own catalogue (Modules/Didin/Ui) in the app's window. A guest browses what the site opens to guests (a
    public catalogue, as production's sample); signing in goes through the site's own sign-in in the browser
-   (Services/SignIn.cs), and the last session is picked up when the app starts.
+   (Services/SignIn.cs), or on a TV, which may have no browser, through the person's phone: the TV shows a code and its
+   QR code, the phone approves on the site, and the TV signs in. The last session is picked up when the app starts.
    A <main>, like the site's page body, so the module's catalogue-page rules apply here too. *@
 <main class="bin-maui">
     <header class="bin-topbar">
@@ -20,7 +21,7 @@
             }
             else if (_ready)
             {
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@_busy">@(_busy ? "Opening sign-in..." : "Sign in")</FluentButton>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@(_busy || _phone != null)">@(_busy && !OnTv ? "Opening sign-in..." : "Sign in")</FluentButton>
             }
         </div>
     </header>
@@ -29,7 +30,20 @@
         <p class="bin-maui-note" role="status">@_note</p>
     }
     <div class="bin-maui-content">
-        @if (_ready)
+        @if (_phone != null)
+        {
+            <section class="bin-phone-signin" aria-labelledby="bin-phone-title">
+                <h2 id="bin-phone-title">Sign in with your phone</h2>
+                <div class="bin-phone-qr" role="img" aria-label="QR code of the sign-in address">@((MarkupString)_qr)</div>
+                <div class="bin-phone-steps">
+                    <p>Scan the code with your phone's camera, or open <strong>@Shown(_phone.VerificationUri)</strong> and enter</p>
+                    <p class="bin-phone-code">@_phone.UserCode</p>
+                    <p role="status">Waiting for your phone...</p>
+                    <button type="button" class="bin-phone-cancel" @ref="_cancel" @onclick="CancelPhone">Cancel</button>
+                </div>
+            </section>
+        }
+        else if (_ready)
         {
             <CatalogHost @key="_session" />
         }
@@ -49,8 +63,32 @@
         _ready = true;
     }
 
+    private Didin.App.Services.DeviceSignIn _phone;
+    private string _qr;
+    private CancellationTokenSource _waiting;
+    private ElementReference _cancel;
+    private bool _focused;
+
+    // the remote lands on Cancel when the code shows
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_phone == null) { _focused = false; return; }
+        if (_focused) return;
+        _focused = true;
+        try { await _cancel.FocusAsync(); }
+        catch { /* the panel closed meanwhile */ }
+    }
+
+    // a TV may have no browser: it signs in through the person's phone
+    private static bool OnTv => DeviceInfo.Current.Idiom == DeviceIdiom.TV;
+
     private async Task SignInAsync()
     {
+        if (OnTv)
+        {
+            await SignInWithPhoneAsync();
+            return;
+        }
         _busy = true;
         try
         {
@@ -65,6 +103,55 @@
         {
             _busy = false;
         }
+    }
+
+    private async Task SignInWithPhoneAsync()
+    {
+        _busy = true;
+        _note = null;
+        (Didin.App.Services.DeviceSignIn start, string problem) = (null, null);
+        try { (start, problem) = await SignIn.StartPhoneSignInAsync(); }
+        finally { _busy = false; }
+        if (start == null)
+        {
+            _note = problem;
+            return;
+        }
+
+        _qr = Qr(start.VerificationUriComplete);
+        _phone = start;
+        _waiting = new CancellationTokenSource();
+        StateHasChanged();
+        string result;
+        try { result = await SignIn.FinishPhoneSignInAsync(start, _waiting.Token); }
+        catch (OperationCanceledException) { result = null; }
+        catch (Exception) { result = Didin.App.Services.SiteSignIn.Unreachable; }
+        var cancelled = _waiting.IsCancellationRequested;
+        _waiting.Dispose();
+        _waiting = null;
+        _phone = null;
+        _qr = null;
+        if (cancelled) return;
+        _note = result;
+        if (result == null)
+        {
+            Options.Guest = false;
+        }
+        _session++;
+    }
+
+    private void CancelPhone() => _waiting?.Cancel();
+
+    /// <summary>The address as the person types it: without the scheme.</summary>
+    private static string Shown(string address) =>
+        Uri.TryCreate(address, UriKind.Absolute, out var uri) ? uri.Authority + uri.AbsolutePath.TrimEnd('/') : address;
+
+    /// <summary>A QR code of the address, as SVG markup, black on white with its quiet zone; it scales to its box.</summary>
+    private static string Qr(string address)
+    {
+        using var generator = new QRCoder.QRCodeGenerator();
+        using var data = generator.CreateQrCode(address, QRCoder.QRCodeGenerator.ECCLevel.M);
+        return new QRCoder.SvgQRCode(data).GetGraphic(8, "#000000", "#ffffff", true, QRCoder.SvgQRCode.SizingMode.ViewBoxAttribute);
     }
 
     private async Task SignOutAsync()

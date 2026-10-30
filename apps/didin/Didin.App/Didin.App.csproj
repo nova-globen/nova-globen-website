@@ -26,8 +26,8 @@
 
         <ApplicationTitle>Didin</ApplicationTitle>
         <ApplicationId>se.novaglobenab.didin</ApplicationId>
-        <ApplicationDisplayVersion>0.3.3</ApplicationDisplayVersion>
-        <ApplicationVersion>6</ApplicationVersion>
+        <ApplicationDisplayVersion>0.3.4</ApplicationDisplayVersion>
+        <ApplicationVersion>7</ApplicationVersion>
 
         <!-- The Didin site the app talks to (AppConfig): production's by default, a local host's in a debug build; another
              with -p:DidinSite=https://<host>/didin. -->
@@ -71,6 +71,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
         <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="5.0.0" />
+        <!-- QR codes for signing a TV in with a phone (MIT), the version the site's own phone link uses -->
+        <PackageReference Include="QRCoder" Version="1.6.0" />
     </ItemGroup>
 
     <!-- cast to a TV from the phone: Google's Cast framework and its device picker -->

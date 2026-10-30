@@ -107,7 +107,7 @@
       "path": "products/didin/android",
       "name": "Didin for Android",
       "title": "Didin for Android: download the app | Nova Globen AB",
-      "description": "Didin 0.3.3 for Android phones and Android TV: the APK, its checksums and signing certificate, how to install it, and what it does with your data.",
+      "description": "Didin 0.3.4 for Android phones and Android TV: the APK, its checksums and signing certificate, how to install it, and what it does with your data.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-didin-android.html" } ]
