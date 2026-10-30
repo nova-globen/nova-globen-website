@@ -102,6 +102,15 @@
       "sections": [ { "name": "product", "content": "pages/product-didin.html" } ]
     },
     {
+      "path": "products/didin/android",
+      "name": "Didin för Android",
+      "title": "Didin för Android: ladda ned appen | Nova Globen AB",
+      "description": "Didin 0.3.1 för Android-telefoner och Android TV: APK-filen, kontrollsummor och signeringscertifikat, installation och vad appen gör med dina uppgifter.",
+      "navigation": false,
+      "order": 1,
+      "sections": [ { "name": "product", "content": "pages/product-didin-android.html" } ]
+    },
+    {
       "path": "products/fravashi",
       "name": "Fravashi",
       "title": "Fravashi: AI-kodagenter under din granskning | Nova Globen AB",

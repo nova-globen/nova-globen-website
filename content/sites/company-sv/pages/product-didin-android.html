@@ -1,0 +1,41 @@
+<section class="ng-container ng-narrow ng-product-head">
+  <img src="/assets/products/didin.svg" alt="" width="88" height="102" />
+  <div>
+    <nav class="ng-breadcrumb" aria-label="Brödsmulor"><a href="/sv/products/didin">Didin</a></nav>
+    <h1>Didin för Android</h1>
+    <p class="ng-lead">Version 0.3.1 för Android-telefoner och Android TV: samma katalog som på webbplatsen, i en app. Didin är under utveckling.</p>
+  </div>
+</section>
+<section class="ng-section ng-section-tight" aria-labelledby="didin-android-get">
+  <div class="ng-container ng-narrow ng-prose">
+    <h2 id="didin-android-get">Ladda ned</h2>
+    <p><a class="ng-btn ng-btn-primary" href="https://github.com/nova-globen/nova-globen-website/releases/download/didin-app-v0.3.1/didin-0.3.1.apk">Ladda ned Didin 0.3.1 (58 MB)</a></p>
+    <p>För Android 7.0 eller senare, på telefoner, surfplattor och Android TV, 32- och 64-bitars. Appen finns inte i Google Play: den installeras från den här filen.</p>
+    <ul>
+      <li><a href="https://github.com/nova-globen/nova-globen-website/releases/download/didin-app-v0.3.1/SHA256SUMS">SHA256SUMS</a>, SHA-256-kontrollsumman för varje fil</li>
+      <li><a href="https://github.com/nova-globen/nova-globen-website/releases/download/didin-app-v0.3.1/didin-0.3.1-sbom.cdx.json">Programvaruförteckning (SBOM)</a> (CycloneDX)</li>
+      <li><a href="https://github.com/nova-globen/nova-globen-website/releases/tag/didin-app-v0.3.1">Versionsinformation för 0.3.1</a> (på engelska)</li>
+    </ul>
+    <p>Appen är signerad av Nova Globen AB. SHA-256-fingeravtrycket för dess signeringscertifikat är <code class="ng-break">36:CF:A8:5A:A6:21:A7:11:6E:D2:C2:CA:EB:AA:49:D1:C7:17:70:43:9C:EF:AB:69:61:68:A5:C1:27:EC:2A:7E</code>; Android installerar en uppdatering av appen bara om den är signerad med samma certifikat.</p>
+  </div>
+</section>
+<section class="ng-section ng-section-soft" aria-labelledby="didin-android-install">
+  <div class="ng-container ng-narrow ng-prose">
+    <h2 id="didin-android-install">Så installerar du den</h2>
+    <ol>
+      <li>Öppna den här sidan på telefonen eller tv:n och ladda ned filen.</li>
+      <li>När Android frågar, tillåt webbläsaren eller filhanteraren som öppnar filen att installera okända appar.</li>
+      <li>Öppna den nedladdade filen och välj Installera.</li>
+    </ol>
+    <p>På en Android TV utan webbläsare installerar du den från ett USB-minne med en filhanterare, eller med <code>adb install</code> från en dator.</p>
+  </div>
+</section>
+<section class="ng-section" aria-labelledby="didin-android-use">
+  <div class="ng-container ng-narrow ng-prose">
+    <h2 id="didin-android-use">Vad den gör</h2>
+    <p>Utan inloggning öppnar appen det öppna smakprovet: fem kortfilmer av Blender Foundation att bläddra i och titta på. Med inloggning, i telefonens webbläsare, får du egna listor, var du slutade, betyg, assistenten och möjligheten att casta till en tv; det kräver ett konto på Didin-webbplatsen, och det går inte att registrera sig själv. Det går ännu inte att logga in på en Android TV som saknar webbläsare.</p>
+    <h2>Integritet</h2>
+    <p>Appen ansluter till nova-globen.se och spelar filmer från media.nova-globen.se. Nova Globen AB samlar inte in något via den: ingen statistik, inget annons-id. När du loggar in sparar den en inloggningstoken i Androids krypterade lagring på enheten; när du loggar ut tas den bort och återkallas hos webbplatsen. För casting till en tv innehåller appen Googles Cast-bibliotek, en del av Google Play-tjänsterna, som kan skicka uppgifter om hur det används till Google enligt Googles villkor. Hur Nova Globen AB hanterar personuppgifter står i <a href="/sv/privacy">integritetspolicyn</a>.</p>
+    <p>Använd kontaktformuläret om du har en fråga om appen eller vill <a href="/sv/products/didin/issues">rapportera ett problem</a>.</p>
+  </div>
+</section>

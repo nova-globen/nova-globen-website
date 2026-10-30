@@ -62,6 +62,7 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
 {
     public const string ClientId = "didin-app";
     private const string Scope = "openid profile offline_access api";
+    internal const string Unreachable = "Signing in could not reach the site. Check the connection and try again.";
 
     private Discovery _discovery;
     private string _access;
@@ -74,6 +75,9 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
 
     public async Task RestoreAsync(CancellationToken ct = default)
     {
+        // read the sign-in configuration in the background, so a tap on Sign in does not wait for a cold connection
+        _ = DiscoverAsync(CancellationToken.None).ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+
         string saved;
         try { saved = await store.GetAsync(); }
         catch { saved = null; }   // an unreadable store is a guest, not a crash
@@ -113,7 +117,7 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
     {
         Discovery discovery;
         try { discovery = await DiscoverAsync(ct); }
-        catch (Exception) { return "The site's sign-in cannot be reached just now."; }
+        catch (Exception) { return Unreachable; }
 
         var verifier = RandomToken();
         var state = RandomToken();
@@ -151,7 +155,7 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
         }
         catch (Exception)
         {
-            return "The site's sign-in cannot be reached just now.";
+            return Unreachable;
         }
 
         try { await LoadNameAsync(ct); }
@@ -217,16 +221,53 @@ public sealed class SiteSignIn(HttpClient http, IBrowserSignIn browser, ITokenSt
 
     private static string Base64Url(byte[] bytes) => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
-    private async Task<Discovery> DiscoverAsync(CancellationToken ct)
+    /// <summary>How long one attempt to read the sign-in configuration may take, and the pauses before the retries.</summary>
+    internal static readonly TimeSpan AttemptTimeout = TimeSpan.FromSeconds(10);
+    internal static readonly TimeSpan[] RetryPauses = { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3) };
+
+    /// <summary>
+    /// The site's sign-in configuration, read once and kept. A phone's first connection on mobile data can fail or stall
+    /// while a browser still gets through, so a failed read is tried again (three attempts, each at most ten seconds); a
+    /// configuration that is not the site's own is refused at once. The read starts when the app starts
+    /// (<see cref="RestoreAsync"/>), so it is usually there before anyone taps Sign in; a tap meanwhile waits for the
+    /// same read instead of starting another.
+    /// </summary>
+    private Task<Discovery> DiscoverAsync(CancellationToken ct)
     {
-        if (_discovery != null) return _discovery;
-        var discovery = await http.GetFromJsonAsync<Discovery>(AppConfig.SiteUrl + "/.well-known/openid-configuration", ct);
-        // the document must be the site's own: the folder is the issuer, never the host
-        if (discovery?.TokenEndpoint == null || discovery.AuthorizationEndpoint == null || !SameIssuer(discovery.Issuer, AppConfig.SiteUrl))
+        if (_discovery != null) return Task.FromResult(_discovery);
+        lock (_discoveryLock)
         {
-            throw new InvalidOperationException("The sign-in configuration is not the Didin site's.");
+            if (_discovering == null || _discovering.IsFaulted || _discovering.IsCanceled)
+            {
+                _discovering = ReadDiscoveryAsync();
+            }
+            return _discovering.WaitAsync(ct);
         }
-        return _discovery = discovery;
+    }
+
+    private readonly object _discoveryLock = new();
+    private Task<Discovery> _discovering;
+
+    private async Task<Discovery> ReadDiscoveryAsync()
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                using var timeout = new CancellationTokenSource(AttemptTimeout);
+                var discovery = await http.GetFromJsonAsync<Discovery>(AppConfig.SiteUrl + "/.well-known/openid-configuration", timeout.Token);
+                // the document must be the site's own: the folder is the issuer, never the host
+                if (discovery?.TokenEndpoint == null || discovery.AuthorizationEndpoint == null || !SameIssuer(discovery.Issuer, AppConfig.SiteUrl))
+                {
+                    throw new InvalidDataException("The sign-in configuration is not the Didin site's.");
+                }
+                return _discovery = discovery;
+            }
+            catch (Exception ex) when (ex is not InvalidDataException && attempt < RetryPauses.Length)
+            {
+                await Task.Delay(RetryPauses[attempt]);
+            }
+        }
     }
 
     /// <summary>New tokens from the refresh token; false (and signed out) when the site no longer accepts it.</summary>

@@ -43,8 +43,9 @@ namespace Didin.Module.Media
         /// <summary>
         /// Keyboard and TV-remote navigation. A TV browser turns the D-pad into arrow keys, OK into
         /// Enter and Back into Escape (or GoBack / XF86Back / keyCode 461 / 10009, which count as Back too).
-        /// - Browsing: with a card focused, an arrow moves focus to the nearest card in that direction (rows and the grid
-        ///   alike); with nothing focused, an arrow focuses the first card. Back leaves the details page.
+        /// - Browsing: an arrow moves focus to the nearest card or control (button, link) in that direction, rows, the
+        ///   grid and a title's buttons alike; with nothing focused, an arrow focuses a title's Play, else the first card.
+        ///   Back leaves the details page.
         /// - The player: an arrow with nothing focused goes to the video; on the video Left/Right seek 10 s, Up goes to
         ///   the bar, Enter plays/pauses; in the bar Left/Right move between its buttons and Down returns to the video.
         ///   C opens the subtitle menu. Back closes the subtitle menu if it is open, else the player.
@@ -58,7 +59,11 @@ namespace Didin.Module.Media
                 const isBack = e => e.key === 'Escape' || e.key === 'GoBack' || e.key === 'BrowserBack' || e.key === 'XF86Back' || e.keyCode === 461 || e.keyCode === 10009;
                 const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
                 const visible = el => !!el && el.getClientRects().length > 0;
-                const cards = () => [...document.querySelectorAll('.didin .bin-card[tabindex]')].filter(c => c.offsetParent !== null);
+                // What an arrow can land on: the cards and every control of the page. FluentUI's buttons keep their own
+                // <button> in a shadow root, which a TV WebView's own D-pad navigation does not reach, so they are listed here.
+                const targetSelector = '.bin-card[tabindex], fluent-button:not([disabled]), button:not([disabled]), a[href]';
+                const targets = () => [...document.querySelectorAll('.didin .bin-card[tabindex], .didin fluent-button:not([disabled]), .didin button:not([disabled]), .didin a[href]')]
+                    .filter(c => c.offsetParent !== null && c.getAttribute('tabindex') !== '-1' && !c.closest('[hidden]'));
                 const centre = r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                 const typing = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t.closest && t.closest('fluent-text-input, fluent-slider, fluent-dropdown')));
                 const inPlayer = (player, e) => {
@@ -115,11 +120,15 @@ namespace Didin.Module.Media
                     if (!dir) return;
                     const t = e.target;
                     if (typing(t) || (t && t.tagName === 'VIDEO')) return;
-                    const all = cards();
+                    const all = targets();
                     if (!all.length) return;
-                    const current = t && t.classList && t.classList.contains('bin-card') ? t : null;
+                    const current = t && t.closest ? t.closest(targetSelector) : null;
                     let next = null;
-                    if (!current) { next = all[0]; }
+                    if (!current || !all.includes(current)) {
+                        // nothing focused yet: a title's Play, else the first card, else the first control
+                        next = document.querySelector('.didin .bin-details fluent-button[appearance=""primary""]')
+                            || all.find(c => c.classList.contains('bin-card')) || all[0];
+                    }
                     else {
                         const a = centre(current.getBoundingClientRect());
                         let best = Infinity;

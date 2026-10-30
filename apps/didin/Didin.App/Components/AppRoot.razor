@@ -20,7 +20,7 @@
             }
             else if (_ready)
             {
-                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@_busy">Sign in</FluentButton>
+                <FluentButton Appearance="ButtonAppearance.Default" OnClick="SignInAsync" Disabled="@_busy">@(_busy ? "Opening sign-in..." : "Sign in")</FluentButton>
             }
         </div>
     </header>

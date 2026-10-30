@@ -33,6 +33,11 @@ namespace Didin.Server.Startup
                     context.Response.Redirect(target);
                     return System.Threading.Tasks.Task.CompletedTask;
                 }
+                if (AndroidPage.Redirect(context) is { } page)
+                {
+                    context.Response.Redirect(page, permanent: true);
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
                 return next(context);
             }));
         }
@@ -58,6 +63,26 @@ namespace Didin.Server.Startup
             request.QueryString = QueryString.Create(request.Query
                 .Where(q => !string.Equals(q.Key, Name, StringComparison.OrdinalIgnoreCase))
                 .SelectMany(q => q.Value.Select(v => new KeyValuePair<string, string>(q.Key, v))));
+        }
+    }
+
+    /// <summary>
+    /// The short address of the Android app's download page, <c>{site}/android</c>, answers a permanent redirect to that
+    /// page on the company site (<c>/products/didin/android</c>), where the downloads, checksums and terms are.
+    /// </summary>
+    public static class AndroidPage
+    {
+        public const string Target = "/products/didin/android";
+
+        /// <summary>Where a GET or HEAD of the short address goes, or null for any other request.</summary>
+        public static string Redirect(HttpContext context)
+        {
+            var request = context.Request;
+            if (!HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method)) return null;
+            var site = DidinSite.From(context);
+            if (site == null) return null;
+            var path = (request.Path.Value ?? "/").TrimEnd('/');
+            return string.Equals(path, site.BasePath.TrimEnd('/') + "/android", StringComparison.OrdinalIgnoreCase) ? Target : null;
         }
     }
 
