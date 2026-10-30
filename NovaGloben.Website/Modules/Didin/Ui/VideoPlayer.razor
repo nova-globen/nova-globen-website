@@ -344,7 +344,8 @@
             var interop = new Interop(Js);
             if (!KnownUnplayable)
             {
-                await Cast.InitAsync();
+                // only a signed-in person can cast, so only then is Google's Cast script loaded (from Google's servers)
+                if (!Options.Guest) await Cast.InitAsync();
                 // AirPlay in Safari: the button shows while a device is around
                 await LocalAsync("if (!window.WebKitPlaybackTargetAvailabilityEvent) return; var b = document.getElementById('bin-airplay'); " +
                     "v.addEventListener('webkitplaybacktargetavailabilitychanged', function (e) { if (b) b.hidden = e.availability !== 'available'; });");

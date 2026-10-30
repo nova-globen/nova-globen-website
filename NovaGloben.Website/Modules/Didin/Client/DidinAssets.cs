@@ -16,6 +16,10 @@ namespace Didin
         public const string Module = "Module.css";
         public const string QrLink = "qr-link.js";
 
+        /// <summary>Bootstrap 5.3.8, served from here rather than a CDN (MIT; bootstrap.LICENSE.txt beside it).</summary>
+        public const string BootstrapCss = "bootstrap.min.css";
+        public const string BootstrapJs = "bootstrap.bundle.min.js";
+
         /// <summary>A file's address with its content hash.</summary>
         public static string Url(string file) => Root + file + "?v=" + Hash(file);
 

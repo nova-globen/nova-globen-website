@@ -29,20 +29,20 @@
     <div class="bin-group">
         <h4>Year</h4>
         <div class="bin-toolbar">
-            <FluentNumberInput TValue="int?" Placeholder="from" Value="@State.Filter.YearMin"
-                               ValueChanged="@((int? v) => SetInt(x => State.Filter.YearMin = x, v))" Style="width: 100%" />
-            <FluentNumberInput TValue="int?" Placeholder="to" Value="@State.Filter.YearMax"
-                               ValueChanged="@((int? v) => SetInt(x => State.Filter.YearMax = x, v))" Style="width: 100%" />
+            <input type="number" class="bin-number" inputmode="numeric" placeholder="from" aria-label="Year from" value="@State.Filter.YearMin"
+                   @onchange="@(e => SetInt(x => State.Filter.YearMin = x, ToInt(e.Value)))" />
+            <input type="number" class="bin-number" inputmode="numeric" placeholder="to" aria-label="Year to" value="@State.Filter.YearMax"
+                   @onchange="@(e => SetInt(x => State.Filter.YearMax = x, ToInt(e.Value)))" />
         </div>
     </div>
 
     <div class="bin-group">
         <h4>Runtime (min)</h4>
         <div class="bin-toolbar">
-            <FluentNumberInput TValue="int?" Placeholder="from" Value="@State.Filter.RuntimeMin"
-                               ValueChanged="@((int? v) => SetInt(x => State.Filter.RuntimeMin = x, v))" Style="width: 100%" />
-            <FluentNumberInput TValue="int?" Placeholder="to" Value="@State.Filter.RuntimeMax"
-                               ValueChanged="@((int? v) => SetInt(x => State.Filter.RuntimeMax = x, v))" Style="width: 100%" />
+            <input type="number" class="bin-number" inputmode="numeric" placeholder="from" aria-label="Runtime from, in minutes" value="@State.Filter.RuntimeMin"
+                   @onchange="@(e => SetInt(x => State.Filter.RuntimeMin = x, ToInt(e.Value)))" />
+            <input type="number" class="bin-number" inputmode="numeric" placeholder="to" aria-label="Runtime to, in minutes" value="@State.Filter.RuntimeMax"
+                   @onchange="@(e => SetInt(x => State.Filter.RuntimeMax = x, ToInt(e.Value)))" />
         </div>
     </div>
 
@@ -139,6 +139,9 @@
         if (!set.Remove(value)) set.Add(value);
         State.Notify(true);
     }
+
+    // plain number fields, not FluentUI's: its number input loads a masking script from unpkg.com
+    private static int? ToInt(object value) => int.TryParse(value?.ToString(), out var n) ? n : null;
 
     private void SetInt(Action<int?> setter, int? value)
     {

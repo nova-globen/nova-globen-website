@@ -32,7 +32,7 @@
     <PropertyGroup>
       <_DidinAssetHashes>$(ProjectDir)$(IntermediateOutputPath)DidinAssetHashes.g.cs</_DidinAssetHashes>
     </PropertyGroup>
-    <GetFileHash Files="wwwroot\Theme.css;wwwroot\Module.css;wwwroot\qr-link.js" Algorithm="SHA256" HashEncoding="hex">
+    <GetFileHash Files="wwwroot\Theme.css;wwwroot\Module.css;wwwroot\qr-link.js;wwwroot\bootstrap.min.css;wwwroot\bootstrap.bundle.min.js" Algorithm="SHA256" HashEncoding="hex">
       <Output TaskParameter="Items" ItemName="_DidinAsset" />
     </GetFileHash>
     <ItemGroup>

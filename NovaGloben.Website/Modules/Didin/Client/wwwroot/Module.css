@@ -10,6 +10,8 @@
 .didin .bin-filters fluent-field:has(fluent-checkbox) { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: .45rem; }
 .didin .bin-filters fluent-checkbox { display: inline-flex; }
 .didin .bin-filters fluent-select, .didin .bin-filters fluent-number-input { display: block; }
+.didin .bin-number { flex: 1 1 0; min-width: 0; min-height: 32px; padding: 0 .65rem; font: inherit; color: var(--colorNeutralForeground1, #fff); background: var(--colorNeutralBackground1, #292929); border: 1px solid var(--colorNeutralStroke1, #666); border-radius: var(--borderRadiusMedium, 4px); }
+.didin .bin-number:focus-visible { outline: 2px solid var(--bin-accent, #C900CC); outline-offset: 1px; }
 .didin .bin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: .9rem; }
 .didin .bin-card { cursor: pointer; border: 1px solid var(--bs-border-color, #333); border-radius: 10px; overflow: hidden; background: #1b1b1b; color: #e8e8e8; transition: transform .12s ease, border-color .12s ease; }
 .didin .bin-card:hover { transform: translateY(-3px); border-color: #6b6bff; }

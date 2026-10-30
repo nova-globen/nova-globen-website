@@ -25,18 +25,13 @@ namespace Didin.Theme.Fluent
             Resources = new List<Resource>
             {
                 // vanilla Bootstrap as structural base (NOT the framework's Bootswatch
-                // Cyborg default); Theme.css carries the Fluent token layer.
-                new Stylesheet(
-                    "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.8/css/bootstrap.min.css",
-                    "sha512-2bBQCjcnw658Lho4nlXJcc6WkV/UxpE/sAokbXPxQNGqmNdQrWqtw26Ns9kFF/yG792pKR1Sx8/Y1Lf1XN4GKA==",
-                    "anonymous"),
+                // Cyborg default); Theme.css carries the Fluent token layer. Served from this site, not a CDN, so a
+                // visitor's browser makes no request to another host (the files are cdnjs's 5.3.8, byte for byte).
+                new Stylesheet(DidinAssets.Url(DidinAssets.BootstrapCss)),
                 // the theme's own layer, addressed by its content hash (DidinAssets); the design's typeface, Poppins, is used
                 // when the device has it, and system fonts otherwise: no font is fetched from another site
                 new Stylesheet(DidinAssets.Url(DidinAssets.Theme)),
-                new Script(
-                    "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.8/js/bootstrap.bundle.min.js",
-                    "sha512-HvOjJrdwNpDbkGJIG2ZNqDlVqMo77qbs4Me4cah0HoDrfhrbA+8SBlZn1KrvAQw7cILLPFJvdwIgphzQmMm+Pw==",
-                    "anonymous")
+                new Script(DidinAssets.Url(DidinAssets.BootstrapJs))
             }
         };
     }

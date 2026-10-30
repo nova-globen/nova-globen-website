@@ -105,7 +105,7 @@
       "path": "products/didin/android",
       "name": "Didin för Android",
       "title": "Didin för Android: ladda ned appen | Nova Globen AB",
-      "description": "Didin 0.3.1 för Android-telefoner och Android TV: APK-filen, kontrollsummor och signeringscertifikat, installation och vad appen gör med dina uppgifter.",
+      "description": "Didin 0.3.2 för Android-telefoner och Android TV: APK-filen, kontrollsummor och signeringscertifikat, installation och vad appen gör med dina uppgifter.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-didin-android.html" } ]
