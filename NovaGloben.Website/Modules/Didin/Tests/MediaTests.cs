@@ -232,6 +232,19 @@ public sealed class MediaTests : IDisposable
         (await cast.Download(FileToken.Encode("files/11"))).Should().BeOfType<NotFoundResult>();
     }
 
+    [Theory]
+    [InlineData(null, "https://store.example/media/one.mp4")]
+    [InlineData("1", "https://store.example/media/one.mp4?download=1")]
+    public async Task A_public_store_is_asked_to_save_a_download(string? download, string location)
+    {
+        var (controller, http, token) = await StreamSetup(new() { ["MediaStore:PublicBase"] = "https://store.example/" });
+
+        await controller.Get(token, download);
+
+        http.Response.StatusCode.Should().Be(302);
+        http.Response.Headers.Location.ToString().Should().Be(location);
+    }
+
     [Fact]
     public async Task Only_a_listed_file_streams()
     {

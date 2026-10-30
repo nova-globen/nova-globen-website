@@ -1,0 +1,5 @@
+# Vendored files stay byte-for-byte as their publisher made them (Bootstrap as on cdnjs, three.js as released): never
+# line-ending converted, whatever core.autocrlf a checkout uses.
+Modules/Didin/Client/wwwroot/bootstrap.min.css -text
+Modules/Didin/Client/wwwroot/bootstrap.bundle.min.js -text
+Modules/Lek/Client/wwwroot/games/noir/vendor/** -text

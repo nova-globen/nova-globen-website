@@ -61,7 +61,8 @@ namespace Didin.Server.Controllers
             {
                 var url = media.Source.PublicUrl(path);
                 if (url == null) { Response.StatusCode = 400; return; }
-                Response.Redirect(url);
+                // the header above does not follow a redirect: the store sends its own attachment header for download=1
+                Response.Redirect(download ? url + "?download=1" : url);
             }
             else if (media.Source.IsLocal)
             {
