@@ -20,7 +20,10 @@ public sealed class DelatoUserErasure(DelatoStore store) : ISubjectErasurePartic
 
     public string Name => "Delato";
 
-    public IReadOnlyList<ErasureDeclaration> Declarations { get; } = new[] { ErasureDeclaration.Anonymise(GroupsStore) };
+    public IReadOnlyList<ErasureDeclaration> Declarations { get; } = new[]
+    {
+        ErasureDeclaration.Anonymise(GroupsStore) with { Summary = "your name, e-mail address and account link in Delato groups (the groups and balances stay)" },
+    };
 
     public async Task<IReadOnlyList<ErasureOutcome>> EraseAsync(ErasureSubject subject, CancellationToken ct = default)
     {

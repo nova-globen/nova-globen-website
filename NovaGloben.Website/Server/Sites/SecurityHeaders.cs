@@ -25,8 +25,8 @@ namespace NovaGloben.Website.Sites
     /// articles are rendered, so a script there is refused. Turnstile's origin is allowed only on a page that loads it, and
     /// Cloudflare Web Analytics' two origins only on a page that carries its beacon (<see cref="WebAnalytics"/>, added here).
     /// A signed-in editor's pages and any interactive page (the sign-in page) are not given the policy and keep Stomme's
-    /// scripts; the other headers apply to them too. A static page also loses Stomme's framework scripts
-    /// (<see cref="FrameworkScripts"/>).
+    /// scripts; the other headers apply to them too. A static page carries none of Stomme's framework scripts: the company
+    /// sites set Stomme's <c>OmitBlazorScriptOnStaticPages</c> (10.79.0) in their manifests.
     /// </summary>
     public static class SecurityHeaders
     {
@@ -101,7 +101,6 @@ namespace NovaGloben.Website.Sites
                 // gets no policy, like a signed-in editor's pages. The public pages are all static.
                 if (!IsInteractive(html))
                 {
-                    html = FrameworkScripts.Remove(html);
                     var analytics = WebAnalytics.Token(configuration, context.RequestServices.GetRequiredService<IHostEnvironment>());
                     if (analytics != null && context.Response.StatusCode == StatusCodes.Status200OK)
                     {

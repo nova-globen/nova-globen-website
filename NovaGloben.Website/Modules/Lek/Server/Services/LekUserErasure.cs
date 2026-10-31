@@ -28,8 +28,8 @@ namespace Lek.Server.Services
 
         public IReadOnlyList<ErasureDeclaration> Declarations { get; } = new[]
         {
-            ErasureDeclaration.Delete(PlayersStore),
-            ErasureDeclaration.Anonymise(RaidsStore),
+            ErasureDeclaration.Delete(PlayersStore) with { Summary = "your place in Lek's list of Inside Job players" },
+            ErasureDeclaration.Anonymise(RaidsStore) with { Summary = "your name on the Lek raids you ran on other players (the raids stay)" },
         };
 
         public async Task<IReadOnlyList<ErasureOutcome>> EraseAsync(ErasureSubject subject, CancellationToken ct = default)

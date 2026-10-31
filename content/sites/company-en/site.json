@@ -10,7 +10,8 @@
     "NovaGloben:CounterpartBase": "/sv/",
     "NovaGloben:CtaPath": "contact",
     "NovaGloben:ServicesPath": "services",
-    "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies"
+    "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies",
+    "OmitBlazorScriptOnStaticPages": "true"
   },
   "pages": [
     {

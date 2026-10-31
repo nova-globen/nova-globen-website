@@ -31,9 +31,9 @@ namespace Didin.Server.Services
 
         public IReadOnlyList<ErasureDeclaration> Declarations { get; } = new[]
         {
-            ErasureDeclaration.Delete(UserStateStore),
-            ErasureDeclaration.Delete(RatingsStore),
-            ErasureDeclaration.Anonymise(VerdictsStore),
+            ErasureDeclaration.Delete(UserStateStore) with { Summary = "your Didin list, progress, seen titles and subtitle choice" },
+            ErasureDeclaration.Delete(RatingsStore) with { Summary = "your Didin ratings and reviews" },
+            ErasureDeclaration.Anonymise(VerdictsStore) with { Summary = "your username on Didin library verdicts (the verdicts stay)" },
         };
 
         public async Task<IReadOnlyList<ErasureOutcome>> EraseAsync(ErasureSubject subject, CancellationToken ct = default)

@@ -129,30 +129,6 @@ public class SecurityHeadersTests
     }
 
     [Fact]
-    public void The_frameworks_scripts_leave_a_visitors_page_and_other_scripts_stay()
-    {
-        var page = "<head><script>boot()</script></head><body><main>x</main>\n" +
-            "            <script src=\"_framework/blazor.web.js\"></script>\n" +
-            "            <script src=\"js/app.js?v=3EF785BA\"></script>\n" +
-            "            <script src=\"js/loadjs.min.js?v=3EF785BA\"></script>\n" +
-            "            <script src=\"js/interop.js?v=3EF785BA\"></script>\n" +
-            "            <page-script src=\"./js/reload.js?v=3EF785BA\"></page-script>\n" +
-            "<script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\" async defer></script>\n" +
-            "<script src=\"/Modules/Some/module.js\"></script></body>";
-
-        var trimmed = FrameworkScripts.Remove(page);
-
-        Assert.DoesNotContain("blazor.web.js", trimmed);
-        Assert.DoesNotContain("js/app.js", trimmed);
-        Assert.DoesNotContain("loadjs", trimmed);
-        Assert.DoesNotContain("interop.js", trimmed);
-        Assert.DoesNotContain("page-script", trimmed);
-        Assert.Contains("turnstile/v0/api.js", trimmed);
-        Assert.Contains("/Modules/Some/module.js", trimmed);
-        Assert.Contains("<script>boot()</script>", trimmed);
-    }
-
-    [Fact]
     public void An_interactive_page_is_recognised_by_its_blazor_marker()
     {
         Assert.True(SecurityHeaders.IsInteractive("<body><!--Blazor:{\"type\":\"server\"}--><div></div></body>"));
