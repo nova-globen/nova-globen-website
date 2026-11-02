@@ -9,7 +9,21 @@
 
 <a class="ng-skip-link" href="#ng-main">@_text.SkipToContent</a>
 
-<div class="ng-shell">
+<div class="ng-shell @(_appSignIn ? "ng-signin" : "")">
+    @* An app signing someone in: the form, the logo so the page is recognisably ours, and the legal links, which open
+       beside the sign-in. Nothing here leads away from it: the logo is no link, and the language link is left out
+       because the other language's site is a separate sign-in authority and could not finish this one. *@
+    @if (_appSignIn)
+    {
+        <header class="ng-signin-brand">
+            <picture>
+                <source srcset="@_assetPath/logo-full-dark.svg" media="(prefers-color-scheme: dark)" />
+                <img src="@_assetPath/logo-full.svg" alt="@_brandName" width="150" height="27" />
+            </picture>
+        </header>
+    }
+    else
+    {
     <header class="ng-header">
         <div class="ng-container ng-header-inner">
             <a class="ng-logo" href="@_homeUrl" aria-label="@($"{_brandName} - {_text.Home}")">
@@ -39,6 +53,7 @@
             </div>
         </div>
     </header>
+    }
 
     <main id="ng-main" class="ng-main" tabindex="-1">
         <Pane Name="@PaneNames.Default" />
@@ -46,6 +61,21 @@
         <Pane Name="Bottom Full Width" />
     </main>
 
+    @if (_appSignIn)
+    {
+        @if (_ctaPage != null)
+        {
+            <p class="ng-signin-request">@_text.NoAccount <a href="@(NavigateUrl(_ctaPage.Path) + "?topic=fravashi")" target="_blank" rel="noopener">@_text.AskForAccount</a></p>
+        }
+        <footer class="ng-signin-links" aria-label="@_text.SiteFooter">
+            @foreach (var item in _footerPages.Where(p => p.Path is "privacy" or "terms"))
+            {
+                <a href="@NavigateUrl(item.Path)" target="_blank" rel="noopener">@item.Name</a>
+            }
+        </footer>
+    }
+    else
+    {
     <footer class="ng-footer" aria-label="@_text.SiteFooter">
         <div class="ng-container">
             <div class="ng-footer-grid">
@@ -100,6 +130,7 @@
             </div>
         </div>
     </footer>
+    }
 </div>
 
 @code {
@@ -119,6 +150,7 @@
     private List<Page> _servicePages = new();
     private List<Page> _footerPages = new();
     private int _headFor = -1;
+    private bool _appSignIn;
 
     /// <summary>
     /// The origin the visitor used. Behind the edge the request reaches the app over plain HTTP, so every host except
@@ -137,6 +169,7 @@
         var options = ThemeOptions.From(key => SettingService.GetSetting(settings, key, null));
 
         _text = ThemeText.For(PageState.Site.CultureCode);
+        _appSignIn = SignInFlow.IsAppSignIn(PageState.Page.Path, PageState.ReturnUrl, PageState.User != null);
         // A site's root keeps its slash ("/", "/sv/"): it is the canonical form of a home page, as on the old site.
         _homeUrl = string.IsNullOrEmpty(PageState.Alias.Path) ? "/" : "/" + PageState.Alias.Path + "/";
         _counterpartUrl = options.CounterpartUrl(PageState.Page.Path);

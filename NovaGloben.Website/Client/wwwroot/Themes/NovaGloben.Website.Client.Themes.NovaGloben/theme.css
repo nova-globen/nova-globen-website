@@ -222,6 +222,17 @@ img, svg { max-width: 100%; height: auto; }
 }
 .ng-lang:hover { background: var(--db-bg-elev-2); color: var(--db-text); }
 
+/* ============================== An app's sign-in: the form alone ============================== */
+.ng-signin-brand { display: flex; justify-content: center; padding-block: 2.5rem 1.5rem; }
+.ng-signin-brand img { display: block; width: 150px; height: auto; }
+.ng-signin .ng-main { width: 100%; max-width: 28rem; margin-inline: auto; }
+.ng-signin-request { text-align: center; margin: 0; padding-top: 1rem; font-size: .9375rem; color: var(--db-text-2); }
+.ng-signin-request a { color: var(--ng-link); }
+.ng-signin-request a:hover { color: var(--ng-link-hover); }
+.ng-signin-links { display: flex; justify-content: center; gap: 1.25rem; padding-block: 2rem; font-size: .875rem; }
+.ng-signin-links a { color: var(--ng-link); }
+.ng-signin-links a:hover { color: var(--ng-link-hover); }
+
 /* ============================== Buttons ============================== */
 /* The theme's buttons take --db-accent / --db-on-accent, exactly as Stomme's own db-btn does. */
 .ng-btn {
@@ -482,6 +493,7 @@ img, svg { max-width: 100%; height: auto; }
 }
 .ng-main .db-input:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 1px; border-color: var(--ng-focus); box-shadow: none; }
 .ng-main .db-btn { min-height: 2.75rem; padding: .625rem 1rem; font: inherit; font-weight: 600; border-radius: var(--db-radius-sm); }
+.ng-main .db-btn-neutral:hover { color: var(--db-text); } /* Stomme's .db-btn:hover would leave it white on a pale button */
 .ng-main .db-btn:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 2px; box-shadow: none; }
 .ng-main .db-btn-split, .ng-main .db-btn-block { margin-top: 1rem; }
 .ng-main .db-login-rule { margin: 1.25rem 0 .25rem; }

@@ -224,7 +224,7 @@ public sealed class BrokerEndpoints : IModuleHttpEndpointContributor
             }
             catch (Exception ex) when (ForwardFailure.For(ex, http.RequestAborted.IsCancellationRequested) is { } failure)
             {
-                // the provider was not reached or did not answer: the client hears so, nothing is charged (B-35)
+                // the provider was not reached or did not answer: the client hears so, nothing is charged
                 audit.Write(new AuditRecord(clock.GetUtcNow(), "forward", claims.Subject, claims.TokenId, model, 1,
                     AuditRecord.OutcomeDenied, failure.Reason));
                 await Results.Json(new { error = failure.Reason }, statusCode: failure.Status).ExecuteAsync(http);

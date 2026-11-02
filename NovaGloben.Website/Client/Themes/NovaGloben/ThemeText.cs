@@ -25,6 +25,8 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
         public string OtherLanguageName { get; private init; }
         public string OtherLanguageCode { get; private init; }
         public string SwitchLanguageLabel { get; private init; }
+        public string NoAccount { get; private init; }
+        public string AskForAccount { get; private init; }
 
         public static readonly ThemeText English = new ThemeText
         {
@@ -44,7 +46,9 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             AllRightsReserved = "All rights reserved.",
             OtherLanguageName = "Svenska",
             OtherLanguageCode = "sv",
-            SwitchLanguageLabel = "Svenska - byt till svenska"
+            SwitchLanguageLabel = "Svenska - byt till svenska",
+            NoAccount = "No account?",
+            AskForAccount = "Ask for one"
         };
 
         public static readonly ThemeText Swedish = new ThemeText
@@ -65,7 +69,9 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
             AllRightsReserved = "Alla rättigheter förbehållna.",
             OtherLanguageName = "English",
             OtherLanguageCode = "en",
-            SwitchLanguageLabel = "English - switch to English"
+            SwitchLanguageLabel = "English - switch to English",
+            NoAccount = "Inget konto?",
+            AskForAccount = "Be om ett"
         };
 
         public static ThemeText For(string cultureCode)
