@@ -13,15 +13,26 @@
     <p>It is for software teams and companies who want AI agents, but on their own machines and under their own review.</p>
   </div>
 </section>
+<section class="ng-section ng-section-tight" aria-labelledby="deck-spec">
+  <div class="ng-container ng-narrow ng-prose">
+    <h2 id="deck-spec">Spec-driven development</h2>
+    <p>Fravashi is built for spec-driven development: work moves from a specification through a plan and a build to verification against test scenarios, and a person directs it and decides along the way. A work item and the wiki pages that specify it are linked, so an agent takes the work and the knowledge it needs from one place.</p>
+    <p>In Fravashi this is enforced, not a convention an agent may ignore. An agent can read, search and discuss at any time, but before it changes a file or runs a command, its session must be linked to a work item and a plan. If there is none, the studio refuses the change and tells the agent why, and the agent helps you write them; a typo costs one confirmed step, not a conversation. A file edit outside a declared scope or past a change budget is refused.</p>
+  </div>
+</section>
 <section class="ng-section ng-section-soft" aria-labelledby="deck-what">
   <div class="ng-container">
     <h2 id="deck-what" class="ng-section-head">What it does</h2>
     <ul class="ng-card-grid ng-card-list">
-      <li class="ng-card"><h3 class="ng-card-title">An agent session in the studio</h3><p class="ng-card-text">In a conversation, an AI coding agent works on an isolated copy of the repository. Its changes ask for a person's approval first, unless you trust edits for that folder; commands and anything outside the copy always ask.</p></li>
-      <li class="ng-card"><h3 class="ng-card-title">A second review</h3><p class="ng-card-text">By default, every commit an agent makes is reviewed by a second agent before a person is asked to approve it.</p></li>
-      <li class="ng-card"><h3 class="ng-card-title">Tracker and wiki</h3><p class="ng-card-text">A built-in tracker and wiki that connect to Azure DevOps Boards and Jira for work, and Confluence for documentation; changes go out when you send them, never silently.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">An agent session in the studio</h3><p class="ng-card-text">In a conversation, Claude Code works on a contained copy of the repository, and its changes sync back to your folder. Each Claude Code process starts from an allowlist of named variables, so the studio's bridge token, window token and integrity key do not reach it. It holds what it is given on purpose: a short-lived broker token instead of the key when your organisation's broker carries it, otherwise your own API key or sign-in token, plus any variables you added to the project, including secrets. Proxy settings are passed on as they are. It can ask you real questions, and file changes ask a person first, unless you trust edits for that folder (even then, an agent's edits to hidden files and to the repository's git configuration still ask); commands always ask, and so does any file outside the copy, apart from reading the session's own memory and tool results.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">A second review</h3><p class="ng-card-text">By default, every commit an agent makes is reviewed by a second agent before a person is asked to approve it. A failed review is refused; a review that gives no verdict still reaches the person, who is told.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">Tracker and wiki</h3><p class="ng-card-text">A built-in tracker and wiki, two views of one linked graph, that agents work through the studio's own tools and that connect to Azure DevOps Boards and Jira for work, and Confluence for documentation; changes go out when you send them, never silently.</p></li>
       <li class="ng-card"><h3 class="ng-card-title">Code and pull requests</h3><p class="ng-card-text">Git and pull requests on GitHub, Azure DevOps and Forgejo, with a code editor in the studio.</p></li>
       <li class="ng-card"><h3 class="ng-card-title">Autopilot</h3><p class="ng-card-text">Marked work items are built unattended, each in its own working copy, and the result is judged against the item. Routine approvals are decided by rules and a judge; the rest come to you.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">Scenarios and evidence</h3><p class="ng-card-text">A work item carries test scenarios: ordered steps, each a command the studio runs or a step a person checks. Running one records evidence on the item, and only all steps green is a pass. A step a person checks is recorded as not run, so a run with one ends as partial.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">Designs</h3><p class="ng-card-text">A design editor, with approval per work item.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">Several sessions at once</h3><p class="ng-card-text">Several agent sessions can run at once, but only one conversation edits a folder at a time. When an Autopilot run may use more than one session, each item gets its own git worktree; the limit you set counts sessions per repository.</p></li>
+      <li class="ng-card"><h3 class="ng-card-title">Import an existing project</h3><p class="ng-card-text">Fravashi surveys a folder you choose and proposes work items and wiki documents from it. Before the survey runs, it shows who receives what, which files, what is kept back and what it costs; afterwards you review what it found, answer what it could not tell, and import into the board and the wiki. Importing again brings in what is new and what changed, but leaves alone anything you have edited in Fravashi since.</p></li>
     </ul>
   </div>
 </section>

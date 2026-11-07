@@ -280,6 +280,7 @@ img, svg { max-width: 100%; height: auto; }
 .ng-band { padding-block: .5rem 1rem; }
 .ng-section-tail { padding-block: 1rem 5rem; }
 .ng-section-head { margin-bottom: 2.5rem; max-width: 46rem; }
+.ng-section-intro { max-width: 46rem; margin: -1.75rem 0 2.5rem; color: var(--db-text-2); }
 .ng-section-head p:last-child { margin-bottom: 0; }
 .ng-center { text-align: center; margin-inline: auto; }
 .ng-section-head.ng-center { margin-inline: auto; }
@@ -493,7 +494,6 @@ img, svg { max-width: 100%; height: auto; }
 }
 .ng-main .db-input:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 1px; border-color: var(--ng-focus); box-shadow: none; }
 .ng-main .db-btn { min-height: 2.75rem; padding: .625rem 1rem; font: inherit; font-weight: 600; border-radius: var(--db-radius-sm); }
-.ng-main .db-btn-neutral:hover { color: var(--db-text); } /* Stomme's .db-btn:hover would leave it white on a pale button */
 .ng-main .db-btn:focus-visible { outline: 3px solid var(--ng-focus); outline-offset: 2px; box-shadow: none; }
 .ng-main .db-btn-split, .ng-main .db-btn-block { margin-top: 1rem; }
 .ng-main .db-login-rule { margin: 1.25rem 0 .25rem; }

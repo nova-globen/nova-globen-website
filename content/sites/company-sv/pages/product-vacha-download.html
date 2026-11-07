@@ -3,27 +3,39 @@
   <div>
     <nav class="ng-breadcrumb" aria-label="Brödsmulor"><a href="/sv/products/vacha">Vacha</a></nav>
     <h1>Ladda ned Vacha</h1>
-    <p class="ng-lead">Version 1.1.3 för Windows (64-bitars), från GitHub eller Microsoft Store.</p>
-  </div>
-</section>
-<section class="ng-section ng-section-tight" aria-labelledby="vacha-github">
-  <div class="ng-container ng-narrow ng-prose">
-    <h2 id="vacha-github">Ladda ned installationsprogrammet</h2>
-    <p><a class="ng-btn ng-btn-primary" href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe">Ladda ned installationsprogrammet (94 MB)</a></p>
-    <p>Installationsprogrammet uppgraderar en Vacha eller Tond som du installerat själv tidigare, och behåller dess inställningar. Det är inte kodsignerat, så Windows kan varna innan det startar; versionen från Microsoft Store nedan är signerad.</p>
-    <ul>
-      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-win32-x64.zip">Portabel zip</a> (134 MB), som kan köras utan installation</li>
-      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/SHA256SUMS">SHA256SUMS</a>, SHA-256-kontrollsumman för varje fil</li>
-      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-sbom.cdx.json">Programvaruförteckning (SBOM)</a> (CycloneDX)</li>
-      <li><a href="https://github.com/nova-globen/vacha/releases/tag/v1.1.3">Versionsinformation för 1.1.3</a></li>
-    </ul>
+    <p class="ng-lead">Version 1.1.4 för Windows (64-bitars) från GitHub. Microsoft Store kan ligga en version efter medan Microsoft certifierar en ny.</p>
   </div>
 </section>
 <section class="ng-section ng-section-tight" aria-labelledby="vacha-store">
   <div class="ng-container ng-narrow ng-prose">
-    <h2 id="vacha-store">Eller hämta den från Microsoft Store</h2>
-    <p><a class="ng-btn ng-btn-outline" href="https://apps.microsoft.com/detail/9NSCM5WH4WF1">Hämta Vacha i Microsoft Store</a></p>
-    <p>Versionen från Store är signerad och uppdateras av Store. Den uppgraderar inte en Vacha eller Tond som du installerat själv: den installeras bredvid, med egna inställningar.</p>
+    <h2 id="vacha-store">Hämta den från Microsoft Store</h2>
+    <p><a class="ng-btn ng-btn-primary" href="https://apps.microsoft.com/detail/9NSCM5WH4WF1">Hämta Vacha i Microsoft Store</a></p>
+    <p>Versionen från Store är signerad och uppdateras av Store. Den uppgraderar inte en Vacha eller Tond som du installerat själv: den installeras bredvid och håller sedan sina inställningar för sig.</p>
+  </div>
+</section>
+<section class="ng-section ng-section-tight" aria-labelledby="vacha-commands">
+  <div class="ng-container ng-narrow ng-prose">
+    <h2 id="vacha-commands">Eller installera den med ett kommando</h2>
+    <p>Versionen från Store, med winget:</p>
+    <pre class="ng-code" tabindex="0"><code>winget install --id 9NSCM5WH4WF1 --source msstore</code></pre>
+    <p>Första gången ber winget dig godkänna Store-villkoren. Om du redan har installerat Vacha med installationsprogrammet nedan kan winget ange att den är installerad och inte ändra något. Använd i så fall länken till Store.</p>
+    <p>Installationsprogrammet från GitHub, i PowerShell. Det startar bara om nedladdningen stämmer med den publicerade kontrollsumman. Det laddar ned 94 MB och visar ingenting förrän det är klart:</p>
+    <pre class="ng-code" tabindex="0"><code>$ProgressPreference = 'SilentlyContinue'
+$base = "https://github.com/nova-globen/vacha/releases/latest/download"
+$setup = "$env:TEMP\vacha-setup-x64.exe"
+$sums = "$env:TEMP\vacha-SHA256SUMS"
+Invoke-WebRequest "$base/vacha-setup-x64.exe" -OutFile $setup
+Invoke-WebRequest "$base/SHA256SUMS" -OutFile $sums
+$expected = ((Select-String 'vacha-setup-x64.exe' $sums).Line -split '\s+')[0]
+if ((Get-FileHash $setup).Hash -eq $expected) { Start-Process $setup } else { Write-Error "Kontrollsumman stämmer inte. Kör inte den här filen." }</code></pre>
+    <p>Installationsprogrammet uppgraderar en Vacha eller Tond som du installerat själv tidigare, och behåller dess inställningar. Det är inte kodsignerat, så kommandot ovan förlitar sig på kontrollsumman. Om du i stället laddar ned filen i en webbläsare kan Windows varna innan den startar. Versionen från Store är signerad.</p>
+    <ul>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe">Installationsprogrammet som fil</a> (94 MB)</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-win32-x64.zip">Zip-filen</a> (134 MB) körs utan installation. Den sparar sina inställningar i din användarprofil och startar med Windows om du inte stänger av det.</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/SHA256SUMS">SHA256SUMS</a>, SHA-256-kontrollsumman för varje fil</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-sbom.cdx.json">Programvaruförteckning (SBOM)</a> (CycloneDX)</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/tag/v1.1.4">Versionsinformation för 1.1.4</a></li>
+    </ul>
   </div>
 </section>
 <section class="ng-section" aria-labelledby="vacha-terms">
