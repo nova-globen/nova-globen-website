@@ -9,7 +9,7 @@
   "settings": {
     "NovaGloben:CounterpartBase": "/",
     "NovaGloben:CtaPath": "contact",
-    "NovaGloben:ServicesPath": "services",
+    "NovaGloben:ServicesPath": "products",
     "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies",
     "OmitBlazorScriptOnStaticPages": "true"
   },
@@ -17,63 +17,15 @@
     {
       "path": "",
       "name": "Hem",
-      "title": "Nova Globen AB | Konsulttjänster och programvaruprodukter från Sverige",
-      "description": "Nova Globen AB planerar, bygger, kopplar ihop och underhåller affärsprogramvara, lägger till praktisk AI där den gör nytta och tar fram Stomme, Fravashi, Vacha och Didin.",
+      "title": "Nova Globen AB | Programvaruprodukter från Sverige",
+      "description": "Nova Globen AB bygger och säljer egna programvaruprodukter: Stomme, Fravashi, Vacha och Didin.",
       "navigation": true,
       "order": 1,
       "sections": [
         { "name": "home/hero", "content": "pages/home-hero.html" },
-        { "name": "home/services", "content": "pages/home-services.html" },
-        { "name": "home/process", "content": "pages/home-process.html" },
-        { "name": "home/why", "content": "pages/home-why.html" },
         { "name": "home/insights", "content": "pages/home-insights.html" },
         { "name": "home/contact", "content": "pages/home-contact.html" }
       ]
-    },
-    {
-      "path": "services",
-      "name": "Tjänster",
-      "title": "Tjänster | Nova Globen AB",
-      "description": "Lösningsarkitektur och implementation, modernisering och underhåll, integrationer och automatisering samt AI i verksamheten.",
-      "navigation": true,
-      "order": 2,
-      "sections": [ { "name": "services", "content": "pages/services.html" } ]
-    },
-    {
-      "path": "services/architecture",
-      "name": "Lösningsarkitektur och implementation",
-      "title": "Lösningsarkitektur och implementation | Nova Globen AB",
-      "description": "Vi designar och bygger affärsapplikationer på .NET och Microsoft Azure, från arkitekturen till programvara i drift.",
-      "navigation": true,
-      "order": 1,
-      "sections": [ { "name": "service", "content": "pages/service-architecture.html" } ]
-    },
-    {
-      "path": "services/modernization",
-      "name": "Modernisering och underhåll",
-      "title": "Modernisering och underhåll | Nova Globen AB",
-      "description": "Vi förbättrar äldre system, minskar teknisk skuld och håller affärsprogramvara i gott skick över tid.",
-      "navigation": true,
-      "order": 2,
-      "sections": [ { "name": "service", "content": "pages/service-modernization.html" } ]
-    },
-    {
-      "path": "services/integrations",
-      "name": "Integrationer och automatisering",
-      "title": "Integrationer och automatisering | Nova Globen AB",
-      "description": "Vi kopplar samman system, automatiserar arbetsflöden och bygger tillförlitligt datautbyte mellan plattformar.",
-      "navigation": true,
-      "order": 3,
-      "sections": [ { "name": "service", "content": "pages/service-integrations.html" } ]
-    },
-    {
-      "path": "services/ai",
-      "name": "AI i verksamheten",
-      "title": "AI i verksamheten | Nova Globen AB",
-      "description": "Vi hjälper team att ta till sig praktisk AI: LLM-funktioner, Retrieval-Augmented Generation och AI-agenter i programvaruleveransen.",
-      "navigation": true,
-      "order": 4,
-      "sections": [ { "name": "service", "content": "pages/service-ai.html" } ]
     },
     {
       "path": "products",
@@ -133,7 +85,7 @@
       "path": "products/vacha/download",
       "name": "Ladda ned Vacha",
       "title": "Ladda ned Vacha | Nova Globen AB",
-      "description": "Hämta Vacha 1.1.4 för Windows från GitHub, eller versionen i Microsoft Store: gratis, under GNU GPL.",
+      "description": "Hämta Vacha 1.2.0 för Windows från GitHub, eller versionen i Microsoft Store: gratis, under GNU GPL.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]
@@ -162,7 +114,7 @@
       "path": "about",
       "name": "Om oss",
       "title": "Om Nova Globen AB",
-      "description": "Nova Globen AB är ett konsultbolag inom programvaruutveckling med säte i Bromma, Sverige.",
+      "description": "Nova Globen AB bygger och säljer egna programvaruprodukter. Bolaget har sitt säte i Bromma, Sverige.",
       "navigation": true,
       "order": 5,
       "sections": [ { "name": "about", "content": "pages/about.html" } ]
@@ -171,7 +123,7 @@
       "path": "contact",
       "name": "Kontakt",
       "title": "Kontakt | Nova Globen AB",
-      "description": "Berätta vad du vill bygga, förbättra eller automatisera. Mejla info@nova-globen.se.",
+      "description": "Frågor om våra produkter, en licens eller support. Mejla info@nova-globen.se.",
       "navigation": true,
       "order": 6,
       "sections": [ { "name": "contact", "content": "pages/contact.html" }, { "name": "contact/form", "contact": "form" } ]
@@ -189,7 +141,7 @@
       "path": "terms",
       "name": "Villkor",
       "title": "Villkor | Nova Globen AB",
-      "description": "Villkoren för användning av denna webbplats och för Nova Globen AB:s tjänster.",
+      "description": "Villkoren för användning av denna webbplats och av Nova Globen AB:s produkter.",
       "navigation": false,
       "order": 11,
       "sections": [ { "name": "terms", "content": "pages/terms.html" } ]

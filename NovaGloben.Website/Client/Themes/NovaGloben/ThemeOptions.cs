@@ -12,7 +12,7 @@ namespace NovaGloben.Website.Client.Themes.NovaGloben
     /// <item><c>NovaGloben:Counterpart</c> (page): this page's counterpart URL when it is not the same path on the other
     /// site; <c>none</c> when it has none.</item>
     /// <item><c>NovaGloben:CtaPath</c>, <c>NovaGloben:CtaLabel</c>: the header button's page and wording.</item>
-    /// <item><c>NovaGloben:ServicesPath</c>: the page whose child pages the footer lists as services.</item>
+    /// <item><c>NovaGloben:ServicesPath</c>: the page whose child pages the footer lists (the sites set it to the products page).</item>
     /// <item><c>NovaGloben:FooterPaths</c>: comma-separated page paths for the footer's company column.</item>
     /// </list>
     /// </summary>

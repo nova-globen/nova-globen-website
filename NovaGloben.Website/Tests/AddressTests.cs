@@ -21,13 +21,20 @@ public class AddressTests
     [InlineData("/blog/index.html", "/blog")]
     [InlineData("/blog/versioning-rest-api/", "/blog/versioning-rest-api")]
     [InlineData("/blog/versioning-rest-api/index.html", "/blog/versioning-rest-api")]
-    [InlineData("/services/", "/services")]
-    [InlineData("/services/net-development", "/services/architecture")]
-    [InlineData("/services/azure-cloud/", "/services/architecture")]
-    [InlineData("/services/technical-consulting", "/services/architecture")]
-    [InlineData("/services/ai-rag", "/services/ai")]
-    [InlineData("/sv/services/ai-rag", "/sv/services/ai")]
-    [InlineData("/sv/services/net-development", "/sv/services/architecture")]
+    [InlineData("/services", "/products")]
+    [InlineData("/services/", "/products")]
+    [InlineData("/services/architecture", "/products")]
+    [InlineData("/services/modernization/", "/products")]
+    [InlineData("/services/integrations", "/products")]
+    [InlineData("/services/ai", "/products")]
+    [InlineData("/services/net-development", "/products")]
+    [InlineData("/services/azure-cloud/", "/products")]
+    [InlineData("/services/technical-consulting", "/products")]
+    [InlineData("/services/ai-rag", "/products")]
+    [InlineData("/sv/services", "/sv/products")]
+    [InlineData("/sv/services/ai", "/sv/products")]
+    [InlineData("/sv/services/ai-rag", "/sv/products")]
+    [InlineData("/sv/services/net-development", "/sv/products")]
     [InlineData("/core", "/products/stomme")]
     [InlineData("/deck", "/products/fravashi")]
     [InlineData("/sv/core", "/sv/products/stomme")]
@@ -53,17 +60,17 @@ public class AddressTests
     [InlineData("/blog")]
     [InlineData("/blog/versioning-rest-api")]
     [InlineData("/blog/versioning-rest-api/cover.png")]
-    [InlineData("/sv/services")]
+    [InlineData("/sv/products")]
     [InlineData("/products/stomme")]
     [InlineData("/sv/products/vacha/download")]
     public void A_current_address_is_left_alone(string path) => Assert.Null(LegacyUrls.Target(path, Folders));
 
     [Theory]
     [InlineData("/sv/", "", "", "/sv/")]
-    [InlineData("/sv/", "", "services", "/sv/services")]
-    [InlineData("/", "", "services/ai", "/services/ai")]
+    [InlineData("/sv/", "", "products", "/sv/products")]
+    [InlineData("/", "", "products/vacha", "/products/vacha")]
     [InlineData("/sv/", "none", "blog", null)]
-    [InlineData("", "", "services", null)]
+    [InlineData("", "", "products", null)]
     public void The_language_link_points_at_the_counterpart(string counterpartBase, string counterpart, string pagePath, string? expected)
     {
         var options = ThemeOptions.From(key => key switch
@@ -93,10 +100,11 @@ public class AddressTests
         Assert.DoesNotContain("https://example.test/sv/insights", locs);
         Assert.Equal(locs.Count, locs.Distinct().Count());
 
-        var services = urls.Single(u => u.Element(ns + "loc")!.Value == "https://example.test/services");
-        var alternates = services.Elements(xhtml + "link").ToDictionary(l => l.Attribute("hreflang")!.Value, l => l.Attribute("href")!.Value);
-        Assert.Equal("https://example.test/sv/services", alternates["sv"]);
-        Assert.Equal("https://example.test/services", alternates["x-default"]);
+        Assert.DoesNotContain(locs, l => l.Contains("/services"));
+        var products = urls.Single(u => u.Element(ns + "loc")!.Value == "https://example.test/products");
+        var alternates = products.Elements(xhtml + "link").ToDictionary(l => l.Attribute("hreflang")!.Value, l => l.Attribute("href")!.Value);
+        Assert.Equal("https://example.test/sv/products", alternates["sv"]);
+        Assert.Equal("https://example.test/products", alternates["x-default"]);
     }
 
     [Fact]

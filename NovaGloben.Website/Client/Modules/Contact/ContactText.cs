@@ -43,10 +43,6 @@ namespace NovaGloben.Website.Client.Modules.Contact
             HoneypotLabel = "Leave this field empty",
             Topics = new Dictionary<string, string>
             {
-                ["architecture"] = "Solution architecture and implementation",
-                ["modernization"] = "Modernization and maintenance",
-                ["integrations"] = "Integrations and automation",
-                ["ai"] = "AI enablement",
                 ["stomme"] = "Stomme",
                 ["fravashi"] = "Fravashi",
                 ["vacha"] = "Vacha: a question or an issue",
@@ -82,10 +78,6 @@ namespace NovaGloben.Website.Client.Modules.Contact
             HoneypotLabel = "Lämna det här fältet tomt",
             Topics = new Dictionary<string, string>
             {
-                ["architecture"] = "Lösningsarkitektur och implementation",
-                ["modernization"] = "Modernisering och underhåll",
-                ["integrations"] = "Integrationer och automatisering",
-                ["ai"] = "AI i verksamheten",
                 ["stomme"] = "Stomme",
                 ["fravashi"] = "Fravashi",
                 ["vacha"] = "Vacha: en fråga eller ett problem",

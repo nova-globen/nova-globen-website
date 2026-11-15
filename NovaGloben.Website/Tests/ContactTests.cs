@@ -24,12 +24,12 @@ public class ContactTests
     [Fact]
     public void A_complete_message_is_accepted()
     {
-        var (message, invalid) = ContactMessage.Read(Form(company: "Analytical Engines", topic: "ai"), "en");
+        var (message, invalid) = ContactMessage.Read(Form(company: "Analytical Engines", topic: "stomme"), "en");
 
         Assert.Empty(invalid);
         Assert.NotNull(message);
         Assert.Equal("Analytical Engines", message!.Company);
-        Assert.Equal("ai", message.Topic);
+        Assert.Equal("stomme", message.Topic);
     }
 
     [Theory]

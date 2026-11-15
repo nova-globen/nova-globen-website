@@ -3,7 +3,7 @@
   <div>
     <nav class="ng-breadcrumb" aria-label="Breadcrumb"><a href="/products/vacha">Vacha</a></nav>
     <h1>Download Vacha</h1>
-    <p class="ng-lead">Version 1.1.4 for Windows (64-bit) from GitHub. The Microsoft Store can be a version behind while Microsoft certifies a new one.</p>
+    <p class="ng-lead">Version 1.2.0 for Windows (64-bit) from GitHub. The Microsoft Store can be a version behind while Microsoft certifies a new one.</p>
   </div>
 </section>
 <section class="ng-section ng-section-tight" aria-labelledby="vacha-store">
@@ -19,7 +19,7 @@
     <p>The Store version, with winget:</p>
     <pre class="ng-code" tabindex="0"><code>winget install --id 9NSCM5WH4WF1 --source msstore</code></pre>
     <p>winget asks you to accept the Store's terms the first time. If you already installed Vacha with the installer below, winget can report it as installed and change nothing. If it does, use the Store link instead.</p>
-    <p>The installer from GitHub, in PowerShell. It starts only if the download matches its published checksum. It downloads 94 MB and shows nothing until it has finished:</p>
+    <p>The installer from GitHub, in PowerShell. It starts only if the download matches its published checksum. It downloads 95 MB and shows nothing until it has finished:</p>
     <pre class="ng-code" tabindex="0"><code>$ProgressPreference = 'SilentlyContinue'
 $base = "https://github.com/nova-globen/vacha/releases/latest/download"
 $setup = "$env:TEMP\vacha-setup-x64.exe"
@@ -30,11 +30,11 @@ $expected = ((Select-String 'vacha-setup-x64.exe' $sums).Line -split '\s+')[0]
 if ((Get-FileHash $setup).Hash -eq $expected) { Start-Process $setup } else { Write-Error "The checksum does not match. Do not run this file." }</code></pre>
     <p>The installer upgrades a Vacha or Tond you installed yourself before, and keeps its settings. It is not code-signed, so the command above relies on the checksum check. If you download the file in a browser instead, Windows may warn you before it runs. The Store version is signed.</p>
     <ul>
-      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe">The installer as a file</a> (94 MB)</li>
-      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-win32-x64.zip">The zip</a> (134 MB) runs without installing. It keeps its settings in your user profile and starts with Windows unless you turn that off.</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-setup-x64.exe">The installer as a file</a> (95 MB)</li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-win32-x64.zip">The zip</a> (135 MB) runs without installing. It keeps its settings in your user profile and starts with Windows unless you turn that off.</li>
       <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/SHA256SUMS">SHA256SUMS</a>, the SHA-256 checksum of each download</li>
       <li><a href="https://github.com/nova-globen/vacha/releases/latest/download/vacha-sbom.cdx.json">Software bill of materials</a> (CycloneDX)</li>
-      <li><a href="https://github.com/nova-globen/vacha/releases/tag/v1.1.4">Release notes for 1.1.4</a></li>
+      <li><a href="https://github.com/nova-globen/vacha/releases/tag/v1.2.0">Release notes for 1.2.0</a></li>
     </ul>
   </div>
 </section>

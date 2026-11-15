@@ -28,15 +28,22 @@ namespace NovaGloben.Website.Sites
         };
 
         /// <summary>
-        /// Pages that moved on this site: the service pages folded into others when the six services became four, and the product pages when they moved under /products. A link to one lands where it lives now,
-        /// under a language folder too.
+        /// Pages that moved or went on this site: the service pages, all of which now land on the products page, and the product pages when they moved under /products.
+        /// A link to one lands where it lives now, under a language folder too.
         /// </summary>
         private static readonly Dictionary<string, string> Moved = new(StringComparer.OrdinalIgnoreCase)
         {
-            ["/services/net-development"] = "/services/architecture",
-            ["/services/azure-cloud"] = "/services/architecture",
-            ["/services/technical-consulting"] = "/services/architecture",
-            ["/services/ai-rag"] = "/services/ai",
+            // The site is focused on the company's products: the service pages are gone, so each of their addresses, the
+            // earlier ones included, lands on the products page.
+            ["/services"] = "/products",
+            ["/services/architecture"] = "/products",
+            ["/services/modernization"] = "/products",
+            ["/services/integrations"] = "/products",
+            ["/services/ai"] = "/products",
+            ["/services/net-development"] = "/products",
+            ["/services/azure-cloud"] = "/products",
+            ["/services/technical-consulting"] = "/products",
+            ["/services/ai-rag"] = "/products",
             // The product pages moved under /products when the products took their present names:
             // /core was Stomme's page, /deck Fravashi's, and /tond Vacha's under its earlier name. /core, /deck, /vacha and
             // /tond are reserved root-site redirect prefixes. A product's own addresses (issues, licence, privacy, releases.json) under the old

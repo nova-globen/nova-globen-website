@@ -9,7 +9,7 @@
   "settings": {
     "NovaGloben:CounterpartBase": "/sv/",
     "NovaGloben:CtaPath": "contact",
-    "NovaGloben:ServicesPath": "services",
+    "NovaGloben:ServicesPath": "products",
     "NovaGloben:FooterPaths": "about,contact,privacy,terms,cookies",
     "OmitBlazorScriptOnStaticPages": "true"
   },
@@ -17,65 +17,17 @@
     {
       "path": "",
       "name": "Home",
-      "title": "Nova Globen AB | Software consulting and products from Sweden",
-      "description": "Nova Globen AB plans, builds, connects and maintains business software, adds practical AI where it helps, and makes four products: Stomme, Fravashi, Vacha and Didin.",
+      "title": "Nova Globen AB | Software products from Sweden",
+      "description": "Nova Globen AB builds and sells its own software products: Stomme, Fravashi, Vacha and Didin.",
       "navigation": true,
       "order": 1,
       "sections": [
         { "name": "home/hero", "content": "pages/home-hero.html" },
-        { "name": "home/services", "content": "pages/home-services.html" },
-        { "name": "home/process", "content": "pages/home-process.html" },
-        { "name": "home/why", "content": "pages/home-why.html" },
         { "name": "home/insights", "content": "pages/home-insights.html" },
         { "name": "home/insights-latest", "articles": "latest", "count": 3 },
         { "name": "home/insights-more", "content": "pages/home-insights-more.html" },
         { "name": "home/contact", "content": "pages/home-contact.html" }
       ]
-    },
-    {
-      "path": "services",
-      "name": "Services",
-      "title": "Services | Nova Globen AB",
-      "description": "Solution architecture and implementation, modernization and maintenance, integrations and automation, and AI enablement.",
-      "navigation": true,
-      "order": 2,
-      "sections": [ { "name": "services", "content": "pages/services.html" } ]
-    },
-    {
-      "path": "services/architecture",
-      "name": "Solution architecture and implementation",
-      "title": "Solution architecture and implementation | Nova Globen AB",
-      "description": "We design and build business applications on .NET and Microsoft Azure, from the architecture to software that runs in production.",
-      "navigation": true,
-      "order": 1,
-      "sections": [ { "name": "service", "content": "pages/service-architecture.html" } ]
-    },
-    {
-      "path": "services/modernization",
-      "name": "Modernization and maintenance",
-      "title": "Modernization and maintenance | Nova Globen AB",
-      "description": "We improve legacy systems, reduce technical debt, and keep business software running well over time.",
-      "navigation": true,
-      "order": 2,
-      "sections": [ { "name": "service", "content": "pages/service-modernization.html" } ]
-    },
-    {
-      "path": "services/integrations",
-      "name": "Integrations and automation",
-      "title": "Integrations and automation | Nova Globen AB",
-      "description": "We connect systems, automate workflows, and build reliable data exchange between platforms.",
-      "navigation": true,
-      "order": 3,
-      "sections": [ { "name": "service", "content": "pages/service-integrations.html" } ]
-    },
-    {
-      "path": "services/ai",
-      "name": "AI enablement",
-      "title": "AI enablement | Nova Globen AB",
-      "description": "We help teams adopt practical AI: LLM-assisted features, Retrieval-Augmented Generation, and AI agents in software delivery.",
-      "navigation": true,
-      "order": 4,
-      "sections": [ { "name": "service", "content": "pages/service-ai.html" } ]
     },
     {
       "path": "products",
@@ -135,7 +87,7 @@
       "path": "products/vacha/download",
       "name": "Download Vacha",
       "title": "Download Vacha | Nova Globen AB",
-      "description": "Get Vacha 1.1.4 for Windows from GitHub, or the version in the Microsoft Store: free, under the GNU GPL.",
+      "description": "Get Vacha 1.2.0 for Windows from GitHub, or the version in the Microsoft Store: free, under the GNU GPL.",
       "navigation": false,
       "order": 1,
       "sections": [ { "name": "product", "content": "pages/product-vacha-download.html" } ]
@@ -166,7 +118,7 @@
       "path": "about",
       "name": "About",
       "title": "About Nova Globen AB",
-      "description": "Nova Globen AB is a software consulting company based in Bromma, Sweden.",
+      "description": "Nova Globen AB builds and sells its own software products. It is based in Bromma, Sweden.",
       "navigation": true,
       "order": 5,
       "sections": [ { "name": "about", "content": "pages/about.html" } ]
@@ -175,7 +127,7 @@
       "path": "contact",
       "name": "Contact",
       "title": "Contact | Nova Globen AB",
-      "description": "Tell us what you want to build, improve or automate. Email info@nova-globen.se.",
+      "description": "Questions about our products, a licence or support. Email info@nova-globen.se.",
       "navigation": true,
       "order": 6,
       "sections": [ { "name": "contact", "content": "pages/contact.html" }, { "name": "contact/form", "contact": "form" } ]
@@ -193,7 +145,7 @@
       "path": "terms",
       "name": "Terms",
       "title": "Terms of service | Nova Globen AB",
-      "description": "The terms that apply to the use of this website and to Nova Globen AB's services.",
+      "description": "The terms that apply to the use of this website and of Nova Globen AB's products.",
       "navigation": false,
       "order": 11,
       "sections": [ { "name": "terms", "content": "pages/terms.html" } ]
